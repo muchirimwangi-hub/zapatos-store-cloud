@@ -64,9 +64,8 @@ export default function CheckoutPage() {
   })
 
   const subtotal = getTotal()
-  const shipping = subtotal > 50000 ? 0 : 2000
   const tax = subtotal * 0.075 // 7.5% VAT
-  const total = subtotal + shipping + tax
+  const total = subtotal + tax
 
   const handleInputChange = (
     section: 'shipping' | 'billing',
@@ -97,7 +96,7 @@ export default function CheckoutPage() {
           amount: total,
           currency: 'NGN',
           subtotal,
-          shipping,
+          shipping: 0,
           tax,
           shippingAddress: formData.shipping,
           items: items.map(i => ({ id: i.product.id, name: i.product.name, qty: i.quantity, price: i.product.price })),
@@ -204,7 +203,7 @@ export default function CheckoutPage() {
                       type="tel"
                       value={formData.shipping.phone}
                       onChange={(e) => handleInputChange('shipping', 'phone', e.target.value)}
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+234 800 000 0000"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -213,7 +212,7 @@ export default function CheckoutPage() {
                       required
                       value={formData.shipping.addressLine1}
                       onChange={(e) => handleInputChange('shipping', 'addressLine1', e.target.value)}
-                      placeholder="123 Main Street"
+                      placeholder="12 Allen Avenue"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -221,7 +220,7 @@ export default function CheckoutPage() {
                     <Input
                       value={formData.shipping.addressLine2}
                       onChange={(e) => handleInputChange('shipping', 'addressLine2', e.target.value)}
-                      placeholder="Apt 4B (optional)"
+                      placeholder="Flat/Suite (optional)"
                     />
                   </div>
                   <LocationSelect
@@ -281,7 +280,7 @@ export default function CheckoutPage() {
                         required
                         value={formData.billing.addressLine1}
                         onChange={(e) => handleInputChange('billing', 'addressLine1', e.target.value)}
-                        placeholder="123 Main Street"
+                        placeholder="12 Allen Avenue"
                       />
                     </div>
                     <LocationSelect
@@ -364,10 +363,6 @@ export default function CheckoutPage() {
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-allure-charcoal/70">Shipping</span>
-                    <span>{shipping === 0 ? 'FREE' : formatCurrency(shipping)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
                     <span className="text-allure-charcoal/70">Tax</span>
                     <span>{formatCurrency(tax)}</span>
                   </div>
@@ -379,12 +374,6 @@ export default function CheckoutPage() {
                   <span>{formatCurrency(total)}</span>
                 </div>
 
-                {/* Free Shipping Notice */}
-                {/* {shipping > 0 && (
-                  <p className="text-xs text-allure-charcoal/60 mb-6 text-center">
-                    Add {formatCurrency(50000 - subtotal)} more for free shipping
-                  </p>
-                )} */}
 
                 {/* Place Order Button */}
                 <Button

@@ -167,7 +167,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </p>
 
                 {/* Checkout Button */}
-                <Button size="lg" className="w-full text-base" asChild>
+                <Button size="lg" className="w-full text-base" onClick={onClose} asChild>
                   <Link href="/checkout">
                     Proceed to Checkout
                     <ArrowRight className="ml-2 h-5 w-5" />

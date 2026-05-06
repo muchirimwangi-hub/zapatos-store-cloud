@@ -3,6 +3,13 @@
 import { useState, useEffect, useMemo } from "react"
 import { Country, State, City } from "country-state-city"
 
+// Override cities for specific states where the package data is incomplete
+const cityOverrides: Record<string, Record<string, string[]>> = {
+  NG: {
+    FC: ["Abaji", "Abuja Municipal (AMAC)", "Bwari", "Gwagwalada", "Kuje", "Kwali"],
+  },
+}
+
 interface LocationSelectProps {
   countryValue: string
   stateValue: string
@@ -29,10 +36,15 @@ export function LocationSelect({
     [countryValue]
   )
 
-  const cities = useMemo(
-    () => (countryValue && stateValue ? City.getCitiesOfState(countryValue, stateValue) : []),
-    [countryValue, stateValue]
-  )
+  const cities = useMemo(() => {
+    if (!countryValue || !stateValue) return []
+    // Check for custom overrides first
+    const override = cityOverrides[countryValue]?.[stateValue]
+    if (override) {
+      return override.map((name) => ({ name, country: countryValue, state: stateValue }))
+    }
+    return City.getCitiesOfState(countryValue, stateValue)
+  }, [countryValue, stateValue])
 
   // Reset state and city when country changes
   const handleCountryChange = (code: string) => {

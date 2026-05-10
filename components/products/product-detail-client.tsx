@@ -79,7 +79,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       <div className="container mx-auto px-6 lg:px-12 py-8">
         <Link 
           href="/shop" 
-          className="inline-flex items-center text-sm text-allure-charcoal/70 hover:text-allure-gold transition-colors"
+          className="inline-flex items-center text-sm text-zapatos-charcoal/70 hover:text-zapatos-gold transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Shop
@@ -96,7 +96,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             transition={{ duration: 0.6 }}
           >
             {/* Main Image */}
-            <div className="aspect-[3/4] luxury-border overflow-hidden mb-4 bg-allure-cream/50">
+            <div className="aspect-[3/4] luxury-border overflow-hidden mb-4 bg-zapatos-cream/50">
               <motion.div
                 key={selectedImage}
                 initial={{ opacity: 0 }}
@@ -116,7 +116,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                     onClick={() => setSelectedImage(index)}
                     className={`aspect-square luxury-border overflow-hidden transition-all ${
                       selectedImage === index 
-                        ? 'ring-2 ring-allure-gold' 
+                        ? 'ring-2 ring-zapatos-gold' 
                         : 'opacity-60 hover:opacity-100'
                     }`}
                   >
@@ -132,7 +132,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             {/* Featured Badge */}
             {product.is_featured && (
               <div className="mt-6 inline-block">
-                <span className="bg-allure-gold text-white text-xs uppercase tracking-widest px-3 py-2">
+                <span className="bg-zapatos-gold text-white text-xs uppercase tracking-widest px-3 py-2">
                   Featured Product
                 </span>
               </div>
@@ -148,7 +148,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           >
             {/* Brand */}
             {product.brand && (
-              <p className="text-sm uppercase tracking-[0.3em] text-allure-gold">
+              <p className="text-sm uppercase tracking-[0.3em] text-zapatos-gold">
                 {product.brand}
               </p>
             )}
@@ -160,18 +160,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
             {/* Short Description */}
             {product.short_description && (
-              <p className="text-lg text-allure-charcoal/80 editorial-spacing">
+              <p className="text-lg text-zapatos-charcoal/80 editorial-spacing">
                 {product.short_description}
               </p>
             )}
 
             {/* Price */}
-            <div className="flex items-center gap-4 py-4 border-y border-allure-taupe/30">
+            <div className="flex items-center gap-4 py-4 border-y border-zapatos-taupe/30">
               <span className="text-3xl font-medium">
                 {formatCurrency(product.price)}
               </span>
               {product.compare_at_price && product.compare_at_price > product.price && (
-                <span className="text-xl text-allure-charcoal/50 line-through">
+                <span className="text-xl text-zapatos-charcoal/50 line-through">
                   {formatCurrency(product.compare_at_price)}
                 </span>
               )}
@@ -181,12 +181,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             <div className="flex gap-6 text-sm">
               {product.volume && (
                 <div>
-                  <span className="text-allure-charcoal/60">Volume:</span>{' '}
+                  <span className="text-zapatos-charcoal/60">Volume:</span>{' '}
                   <span className="font-medium">{product.volume}</span>
                 </div>
               )}
               <div>
-                <span className="text-allure-charcoal/60">Category:</span>{' '}
+                <span className="text-zapatos-charcoal/60">Category:</span>{' '}
                 <span className="font-medium capitalize">{product.category}</span>
               </div>
             </div>
@@ -194,12 +194,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             {/* Personality Tags */}
             {product.personality_tags && product.personality_tags.length > 0 && (
               <div>
-                <p className="text-sm text-allure-charcoal/60 mb-2">Characteristics:</p>
+                <p className="text-sm text-zapatos-charcoal/60 mb-2">Characteristics:</p>
                 <div className="flex flex-wrap gap-2">
                   {product.personality_tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-sm px-3 py-1 bg-allure-taupe/30 text-allure-charcoal rounded-sm capitalize"
+                      className="text-sm px-3 py-1 bg-zapatos-taupe/30 text-zapatos-charcoal rounded-sm capitalize"
                     >
                       {tag}
                     </span>
@@ -210,13 +210,13 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
             {/* Quantity Selector */}
             <div className="space-y-4">
-              <p className="text-sm text-allure-charcoal/60">Quantity:</p>
+              <p className="text-sm text-zapatos-charcoal/60">Quantity:</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center luxury-border">
                   <button
                     onClick={decrementQuantity}
                     disabled={quantity <= 1}
-                    className="p-3 hover:bg-allure-taupe/10 transition-colors disabled:opacity-30"
+                    className="p-3 hover:bg-zapatos-taupe/10 transition-colors disabled:opacity-30"
                   >
                     <Minus className="h-4 w-4" />
                   </button>
@@ -224,12 +224,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   <button
                     onClick={incrementQuantity}
                     disabled={quantity >= product.stock_quantity}
-                    className="p-3 hover:bg-allure-taupe/10 transition-colors disabled:opacity-30"
+                    className="p-3 hover:bg-zapatos-taupe/10 transition-colors disabled:opacity-30"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
-                <span className="text-sm text-allure-charcoal/60">
+                <span className="text-sm text-zapatos-charcoal/60">
                   {product.stock_quantity} available
                 </span>
               </div>
@@ -258,7 +258,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
             {/* SKU */}
             {product.sku && (
-              <p className="text-xs text-allure-charcoal/50 pt-4">
+              <p className="text-xs text-zapatos-charcoal/50 pt-4">
                 SKU: {product.sku}
               </p>
             )}
@@ -277,7 +277,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {product.description && (
             <div className="max-w-3xl">
               <h2 className="text-2xl font-serif mb-4">Description</h2>
-              <p className="text-allure-charcoal/80 editorial-spacing leading-relaxed">
+              <p className="text-zapatos-charcoal/80 editorial-spacing leading-relaxed">
                 {product.description}
               </p>
             </div>
@@ -289,7 +289,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <h2 className="text-2xl font-serif mb-4">Notes</h2>
               <div className="space-y-2">
                 {product.notes.map((note, index) => (
-                  <p key={index} className="text-allure-charcoal/80 editorial-spacing">
+                  <p key={index} className="text-zapatos-charcoal/80 editorial-spacing">
                     • {note}
                   </p>
                 ))}
@@ -301,7 +301,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {product.ingredients && product.ingredients.length > 0 && (
             <div className="max-w-3xl">
               <h2 className="text-2xl font-serif mb-4">Ingredients</h2>
-              <p className="text-sm text-allure-charcoal/70 editorial-spacing">
+              <p className="text-sm text-zapatos-charcoal/70 editorial-spacing">
                 {product.ingredients.join(', ')}
               </p>
             </div>

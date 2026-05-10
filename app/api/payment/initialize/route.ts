@@ -39,13 +39,13 @@ export async function POST(request: NextRequest) {
         phone_number: phone,
       },
       customizations: {
-        title: 'Allure Beauty Atelier',
+        title: 'Zapatos',
         description: `Order ${tx_ref}`,
       },
       redirect_url: `${flutterwaveConfig.appUrl}/orders/confirmation?tx_ref=${tx_ref}`,
       meta: {
         items,
-        source: 'allure-beauty-atelier',
+        source: 'zapatos-beauty-atelier',
       },
     })
 

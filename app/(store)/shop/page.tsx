@@ -77,13 +77,13 @@ export default function ShopPage() {
   return (
     <div className="min-h-screen">
       {/* Header with Search */}
-      <section className="py-20 bg-allure-taupe/10">
+      <section className="py-20 bg-zapatos-taupe/10">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-serif font-light mb-6">
               Our Collection
             </h1>
-            <p className="text-lg text-allure-charcoal/80 editorial-spacing max-w-2xl mx-auto mb-8">
+            <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto mb-8">
               Explore our carefully curated selection of luxury-inspired fragrances 
               and body care essentials.
             </p>
@@ -102,9 +102,9 @@ export default function ShopPage() {
                 {searchQuery && (
                   <button
                     onClick={clearSearch}
-                    className="absolute right-2 top-1/2 p-1 hover:bg-allure-taupe/20 rounded-full transition-colors"
+                    className="absolute right-2 top-1/2 p-1 hover:bg-zapatos-taupe/20 rounded-full transition-colors"
                   >
-                    <X className="h-4 w-4 text-allure-charcoal/50" />
+                    <X className="h-4 w-4 text-zapatos-charcoal/50" />
                   </button>
                 )}
               </div>
@@ -118,14 +118,14 @@ export default function ShopPage() {
         {filteredProducts.length === 0 ? (
           <div className="text-center py-20">
             <h2 className="text-2xl font-serif mb-4">No products found</h2>
-            <p className="text-allure-charcoal/70 editorial-spacing">
+            <p className="text-zapatos-charcoal/70 editorial-spacing">
               Try adjusting your search terms or browse our categories below.
             </p>
           </div>
         ) : (
           <>
             {searchQuery && (
-              <p className="text-center text-allure-charcoal/70 mb-8">
+              <p className="text-center text-zapatos-charcoal/70 mb-8">
                 Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} for "{searchQuery}"
               </p>
             )}

@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-allure-obsidian flex items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-zapatos-obsidian flex items-center justify-center px-6 relative overflow-hidden">
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -86,14 +86,14 @@ export default function AdminLoginPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-allure-gold/30 mb-6"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-zapatos-gold/30 mb-6"
           >
-            <Shield className="h-7 w-7 text-allure-gold" />
+            <Shield className="h-7 w-7 text-zapatos-gold" />
           </motion.div>
-          <h1 className="text-3xl font-serif font-light tracking-wider text-allure-cream mb-2">
-            ALLURE ADMIN
+          <h1 className="text-3xl font-serif font-light tracking-wider text-zapatos-cream mb-2">
+            ZAPATOS HQ
           </h1>
-          <p className="text-sm uppercase tracking-[0.3em] text-allure-cream/40">
+          <p className="text-sm uppercase tracking-[0.3em] text-zapatos-cream/40">
             {step === "code" ? "Enter access code" : "Admin credentials"}
           </p>
         </div>
@@ -118,18 +118,18 @@ export default function AdminLoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-[0.15em] text-allure-cream/50">
+              <label className="text-xs uppercase tracking-[0.15em] text-zapatos-cream/50">
                 Access Code
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-allure-cream/30" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zapatos-cream/30" />
                 <Input
                   type="password"
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value)}
                   placeholder="Enter admin access code"
                   required
-                  className="pl-12 bg-allure-cream/5 border-allure-cream/20 text-allure-cream placeholder:text-allure-cream/25 focus-visible:ring-allure-gold/50"
+                  className="pl-12 bg-zapatos-cream/5 border-zapatos-cream/20 text-zapatos-cream placeholder:text-zapatos-cream/25 focus-visible:ring-zapatos-gold/50"
                 />
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function AdminLoginPage() {
             className="space-y-6"
           >
             {/* Success badge */}
-            <div className="p-3 bg-allure-gold/10 border border-allure-gold/30 text-allure-gold text-sm rounded-sm text-center">
+            <div className="p-3 bg-zapatos-gold/10 border border-zapatos-gold/30 text-zapatos-gold text-sm rounded-sm text-center">
               Access verified. Sign in with your admin account.
             </div>
 
@@ -170,22 +170,22 @@ export default function AdminLoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-[0.15em] text-allure-cream/50">
+              <label className="text-xs uppercase tracking-[0.15em] text-zapatos-cream/50">
                 Admin Email
               </label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@allurebeautyatelier.com"
+                placeholder="admin@Zapatosbeautyatelier.com"
                 required
                 autoComplete="email"
-                className="bg-allure-cream/5 border-allure-cream/20 text-allure-cream placeholder:text-allure-cream/25 focus-visible:ring-allure-gold/50"
+                className="bg-zapatos-cream/5 border-zapatos-cream/20 text-zapatos-cream placeholder:text-zapatos-cream/25 focus-visible:ring-zapatos-gold/50"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-[0.15em] text-allure-cream/50">
+              <label className="text-xs uppercase tracking-[0.15em] text-zapatos-cream/50">
                 Password
               </label>
               <div className="relative">
@@ -196,12 +196,12 @@ export default function AdminLoginPage() {
                   placeholder="Enter your password"
                   required
                   autoComplete="current-password"
-                  className="bg-allure-cream/5 border-allure-cream/20 text-allure-cream placeholder:text-allure-cream/25 focus-visible:ring-allure-gold/50"
+                  className="bg-zapatos-cream/5 border-zapatos-cream/20 text-zapatos-cream placeholder:text-zapatos-cream/25 focus-visible:ring-zapatos-gold/50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-allure-cream/30 hover:text-allure-cream/60 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zapatos-cream/30 hover:text-zapatos-cream/60 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -224,7 +224,7 @@ export default function AdminLoginPage() {
         <div className="mt-10 text-center">
           <Link
             href="/"
-            className="text-sm text-allure-cream/30 hover:text-allure-cream/60 transition-colors"
+            className="text-sm text-zapatos-cream/30 hover:text-zapatos-cream/60 transition-colors"
           >
             ← Back to store
           </Link>

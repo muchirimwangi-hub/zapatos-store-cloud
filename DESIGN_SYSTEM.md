@@ -1,16 +1,16 @@
-# Allure Beauty Atelier - Design System Reference
+# Zapatos - Design System Reference
 
 ## 🎨 Color System
 
 ### Primary Palette
 
 ```
-Allure Cream      #FAF7F2    Background, light surfaces
-Allure Taupe      #D4C7BA    Borders, secondary elements
-Allure Terracotta #C9A689    Accents, highlights
-Allure Obsidian   #1A1A1A    Primary text, dark UI
-Allure Charcoal   #2D2D2D    Secondary text
-Allure Gold       #B8936D    CTAs, premium touches
+Zapatos Cream      #FAF7F2    Background, light surfaces
+Zapatos Taupe      #D4C7BA    Borders, secondary elements
+Zapatos Terracotta #C9A689    Accents, highlights
+Zapatos Obsidian   #1A1A1A    Primary text, dark UI
+Zapatos Charcoal   #2D2D2D    Secondary text
+Zapatos Gold       #B8936D    CTAs, premium touches
 ```
 
 ### Usage Guidelines
@@ -77,7 +77,7 @@ weights: variable
 
 ```tsx
 // Primary CTA
-<Button size="lg" className="bg-allure-obsidian text-allure-cream">
+<Button size="lg" className="bg-zapatos-obsidian text-zapatos-cream">
   Explore Collection
 </Button>
 
@@ -100,7 +100,7 @@ weights: variable
   <div className="aspect-[3/4] bg-cover" />
   <div className="p-6">
     <h3 className="font-serif text-2xl mb-2">Product Name</h3>
-    <p className="text-sm text-allure-charcoal/70 editorial-spacing">
+    <p className="text-sm text-zapatos-charcoal/70 editorial-spacing">
       Description
     </p>
   </div>
@@ -148,7 +148,7 @@ weights: variable
 }
 
 /* Text color change */
-.hover:text-allure-gold {
+.hover:text-zapatos-gold {
   transition: color 0.3s ease;
 }
 ```
@@ -200,7 +200,7 @@ className="mb-4"         → 16px bottom margin
 />
 
 // With overlay gradient
-<div className="absolute inset-0 bg-gradient-to-t from-allure-obsidian/60 to-transparent" />
+<div className="absolute inset-0 bg-gradient-to-t from-zapatos-obsidian/60 to-transparent" />
 ```
 
 ---
@@ -338,7 +338,7 @@ className="text-4xl md:text-5xl lg:text-7xl"  → Desktop: 72px
 
 ```css
 .editorial-spacing  → tracking-wide + leading-relaxed
-.luxury-border      → border + border-allure-taupe/30
+.luxury-border      → border + border-zapatos-taupe/30
 .glass-effect       → backdrop-blur + bg-white/60
 .text-balance       → text-wrap: balance (for headings)
 ```
@@ -350,13 +350,13 @@ className="text-4xl md:text-5xl lg:text-7xl"  → Desktop: 72px
 className="text-4xl md:text-5xl font-serif font-light mb-6"
 
 // Navigation link
-className="text-sm uppercase tracking-widest hover:text-allure-gold transition-colors"
+className="text-sm uppercase tracking-widest hover:text-zapatos-gold transition-colors"
 
 // Card container
 className="luxury-border p-6 hover:shadow-lg transition-shadow"
 
 // Image overlay
-className="absolute inset-0 bg-gradient-to-t from-allure-obsidian/60 to-transparent"
+className="absolute inset-0 bg-gradient-to-t from-zapatos-obsidian/60 to-transparent"
 ```
 
 ---

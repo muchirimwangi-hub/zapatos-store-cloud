@@ -35,7 +35,7 @@ export default function NotFound() {
   }))
 
   return (
-    <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden bg-gradient-to-br from-allure-cream via-allure-taupe/10 to-allure-cream">
+    <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden bg-gradient-to-br from-zapatos-cream via-zapatos-taupe/10 to-zapatos-cream">
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03]">
         <div 
@@ -54,7 +54,7 @@ export default function NotFound() {
           {particles.map((particle) => (
             <motion.div
               key={particle.id}
-              className="absolute rounded-full bg-allure-gold/20"
+              className="absolute rounded-full bg-zapatos-gold/20"
               style={{
                 left: `${particle.x}%`,
                 top: `${particle.y}%`,
@@ -78,8 +78,8 @@ export default function NotFound() {
 
       {/* Luxury Border Accent */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-32 h-32 border-t-2 border-l-2 border-allure-gold/20" />
-        <div className="absolute bottom-0 right-0 w-32 h-32 border-b-2 border-r-2 border-allure-gold/20" />
+        <div className="absolute top-0 left-0 w-32 h-32 border-t-2 border-l-2 border-zapatos-gold/20" />
+        <div className="absolute bottom-0 right-0 w-32 h-32 border-b-2 border-r-2 border-zapatos-gold/20" />
       </div>
 
       {/* Main Content */}
@@ -123,7 +123,7 @@ export default function NotFound() {
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 1, delay: 0.4 }}
-            className="h-[1px] w-48 mx-auto mb-8 bg-gradient-to-r from-transparent via-allure-gold to-transparent"
+            className="h-[1px] w-48 mx-auto mb-8 bg-gradient-to-r from-transparent via-zapatos-gold to-transparent"
           />
 
           {/* Sparkle Icon */}
@@ -133,7 +133,7 @@ export default function NotFound() {
             transition={{ duration: 1, delay: 0.6 }}
             className="mb-6"
           >
-            <Sparkles className="w-12 h-12 mx-auto text-allure-gold" />
+            <Sparkles className="w-12 h-12 mx-auto text-zapatos-gold" />
           </motion.div>
 
           {/* Title */}
@@ -141,11 +141,11 @@ export default function NotFound() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-serif font-light mb-6 text-allure-obsidian"
+            className="text-4xl md:text-5xl lg:text-6xl font-serif font-light mb-6 text-zapatos-obsidian"
           >
             This Page is Still
             <br />
-            <span className="italic text-allure-gold">Being Perfected</span>
+            <span className="italic text-zapatos-gold">Being Perfected</span>
           </motion.h2>
 
           {/* Description */}
@@ -153,7 +153,7 @@ export default function NotFound() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="text-lg md:text-xl text-allure-charcoal/70 max-w-2xl mx-auto mb-12 editorial-spacing"
+            className="text-lg md:text-xl text-zapatos-charcoal/70 max-w-2xl mx-auto mb-12 editorial-spacing"
           >
             Like a fine fragrance, great things take time to develop. 
             This page is currently being curated for you. Meanwhile, 
@@ -169,7 +169,7 @@ export default function NotFound() {
           >
             <Button 
               size="lg" 
-              className="group text-base px-10 py-6 bg-allure-obsidian text-allure-cream hover:bg-allure-charcoal transition-all duration-300"
+              className="group text-base px-10 py-6 bg-zapatos-obsidian text-zapatos-cream hover:bg-zapatos-charcoal transition-all duration-300"
               asChild
             >
               <Link href="/">
@@ -188,7 +188,7 @@ export default function NotFound() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="group text-base px-10 py-6 border-2 border-allure-gold text-allure-obsidian hover:bg-allure-gold/10 transition-all duration-300"
+              className="group text-base px-10 py-6 border-2 border-zapatos-gold text-zapatos-obsidian hover:bg-zapatos-gold/10 transition-all duration-300"
               asChild
             >
               <Link href="/shop">
@@ -205,7 +205,7 @@ export default function NotFound() {
             transition={{ duration: 0.8, delay: 1.4 }}
             className="mt-16"
           >
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-charcoal/50 mb-6">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-charcoal/50 mb-6">
               Or Discover
             </p>
             <div className="flex flex-wrap justify-center gap-6">
@@ -223,7 +223,7 @@ export default function NotFound() {
                 >
                   <Link
                     href={link.href}
-                    className="text-sm text-allure-charcoal/70 hover:text-allure-gold transition-colors duration-300 border-b border-transparent hover:border-allure-gold pb-1"
+                    className="text-sm text-zapatos-charcoal/70 hover:text-zapatos-gold transition-colors duration-300 border-b border-transparent hover:border-zapatos-gold pb-1"
                   >
                     {link.name}
                   </Link>
@@ -240,7 +240,7 @@ export default function NotFound() {
           transition={{ duration: 1, delay: 1.6 }}
           className="absolute bottom-12 left-1/2 -translate-x-1/2"
         >
-          <div className="w-2 h-2 rounded-full bg-allure-gold/40" />
+          <div className="w-2 h-2 rounded-full bg-zapatos-gold/40" />
         </motion.div>
       </div>
 

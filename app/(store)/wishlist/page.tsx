@@ -58,7 +58,7 @@ export default function WishlistPage() {
           <h1 className="text-4xl md:text-5xl font-serif font-light mb-4">
             Your Wishlist
           </h1>
-          <p className="text-allure-charcoal/70">
+          <p className="text-zapatos-charcoal/70">
             {items.length} {items.length === 1 ? 'item' : 'items'} saved
           </p>
         </div>
@@ -70,9 +70,9 @@ export default function WishlistPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-20"
           >
-            <Heart className="h-16 w-16 text-allure-charcoal/30 mx-auto mb-4" />
+            <Heart className="h-16 w-16 text-zapatos-charcoal/30 mx-auto mb-4" />
             <h2 className="text-2xl font-serif mb-4">Your wishlist is empty</h2>
-            <p className="text-allure-charcoal/70 mb-8">
+            <p className="text-zapatos-charcoal/70 mb-8">
               Start adding your favorite products
             </p>
             <Button size="lg" asChild>
@@ -94,7 +94,7 @@ export default function WishlistPage() {
                 {/* Product Image */}
                 <div className="relative">
                   <Link href={`/shop/${product.slug}`}>
-                    <div className="aspect-[3/4] luxury-border overflow-hidden mb-4 bg-allure-cream/50">
+                    <div className="aspect-[3/4] luxury-border overflow-hidden mb-4 bg-zapatos-cream/50">
                       <div 
                         className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                         style={{ backgroundImage: `url('${getProductImageUrl(product)}')` }}
@@ -107,26 +107,26 @@ export default function WishlistPage() {
                     onClick={() => handleRemove(product.id)}
                     className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
                   >
-                    <X className="h-4 w-4 text-allure-charcoal hover:text-red-500" />
+                    <X className="h-4 w-4 text-zapatos-charcoal hover:text-red-500" />
                   </button>
                 </div>
 
                 {/* Product Info */}
                 <div className="space-y-2">
                   {product.brand && (
-                    <p className="text-xs uppercase tracking-widest text-allure-charcoal/60">
+                    <p className="text-xs uppercase tracking-widest text-zapatos-charcoal/60">
                       {product.brand}
                     </p>
                   )}
 
                   <Link href={`/shop/${product.slug}`}>
-                    <h3 className="text-xl font-serif hover:text-allure-gold transition-colors">
+                    <h3 className="text-xl font-serif hover:text-zapatos-gold transition-colors">
                       {product.name}
                     </h3>
                   </Link>
 
                   {product.short_description && (
-                    <p className="text-sm text-allure-charcoal/70 editorial-spacing line-clamp-2">
+                    <p className="text-sm text-zapatos-charcoal/70 editorial-spacing line-clamp-2">
                       {product.short_description}
                     </p>
                   )}
@@ -136,7 +136,7 @@ export default function WishlistPage() {
                       {formatCurrency(product.price)}
                     </span>
                     {product.compare_at_price && product.compare_at_price > product.price && (
-                      <span className="text-sm text-allure-charcoal/50 line-through">
+                      <span className="text-sm text-zapatos-charcoal/50 line-through">
                         {formatCurrency(product.compare_at_price)}
                       </span>
                     )}

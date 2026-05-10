@@ -124,7 +124,7 @@ export const chatbotQA: ChatQA[] = [
   {
     keywords: ['niche', 'designer', 'difference niche'],
     question: 'What\'s the difference between niche and designer fragrance?',
-    answer: 'Designer fragrances are made by fashion houses (mass-market, widely available). Niche fragrances are from houses focused solely on perfumery — they tend to use rarer ingredients, more complex compositions, and smaller production runs. Allure sits in the accessible luxury space, bringing niche-quality at fair prices.',
+    answer: 'Designer fragrances are made by fashion houses (mass-market, widely available). Niche fragrances are from houses focused solely on perfumery — they tend to use rarer ingredients, more complex compositions, and smaller production runs. Zapatos sits in the accessible luxury space, bringing niche-quality at fair prices.',
     category: 'fragrance',
   },
   {
@@ -316,11 +316,11 @@ export const chatbotQA: ChatQA[] = [
     category: 'orders',
   },
 
-  // ─── ABOUT ALLURE / GENERAL ───
+  // ─── ABOUT Zapatos / GENERAL ───
   {
-    keywords: ['about', 'allure', 'brand', 'who are you', 'what is allure'],
-    question: 'What is Allure Beauty Atelier?',
-    answer: 'Allure Beauty Atelier is a Nigerian beauty and personal care brand specialising in fragrances and body care essentials. We believe in luxury personal care, accessible without compromise. Beauty, thoughtfully curated for the modern professional.',
+    keywords: ['about', 'Zapatos', 'brand', 'who are you', 'what is Zapatos'],
+    question: 'What is Zapatos?',
+    answer: 'Zapatos is a Nigerian beauty and personal care brand specialising in fragrances and body care essentials. We believe in luxury personal care, accessible without compromise. Beauty, thoughtfully curated for the modern professional.',
     category: 'general',
   },
   {
@@ -338,7 +338,7 @@ export const chatbotQA: ChatQA[] = [
   {
     keywords: ['contact', 'reach', 'email', 'support', 'help'],
     question: 'what is your email?',
-    answer: 'Our email is helloallure.atelier@gmail.com.',
+    answer: 'Our email is helloZapatos.atelier@gmail.com.',
     category: 'general',
   },
   {
@@ -362,7 +362,7 @@ export const chatbotQA: ChatQA[] = [
   {
     keywords: ['account', 'sign up', 'register', 'create account', 'why sign up'],
     question: 'Why should I create an account?',
-    answer: 'An account lets you save curated gift boxes, track your orders, view your scent profile from the quiz, and get personalised recommendations. It only takes a moment and enhances your entire Allure experience.',
+    answer: 'An account lets you save curated gift boxes, track your orders, view your scent profile from the quiz, and get personalised recommendations. It only takes a moment and enhances your entire Zapatos experience.',
     category: 'general',
   },
   {
@@ -374,13 +374,13 @@ export const chatbotQA: ChatQA[] = [
   {
     keywords: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
     question: 'Hello!',
-    answer: 'Hello! Welcome to Allure Beauty Atelier. I\'m here to help with anything about our fragrances, body care, the Scent Personality Test, gift curation, or your orders. What can I help you with?',
+    answer: 'Hello! Welcome to Zapatos. I\'m here to help with anything about our fragrances, body care, the Scent Personality Test, gift curation, or your orders. What can I help you with?',
     category: 'general',
   },
   {
     keywords: ['thank', 'thanks', 'thank you', 'cheers'],
     question: 'Thank you!',
-    answer: 'You\'re welcome! If you have any more questions about fragrance, body care, or anything else, I\'m right here. Enjoy your Allure experience! ✨',
+    answer: 'You\'re welcome! If you have any more questions about fragrance, body care, or anything else, I\'m right here. Enjoy your Zapatos experience! ✨',
     category: 'general',
   },
 ]

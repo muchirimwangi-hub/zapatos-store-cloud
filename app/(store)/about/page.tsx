@@ -9,21 +9,21 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="py-24 bg-allure-taupe/10">
+      <section className="py-24 bg-zapatos-taupe/10">
         <div className="container mx-auto px-6 lg:px-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-gold mb-4">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-gold mb-4">
               Our Story
             </p>
             <h1 className="text-5xl md:text-6xl font-serif font-light mb-6">
-              About Allure
+              About Zapatos
             </h1>
-            <p className="text-lg text-allure-charcoal/80 editorial-spacing max-w-2xl mx-auto">
-              Allure Beauty Atelier is a Nigerian beauty and personal
+            <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto">
+              Zapatos is a Nigerian beauty and personal
 care brand specialising in fragrances and body care
 essentials. We exist to bring luxury-inspired personal care
 within reach, without compromising on quality or
@@ -61,7 +61,7 @@ experience.
               <h2 className="text-4xl font-serif font-light">
                 Crafted With Intention
               </h2>
-              <p className="text-allure-charcoal/80 editorial-spacing">
+              <p className="text-zapatos-charcoal/80 editorial-spacing">
                Through our signature Scent Personality Test, we cut
 through the noise of endless options and curate
 recommendations tailored to each customer's unique
@@ -70,7 +70,7 @@ product, they leave with a scent that is unmistakably
 theirs.
 
               </p>
-              <p className="text-allure-charcoal/80 editorial-spacing">
+              <p className="text-zapatos-charcoal/80 editorial-spacing">
                We speak to the Aspirational Modern Professional,
 someone who understands that how you smell is part of
 how you show up in the world.
@@ -81,7 +81,7 @@ how you show up in the world.
       </section>
 
       {/* Values */}
-      <section className="py-24 bg-allure-taupe/10">
+      <section className="py-24 bg-zapatos-taupe/10">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -124,11 +124,11 @@ how you show up in the world.
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 className="text-center"
               >
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-allure-gold/10 mb-6">
-                  <value.icon className="h-6 w-6 text-allure-gold" />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-zapatos-gold/10 mb-6">
+                  <value.icon className="h-6 w-6 text-zapatos-gold" />
                 </div>
                 <h3 className="text-xl font-serif mb-3">{value.title}</h3>
-                <p className="text-sm text-allure-charcoal/70 editorial-spacing">
+                <p className="text-sm text-zapatos-charcoal/70 editorial-spacing">
                   {value.description}
                 </p>
               </motion.div>
@@ -149,7 +149,7 @@ how you show up in the world.
             <h2 className="text-4xl font-serif font-light mb-6">
               Begin Your Journey
             </h2>
-            <p className="text-allure-charcoal/70 editorial-spacing max-w-xl mx-auto mb-8">
+            <p className="text-zapatos-charcoal/70 editorial-spacing max-w-xl mx-auto mb-8">
               Discover what makes you unique with our personality quiz, or 
               explore our collection at your own pace.
             </p>

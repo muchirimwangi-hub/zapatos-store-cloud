@@ -205,7 +205,7 @@ export default function NewProductPage() {
               onChange={(e) => updateField("description", e.target.value)}
               placeholder="Detailed product description..."
               rows={4}
-              className="flex w-full luxury-border bg-transparent px-4 py-3 text-sm transition-colors placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50"
+              className="flex w-full luxury-border bg-transparent px-4 py-3 text-sm transition-colors placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50"
             />
           </div>
         </div>
@@ -275,7 +275,7 @@ export default function NewProductPage() {
               <select
                 value={form.category}
                 onChange={(e) => updateField("category", e.target.value)}
-                className="flex h-12 w-full luxury-border bg-white px-4 py-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50"
+                className="flex h-12 w-full luxury-border bg-white px-4 py-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50"
               >
                 <option value="fragrance">Fragrance</option>
                 <option value="bodycare">Body Care</option>
@@ -290,7 +290,7 @@ export default function NewProductPage() {
                 value={form.subcategory}
                 onChange={(e) => updateField("subcategory", e.target.value)}
                 disabled={!form.category}
-                className="flex h-12 w-full luxury-border bg-white px-4 py-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50 disabled:bg-gray-50 disabled:text-gray-400"
+                className="flex h-12 w-full luxury-border bg-white px-4 py-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50 disabled:bg-gray-50 disabled:text-gray-400"
               >
                 <option value="">Select subcategory...</option>
                 {SUBCATEGORY_OPTIONS[form.category as keyof typeof SUBCATEGORY_OPTIONS]?.map((option) => (
@@ -306,7 +306,7 @@ export default function NewProductPage() {
               <Input
                 value={form.brand}
                 onChange={(e) => updateField("brand", e.target.value)}
-                placeholder="e.g., Allure Atelier"
+                placeholder="e.g., Zapatos Atelier"
                 className="bg-white"
               />
             </div>
@@ -540,7 +540,7 @@ export default function NewProductPage() {
                 type="checkbox"
                 checked={form.is_active}
                 onChange={(e) => updateField("is_active", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-allure-gold focus:ring-allure-gold"
+                className="w-4 h-4 rounded border-gray-300 text-zapatos-gold focus:ring-zapatos-gold"
               />
               <span className="text-sm text-gray-700">Active (visible in store)</span>
             </label>
@@ -550,7 +550,7 @@ export default function NewProductPage() {
                 type="checkbox"
                 checked={form.is_featured}
                 onChange={(e) => updateField("is_featured", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-allure-gold focus:ring-allure-gold"
+                className="w-4 h-4 rounded border-gray-300 text-zapatos-gold focus:ring-zapatos-gold"
               />
               <span className="text-sm text-gray-700">Featured product</span>
             </label>

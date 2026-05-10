@@ -108,7 +108,7 @@ export default function QuizPage() {
   // ─── Analyzing Screen ───
   if (isAnalyzing) {
     return (
-      <div className="fixed inset-0 z-50 bg-allure-obsidian flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-zapatos-obsidian flex items-center justify-center">
         {/* Ambient glow */}
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
@@ -124,7 +124,7 @@ export default function QuizPage() {
         <div className="relative z-10 text-center px-6">
           {/* Spinner */}
           <motion.div
-            className="mx-auto mb-12 w-16 h-16 rounded-full border-2 border-allure-gold/20"
+            className="mx-auto mb-12 w-16 h-16 rounded-full border-2 border-zapatos-gold/20"
             style={{ borderTopColor: '#B76E79' }}
             animate={{ rotate: 360 }}
             transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
@@ -138,7 +138,7 @@ export default function QuizPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6 }}
-              className="text-xl md:text-2xl font-serif font-light text-allure-cream/90 tracking-wide"
+              className="text-xl md:text-2xl font-serif font-light text-zapatos-cream/90 tracking-wide"
             >
               {loadingMessages[loadingMsgIndex]}
             </motion.p>
@@ -150,7 +150,7 @@ export default function QuizPage() {
               <motion.div
                 key={i}
                 className={`w-1.5 h-1.5 rounded-full ${
-                  i <= loadingMsgIndex ? 'bg-allure-gold' : 'bg-allure-cream/20'
+                  i <= loadingMsgIndex ? 'bg-zapatos-gold' : 'bg-zapatos-cream/20'
                 }`}
                 animate={i === loadingMsgIndex ? { scale: [1, 1.5, 1] } : {}}
                 transition={{ duration: 0.8, repeat: Infinity }}
@@ -165,7 +165,7 @@ export default function QuizPage() {
   // ─── Category Selection ───
   if (!category) {
     return (
-      <div className="min-h-screen bg-allure-obsidian relative overflow-hidden">
+      <div className="min-h-screen bg-zapatos-obsidian relative overflow-hidden">
         {/* Ambient gradient */}
         <div className="absolute inset-0">
           <div
@@ -187,17 +187,17 @@ export default function QuizPage() {
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-allure-gold/30 mb-8"
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-zapatos-gold/30 mb-8"
             >
-              <Sparkles className="h-8 w-8 text-allure-gold" />
+              <Sparkles className="h-8 w-8 text-zapatos-gold" />
             </motion.div>
 
-            <h1 className="text-5xl md:text-7xl font-serif font-light text-allure-cream mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-serif font-light text-zapatos-cream mb-6 leading-tight">
               Discover Your
               <br />
-              <span className="italic text-allure-gold">Aura</span>
+              <span className="italic text-zapatos-gold">Aura</span>
             </h1>
-            <p className="text-lg text-allure-cream/60 max-w-lg mx-auto editorial-spacing">
+            <p className="text-lg text-zapatos-cream/60 max-w-lg mx-auto editorial-spacing">
              Enjoy a personalized consultation designed to help you discover the scents and rituals that feel uniquely yours
             </p>
           </motion.div>
@@ -206,7 +206,7 @@ export default function QuizPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="text-sm uppercase tracking-[0.3em] text-allure-cream/40 mb-8"
+            className="text-sm uppercase tracking-[0.3em] text-zapatos-cream/40 mb-8"
           >
             Choose your path
           </motion.p>
@@ -227,22 +227,22 @@ export default function QuizPage() {
                   style={{ backgroundImage: `url('${card.image}')` }}
                 />
                 {/* Dark overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-allure-obsidian/90 via-allure-obsidian/40 to-allure-obsidian/20 group-hover:from-allure-obsidian/80 transition-all duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-zapatos-obsidian/90 via-zapatos-obsidian/40 to-zapatos-obsidian/20 group-hover:from-zapatos-obsidian/80 transition-all duration-500" />
                 {/* Gold border on hover */}
-                <div className="absolute inset-0 border border-transparent group-hover:border-allure-gold/50 rounded-sm transition-all duration-500" />
+                <div className="absolute inset-0 border border-transparent group-hover:border-zapatos-gold/50 rounded-sm transition-all duration-500" />
 
                 {/* Content */}
                 <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-10">
-                  <p className="text-xs uppercase tracking-[0.3em] text-allure-cream mb-3">
+                  <p className="text-xs uppercase tracking-[0.3em] text-zapatos-cream mb-3">
                     {card.subtitle}
                   </p>
-                  <h2 className="text-4xl md:text-5xl font-serif font-light text-allure-cream mb-3 group-hover:text-allure-gold transition-colors duration-300">
+                  <h2 className="text-4xl md:text-5xl font-serif font-light text-zapatos-cream mb-3 group-hover:text-zapatos-gold transition-colors duration-300">
                     {card.title}
                   </h2>
-                  <p className="text-sm text-allure-cream/60 editorial-spacing mb-6">
+                  <p className="text-sm text-zapatos-cream/60 editorial-spacing mb-6">
                     {card.description}
                   </p>
-                  <div className="flex items-center gap-2 text-sm text-allure-gold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                  <div className="flex items-center gap-2 text-sm text-zapatos-gold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                     Begin consultation
                     <ArrowRight className="h-4 w-4" />
                   </div>
@@ -257,11 +257,11 @@ export default function QuizPage() {
 
   // ─── Quiz Questions ───
   return (
-    <div className="min-h-screen bg-allure-cream relative">
+    <div className="min-h-screen bg-zapatos-cream relative">
       {/* Thin gold progress bar - fixed top */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-allure-taupe/10">
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-zapatos-taupe/10">
         <motion.div
-          className="h-full bg-gradient-to-r from-allure-gold to-allure-terracotta"
+          className="h-full bg-gradient-to-r from-zapatos-gold to-zapatos-terracotta"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -283,7 +283,7 @@ export default function QuizPage() {
             {/* Question text */}
             <div className="text-center mb-12">
               {currentQuestion.type === 'multiple' && (
-                <p className="text-xs uppercase tracking-[0.3em] text-allure-gold mb-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-zapatos-gold mb-4">
                   Select multiple
                 </p>
               )}
@@ -291,7 +291,7 @@ export default function QuizPage() {
                 {currentQuestion.question}
               </h2>
               {currentQuestion.description && (
-                <p className="text-allure-charcoal/60 editorial-spacing text-lg">
+                <p className="text-zapatos-charcoal/60 editorial-spacing text-lg">
                   {currentQuestion.description}
                 </p>
               )}
@@ -320,7 +320,7 @@ export default function QuizPage() {
                     {/* Image card */}
                     <div className={`relative aspect-[3/4] overflow-hidden rounded-sm transition-all duration-500 ${
                       isSelected
-                        ? 'ring-2 ring-allure-gold shadow-lg shadow-allure-gold/20'
+                        ? 'ring-2 ring-zapatos-gold shadow-lg shadow-zapatos-gold/20'
                         : 'hover:shadow-xl'
                     }`}>
                       {/* Background */}
@@ -335,8 +335,8 @@ export default function QuizPage() {
                       {/* Overlay */}
                       <div className={`absolute inset-0 transition-all duration-500 ${
                         isSelected
-                          ? 'bg-gradient-to-t from-allure-obsidian/80 via-allure-obsidian/30 to-allure-gold/10'
-                          : 'bg-gradient-to-t from-allure-obsidian/80 via-allure-obsidian/30 to-transparent group-hover:from-allure-obsidian/70'
+                          ? 'bg-gradient-to-t from-zapatos-obsidian/80 via-zapatos-obsidian/30 to-zapatos-gold/10'
+                          : 'bg-gradient-to-t from-zapatos-obsidian/80 via-zapatos-obsidian/30 to-transparent group-hover:from-zapatos-obsidian/70'
                       }`} />
 
                       {/* Selected check */}
@@ -346,7 +346,7 @@ export default function QuizPage() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
-                            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-allure-gold flex items-center justify-center"
+                            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-zapatos-gold flex items-center justify-center"
                           >
                             <Check className="h-4 w-4 text-white" />
                           </motion.div>
@@ -356,12 +356,12 @@ export default function QuizPage() {
                       {/* Label */}
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <h3 className={`text-lg font-serif mb-1 transition-colors duration-300 ${
-                          isSelected ? 'text-allure-gold' : 'text-allure-cream'
+                          isSelected ? 'text-zapatos-gold' : 'text-zapatos-cream'
                         }`}>
                           {option.label}
                         </h3>
                         {option.description && (
-                          <p className="text-xs text-allure-cream/60 line-clamp-2 editorial-spacing">
+                          <p className="text-xs text-zapatos-cream/60 line-clamp-2 editorial-spacing">
                             {option.description}
                           </p>
                         )}

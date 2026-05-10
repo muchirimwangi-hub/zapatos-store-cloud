@@ -1,4 +1,4 @@
-# Allure Beauty Atelier
+# Zapatos
 
 An affordable luxury headless e-commerce platform for premium fragrance and body care products.
 

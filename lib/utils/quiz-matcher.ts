@@ -142,7 +142,7 @@ export function getPersonalityDescription(type: PersonalityType): { title: strin
     },
     sensual: {
       title: 'The Sensual Muse',
-      description: 'You embrace warmth and intimacy. Rich textures and inviting scents create your magnetic presence. Your allure is discovered, not announced.',
+      description: 'You embrace warmth and intimacy. Rich textures and inviting scents create your magnetic presence. Your Zapatos is discovered, not announced.',
     },
     sophisticated_minimalist: {
       title: 'The Refined Purist',

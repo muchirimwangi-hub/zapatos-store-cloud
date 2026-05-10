@@ -51,8 +51,8 @@ export default function AdminSettingsPage() {
         className="bg-white rounded-lg border border-gray-200 p-6 space-y-6"
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-allure-gold/10 rounded-lg">
-            <Shield className="h-5 w-5 text-allure-gold" />
+          <div className="p-2 bg-zapatos-gold/10 rounded-lg">
+            <Shield className="h-5 w-5 text-zapatos-gold" />
           </div>
           <h2 className="text-lg font-medium text-gray-900">Admin Profile</h2>
         </div>
@@ -106,7 +106,7 @@ export default function AdminSettingsPage() {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-gray-500">Store Name</p>
-            <p className="font-medium">Allure Beauty Atelier</p>
+            <p className="font-medium">Zapatos</p>
           </div>
           <div>
             <p className="text-gray-500">Currency</p>

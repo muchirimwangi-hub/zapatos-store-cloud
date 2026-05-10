@@ -60,7 +60,7 @@ export function LocationSelect({
   }
 
   const selectClass =
-    "flex h-10 w-full luxury-border bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-allure-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50 disabled:cursor-not-allowed disabled:opacity-50 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat pr-10"
+    "flex h-10 w-full luxury-border bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-zapatos-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50 disabled:cursor-not-allowed disabled:opacity-50 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat pr-10"
 
   return (
     <div className={className}>
@@ -109,7 +109,7 @@ export function LocationSelect({
               placeholder="Enter state/province"
               value={stateValue}
               onChange={(e) => onStateChange(e.target.value)}
-              className="flex h-10 w-full luxury-border bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-allure-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50 mt-2"
+              className="flex h-10 w-full luxury-border bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-zapatos-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50 mt-2"
             />
           )}
         </div>
@@ -145,7 +145,7 @@ export function LocationSelect({
               value={cityValue}
               onChange={(e) => onCityChange(e.target.value)}
               disabled={!countryValue || !stateValue}
-              className="flex h-10 w-full luxury-border bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-allure-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full luxury-border bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-zapatos-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50 disabled:cursor-not-allowed disabled:opacity-50"
             />
           )}
         </div>

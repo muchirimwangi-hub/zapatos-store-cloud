@@ -80,9 +80,9 @@ export default function AdminLayout({
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-allure-obsidian flex items-center justify-center">
+      <div className="min-h-screen bg-zapatos-obsidian flex items-center justify-center">
         <motion.div
-          className="w-10 h-10 rounded-full border-2 border-allure-gold/20"
+          className="w-10 h-10 rounded-full border-2 border-zapatos-gold/20"
           style={{ borderTopColor: "#B76E79" }}
           animate={{ rotate: 360 }}
           transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
@@ -103,20 +103,20 @@ export default function AdminLayout({
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-allure-obsidian text-allure-cream flex flex-col transform transition-transform duration-300 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-zapatos-obsidian text-zapatos-cream flex flex-col transform transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between p-6 border-b border-allure-cream/10">
+        <div className="flex items-center justify-between p-6 border-b border-zapatos-cream/10">
           <Link href="/admin" className="group">
-            <h1 className="text-xl font-serif font-light tracking-wider group-hover:text-allure-gold transition-colors">
-              ALLURE ADMIN
+            <h1 className="text-xl font-serif font-light tracking-wider group-hover:text-zapatos-gold transition-colors">
+              ZAPATOS HQ
             </h1>
           </Link>
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden text-allure-cream/50 hover:text-allure-cream"
+            className="lg:hidden text-zapatos-cream/50 hover:text-zapatos-cream"
           >
             <X className="h-5 w-5" />
           </button>
@@ -135,8 +135,8 @@ export default function AdminLayout({
                 onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm transition-all ${
                   isActive
-                    ? "bg-allure-gold/15 text-allure-gold"
-                    : "text-allure-cream/60 hover:text-allure-cream hover:bg-allure-cream/5"
+                    ? "bg-zapatos-gold/15 text-zapatos-gold"
+                    : "text-zapatos-cream/60 hover:text-zapatos-cream hover:bg-zapatos-cream/5"
                 }`}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
@@ -148,16 +148,16 @@ export default function AdminLayout({
         </nav>
 
         {/* User + Sign Out */}
-        <div className="p-4 border-t border-allure-cream/10">
+        <div className="p-4 border-t border-zapatos-cream/10">
           <div className="px-4 py-2 mb-3">
-            <p className="text-sm text-allure-cream/90 truncate">{user?.full_name}</p>
-            <p className="text-xs text-allure-cream/40 truncate">{user?.email}</p>
+            <p className="text-sm text-zapatos-cream/90 truncate">{user?.full_name}</p>
+            <p className="text-xs text-zapatos-cream/40 truncate">{user?.email}</p>
           </div>
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="flex-1 text-allure-cream/50 hover:text-allure-cream hover:bg-allure-cream/5 justify-start"
+              className="flex-1 text-zapatos-cream/50 hover:text-zapatos-cream hover:bg-zapatos-cream/5 justify-start"
               asChild
             >
               <Link href="/">
@@ -168,7 +168,7 @@ export default function AdminLayout({
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="text-allure-cream/50 hover:text-red-400 hover:bg-red-500/10"
+              className="text-zapatos-cream/50 hover:text-red-400 hover:bg-red-500/10"
             >
               <LogOut className="h-4 w-4" />
             </Button>

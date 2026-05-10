@@ -32,8 +32,8 @@ export function BodyCareFilter({ products }: { products: Product[] }) {
             onClick={() => setActive(cat)}
             className={`px-5 py-2 text-sm uppercase tracking-widest border transition-all duration-200 ${
               active === cat
-                ? 'bg-allure-gold text-white border-allure-gold'
-                : 'bg-transparent text-allure-charcoal border-allure-charcoal/30 hover:border-allure-gold hover:text-allure-gold'
+                ? 'bg-zapatos-gold text-white border-zapatos-gold'
+                : 'bg-transparent text-zapatos-charcoal border-zapatos-charcoal/30 hover:border-zapatos-gold hover:text-zapatos-gold'
             }`}
           >
             {cat}
@@ -44,7 +44,7 @@ export function BodyCareFilter({ products }: { products: Product[] }) {
       {/* Products Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-allure-charcoal/60 editorial-spacing">
+          <p className="text-zapatos-charcoal/60 editorial-spacing">
             No products in this category yet. Check back soon!
           </p>
         </div>

@@ -55,7 +55,7 @@ function ResultsContent() {
   return (
     <div className="min-h-screen">
       {/* Hero reveal section — dark bg */}
-      <section className="relative bg-allure-obsidian overflow-hidden py-32 md:py-40">
+      <section className="relative bg-zapatos-obsidian overflow-hidden py-32 md:py-40">
         {/* Ambient glow */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div
@@ -74,9 +74,9 @@ function ResultsContent() {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-allure-gold/30 mb-8"
+            className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-zapatos-gold/30 mb-8"
           >
-            <Sparkles className="h-9 w-9 text-allure-gold" />
+            <Sparkles className="h-9 w-9 text-zapatos-gold" />
           </motion.div>
 
           {/* Subtitle */}
@@ -84,7 +84,7 @@ function ResultsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-sm uppercase tracking-[0.3em] text-allure-gold mb-6"
+            className="text-sm uppercase tracking-[0.3em] text-zapatos-gold mb-6"
           >
             Your Aura Revealed
           </motion.p>
@@ -94,7 +94,7 @@ function ResultsContent() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-allure-cream mb-8 leading-tight"
+            className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-zapatos-cream mb-8 leading-tight"
           >
             {personality.title}
           </motion.h1>
@@ -104,7 +104,7 @@ function ResultsContent() {
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="h-[1px] w-32 mx-auto mb-8 bg-gradient-to-r from-transparent via-allure-gold to-transparent"
+            className="h-[1px] w-32 mx-auto mb-8 bg-gradient-to-r from-transparent via-zapatos-gold to-transparent"
           />
 
           {/* Description */}
@@ -112,7 +112,7 @@ function ResultsContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="text-lg md:text-xl text-allure-cream/70 max-w-2xl mx-auto editorial-spacing"
+            className="text-lg md:text-xl text-zapatos-cream/70 max-w-2xl mx-auto editorial-spacing"
           >
             {personality.description}
           </motion.p>
@@ -120,7 +120,7 @@ function ResultsContent() {
       </section>
 
       {/* Traits section */}
-      <section className="py-20 bg-allure-cream">
+      <section className="py-20 bg-zapatos-cream">
         <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -128,7 +128,7 @@ function ResultsContent() {
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-gold mb-3">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-gold mb-3">
               Your Signature Traits
             </p>
             <h2 className="text-3xl md:text-4xl font-serif font-light">
@@ -143,7 +143,7 @@ function ResultsContent() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={revealed ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="px-6 py-3 border border-allure-taupe/40 bg-white text-sm uppercase tracking-[0.15em] text-allure-charcoal/80 hover:border-allure-gold hover:text-allure-gold transition-colors duration-300"
+                className="px-6 py-3 border border-zapatos-taupe/40 bg-white text-sm uppercase tracking-[0.15em] text-zapatos-charcoal/80 hover:border-zapatos-gold hover:text-zapatos-gold transition-colors duration-300"
               >
                 {trait}
               </motion.div>
@@ -153,7 +153,7 @@ function ResultsContent() {
       </section>
 
       {/* Recommended Products */}
-      <section className="py-20 bg-allure-taupe/10">
+      <section className="py-20 bg-zapatos-taupe/10">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -162,13 +162,13 @@ function ResultsContent() {
             transition={{ duration: 0.8 }}
             className="text-center mb-14"
           >
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-gold mb-3">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-gold mb-3">
               Your Bespoke Collection
             </p>
             <h2 className="text-3xl md:text-4xl font-serif font-light mb-4">
               Curated Just For You
             </h2>
-            <p className="text-allure-charcoal/60 editorial-spacing max-w-xl mx-auto">
+            <p className="text-zapatos-charcoal/60 editorial-spacing max-w-xl mx-auto">
               {categoryParam === 'fragrance' ? 'Fragrances' : 'Body care rituals'} handpicked
               to complement your unique aura.
             </p>
@@ -178,10 +178,10 @@ function ResultsContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="space-y-4">
-                  <div className="aspect-[3/4] bg-allure-taupe/20 luxury-border animate-pulse" />
-                  <div className="h-4 w-24 bg-allure-taupe/20 rounded animate-pulse" />
-                  <div className="h-6 w-full bg-allure-taupe/20 rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-allure-taupe/20 rounded animate-pulse" />
+                  <div className="aspect-[3/4] bg-zapatos-taupe/20 luxury-border animate-pulse" />
+                  <div className="h-4 w-24 bg-zapatos-taupe/20 rounded animate-pulse" />
+                  <div className="h-6 w-full bg-zapatos-taupe/20 rounded animate-pulse" />
+                  <div className="h-4 w-16 bg-zapatos-taupe/20 rounded animate-pulse" />
                 </div>
               ))}
             </div>
@@ -197,9 +197,9 @@ function ResultsContent() {
               animate={{ opacity: 1 }}
               className="text-center py-16 luxury-border bg-white"
             >
-              <Sparkles className="h-10 w-10 text-allure-gold mx-auto mb-4" />
+              <Sparkles className="h-10 w-10 text-zapatos-gold mx-auto mb-4" />
               <p className="text-lg font-serif mb-2">Your collection is being curated</p>
-              <p className="text-allure-charcoal/60 mb-8 editorial-spacing max-w-md mx-auto">
+              <p className="text-zapatos-charcoal/60 mb-8 editorial-spacing max-w-md mx-auto">
                 We&rsquo;re hand-selecting products for your profile. In the meantime, explore our full collection.
               </p>
               <Button asChild>
@@ -214,7 +214,7 @@ function ResultsContent() {
       </section>
 
       {/* Actions */}
-      <section className="py-20 bg-allure-cream">
+      <section className="py-20 bg-zapatos-cream">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -263,9 +263,9 @@ function getPersonalityTraits(type: string): string[] {
 export default function QuizResultsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-allure-obsidian flex items-center justify-center">
+      <div className="min-h-screen bg-zapatos-obsidian flex items-center justify-center">
         <motion.div
-          className="w-12 h-12 rounded-full border-2 border-allure-gold/20"
+          className="w-12 h-12 rounded-full border-2 border-zapatos-gold/20"
           style={{ borderTopColor: '#B76E79' }}
           animate={{ rotate: 360 }}
           transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}

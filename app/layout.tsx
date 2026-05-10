@@ -20,17 +20,17 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: "Allure Beauty Atelier | Luxury Fragrance & Body Care",
+  title: "Zapatos | Luxury Fragrance & Body Care",
   description: "A Nigerian beauty and personal care brand specialising in fragrances and body care essentials. Luxury personal care, accessible without compromise. Beauty, thoughtfully curated.",
   keywords: ["luxury beauty", "Nigerian beauty brand", "fragrance", "perfume", "body care", "scent personality test", "beauty atelier"],
-  authors: [{ name: "Allure Beauty Atelier" }],
+  authors: [{ name: "Zapatos" }],
   openGraph: {
     type: "website",
     locale: "en_NG",
-    url: "https://allurebeautyatelier.com",
-    title: "Allure Beauty Atelier | Luxury Fragrance & Body Care",
+    url: "https://Zapatosbeautyatelier.com",
+    title: "Zapatos | Luxury Fragrance & Body Care",
     description: "A Nigerian beauty and personal care brand making luxury personal care accessible. Fragrances and body care essentials, thoughtfully curated.",
-    siteName: "Allure Beauty Atelier",
+    siteName: "Zapatos",
   },
 }
 

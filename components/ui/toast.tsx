@@ -19,7 +19,7 @@ export function Toast({ message, isVisible, onClose }: ToastProps) {
           exit={{ opacity: 0, y: -50 }}
           className="fixed top-24 right-6 z-[60] max-w-sm"
         >
-          <div className="bg-allure-obsidian text-allure-cream px-6 py-4 rounded-sm shadow-2xl flex items-center gap-3">
+          <div className="bg-zapatos-obsidian text-zapatos-cream px-6 py-4 rounded-sm shadow-2xl flex items-center gap-3">
             <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
             <p className="text-sm flex-1">{message}</p>
             <button

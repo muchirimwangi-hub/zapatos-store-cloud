@@ -256,20 +256,20 @@ export default function GiftCuratorPage() {
       />
       <div className="min-h-screen">
         {/* Header */}
-        <section className="py-20 bg-allure-taupe/10">
+        <section className="py-20 bg-zapatos-taupe/10">
           <div className="container mx-auto px-6 lg:px-12 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-allure-gold/10 mb-6">
-                <Gift className="h-8 w-8 text-allure-gold" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zapatos-gold/10 mb-6">
+                <Gift className="h-8 w-8 text-zapatos-gold" />
               </div>
               <h1 className="text-5xl md:text-6xl font-serif font-light mb-6">
                 Gift Curator
               </h1>
-              <p className="text-lg text-allure-charcoal/80 editorial-spacing max-w-2xl mx-auto">
+              <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto">
                 Curate personalized gift boxes with handpicked products and pair them with a heartfelt note.
               </p>
             </motion.div>
@@ -290,15 +290,15 @@ export default function GiftCuratorPage() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     {Array.from({ length: 6 }).map((_, i) => (
                       <div key={i} className="space-y-3">
-                        <div className="aspect-square bg-allure-taupe/20 luxury-border animate-pulse" />
-                        <div className="h-4 bg-allure-taupe/20 rounded animate-pulse" />
-                        <div className="h-4 w-20 bg-allure-taupe/20 rounded animate-pulse" />
+                        <div className="aspect-square bg-zapatos-taupe/20 luxury-border animate-pulse" />
+                        <div className="h-4 bg-zapatos-taupe/20 rounded animate-pulse" />
+                        <div className="h-4 w-20 bg-zapatos-taupe/20 rounded animate-pulse" />
                       </div>
                     ))}
                   </div>
                 ) : products.length === 0 ? (
                   <div className="text-center py-20 luxury-border">
-                    <p className="text-allure-charcoal/70">
+                    <p className="text-zapatos-charcoal/70">
                       No products available yet. Check back soon!
                     </p>
                   </div>
@@ -316,7 +316,7 @@ export default function GiftCuratorPage() {
                           viewport={{ once: true }}
                           className="group"
                         >
-                          <div className="relative aspect-square luxury-border overflow-hidden mb-3 bg-allure-cream/50">
+                          <div className="relative aspect-square luxury-border overflow-hidden mb-3 bg-zapatos-cream/50">
                             <div
                               className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                               style={{
@@ -328,8 +328,8 @@ export default function GiftCuratorPage() {
                               disabled={isAdded}
                               className={`absolute bottom-3 right-3 p-2.5 rounded-full shadow-lg transition-all ${
                                 isAdded
-                                  ? "bg-allure-gold text-white cursor-default"
-                                  : "bg-allure-cream text-allure-obsidian hover:bg-white opacity-0 group-hover:opacity-100"
+                                  ? "bg-zapatos-gold text-white cursor-default"
+                                  : "bg-zapatos-cream text-zapatos-obsidian hover:bg-white opacity-0 group-hover:opacity-100"
                               }`}
                             >
                               {isAdded ? (
@@ -357,7 +357,7 @@ export default function GiftCuratorPage() {
                 <div className="sticky top-24">
                   {/* Number of Boxes Selector */}
                   <div className="mb-4">
-                    <label className="block text-xs text-allure-charcoal/60 mb-2">
+                    <label className="block text-xs text-zapatos-charcoal/60 mb-2">
                       Number of Gift Boxes
                     </label>
                     <div className="flex gap-2 flex-wrap">
@@ -386,8 +386,8 @@ export default function GiftCuratorPage() {
                           }}
                           className={`w-9 h-9 rounded-full text-sm font-medium transition-all ${
                             boxes.length === num
-                              ? "bg-allure-gold text-white"
-                              : "bg-allure-taupe/10 text-allure-charcoal/70 hover:bg-allure-taupe/20"
+                              ? "bg-zapatos-gold text-white"
+                              : "bg-zapatos-taupe/10 text-zapatos-charcoal/70 hover:bg-zapatos-taupe/20"
                           }`}
                         >
                           {num}
@@ -404,8 +404,8 @@ export default function GiftCuratorPage() {
                         onClick={() => setActiveBoxId(box.id)}
                         className={`px-4 py-2 text-sm rounded-full whitespace-nowrap transition-all ${
                           box.id === activeBoxId
-                            ? "bg-allure-gold text-white"
-                            : "bg-allure-taupe/10 text-allure-charcoal/70 hover:bg-allure-taupe/20"
+                            ? "bg-zapatos-gold text-white"
+                            : "bg-zapatos-taupe/10 text-zapatos-charcoal/70 hover:bg-zapatos-taupe/20"
                         }`}
                       >
                         {box.name}
@@ -415,7 +415,7 @@ export default function GiftCuratorPage() {
 
                   {/* Box Size Selector */}
                   <div className="mb-4">
-                    <label className="block text-xs text-allure-charcoal/60 mb-2">
+                    <label className="block text-xs text-zapatos-charcoal/60 mb-2">
                       Box Size
                     </label>
                     <div className="flex gap-2">
@@ -425,8 +425,8 @@ export default function GiftCuratorPage() {
                           onClick={() => changeBoxSize(size)}
                           className={`flex-1 py-2 text-sm rounded transition-all ${
                             activeBox.size === size
-                              ? "bg-allure-obsidian text-white"
-                              : "bg-allure-taupe/10 text-allure-charcoal/70 hover:bg-allure-taupe/20"
+                              ? "bg-zapatos-obsidian text-white"
+                              : "bg-zapatos-taupe/10 text-zapatos-charcoal/70 hover:bg-zapatos-taupe/20"
                           }`}
                         >
                           {size} items
@@ -442,7 +442,7 @@ export default function GiftCuratorPage() {
                           type="text"
                           value={editingBoxName}
                           onChange={(e) => setEditingBoxName(e.target.value)}
-                          className="flex-1 text-xl font-serif luxury-border bg-transparent px-3 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50"
+                          className="flex-1 text-xl font-serif luxury-border bg-transparent px-3 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -458,7 +458,7 @@ export default function GiftCuratorPage() {
                             updateActiveBox({ name: editingBoxName })
                             setEditingBoxId(null)
                           }}
-                          className="p-2 text-allure-gold hover:bg-allure-gold/10 rounded-full transition-colors"
+                          className="p-2 text-zapatos-gold hover:bg-zapatos-gold/10 rounded-full transition-colors"
                         >
                           <Check className="h-4 w-4" />
                         </button>
@@ -471,7 +471,7 @@ export default function GiftCuratorPage() {
                             setEditingBoxId(activeBoxId)
                             setEditingBoxName(activeBox.name)
                           }}
-                          className="p-1.5 text-allure-charcoal/40 hover:text-allure-gold hover:bg-allure-gold/10 rounded-full transition-colors"
+                          className="p-1.5 text-zapatos-charcoal/40 hover:text-zapatos-gold hover:bg-zapatos-gold/10 rounded-full transition-colors"
                           title="Rename box"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
@@ -502,8 +502,8 @@ export default function GiftCuratorPage() {
                         key={index}
                         className={`aspect-square luxury-border relative flex items-center justify-center transition-all ${
                           slot.product
-                            ? "bg-allure-cream"
-                            : "bg-allure-taupe/5 border-dashed"
+                            ? "bg-zapatos-cream"
+                            : "bg-zapatos-taupe/5 border-dashed"
                         }`}
                       >
                         {slot.product ? (
@@ -528,8 +528,8 @@ export default function GiftCuratorPage() {
                           </>
                         ) : (
                           <div className="text-center">
-                            <Plus className="h-6 w-6 text-allure-charcoal/30 mx-auto mb-1" />
-                            <p className="text-xs text-allure-charcoal/40">
+                            <Plus className="h-6 w-6 text-zapatos-charcoal/30 mx-auto mb-1" />
+                            <p className="text-xs text-zapatos-charcoal/40">
                               Slot {index + 1}
                             </p>
                           </div>
@@ -548,23 +548,23 @@ export default function GiftCuratorPage() {
                       onChange={(e) => updateActiveBox({ giftNote: e.target.value })}
                       rows={3}
                       placeholder="Add a personal message..."
-                      className="flex w-full luxury-border bg-transparent px-4 py-3 text-sm transition-colors placeholder:text-allure-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50 resize-none"
+                      className="flex w-full luxury-border bg-transparent px-4 py-3 text-sm transition-colors placeholder:text-zapatos-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50 resize-none"
                     />
                   </div>
 
                   {/* Summary */}
-                  <div className="luxury-border p-4 mb-6 bg-allure-taupe/5">
+                  <div className="luxury-border p-4 mb-6 bg-zapatos-taupe/5">
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-allure-charcoal/70">
+                      <span className="text-zapatos-charcoal/70">
                         {filledSlots.length} of {activeBox.size} items
                       </span>
                       <span className="font-medium">
                         {formatCurrency(totalPrice)}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-allure-taupe/20 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-zapatos-taupe/20 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-allure-gold transition-all duration-300 rounded-full"
+                        className="h-full bg-zapatos-gold transition-all duration-300 rounded-full"
                         style={{
                           width: `${(filledSlots.length / activeBox.size) * 100}%`,
                         }}

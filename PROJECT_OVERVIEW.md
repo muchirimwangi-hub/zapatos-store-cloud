@@ -1,4 +1,4 @@
-# Allure Beauty Atelier - Project Overview
+# Zapatos - Project Overview
 
 ## ✨ What We've Built So Far
 
@@ -118,7 +118,7 @@ A stunning, editorial-style homepage featuring:
 ## 🗂️ File Structure
 
 ```
-allure/
+Zapatos/
 ├── app/
 │   ├── layout.tsx          ← Root layout with fonts, nav, footer
 │   ├── page.tsx            ← Landing page (hero + sections)
@@ -299,4 +299,4 @@ Example copy style:
 
 ---
 
-**You now have a production-ready foundation for Allure Beauty Atelier. All core infrastructure is in place. Time to bring your products to life! ✨**
+**You now have a production-ready foundation for Zapatos. All core infrastructure is in place. Time to bring your products to life! ✨**

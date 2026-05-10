@@ -51,8 +51,8 @@ function ConfirmationContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-allure-gold mx-auto mb-4" />
-          <p className="text-allure-charcoal/70">Verifying your payment...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zapatos-gold mx-auto mb-4" />
+          <p className="text-zapatos-charcoal/70">Verifying your payment...</p>
         </div>
       </div>
     )
@@ -73,7 +73,7 @@ function ConfirmationContent() {
           <h1 className="text-4xl md:text-5xl font-serif font-light mb-4">
             Payment Verification Failed
           </h1>
-          <p className="text-lg text-allure-charcoal/80 mb-8">
+          <p className="text-lg text-zapatos-charcoal/80 mb-8">
             {verifyError || 'We could not verify your payment. Please contact support if you were charged.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -111,13 +111,13 @@ function ConfirmationContent() {
         <h1 className="text-4xl md:text-5xl font-serif font-light mb-4">
           Order Confirmed!
         </h1>
-        <p className="text-lg text-allure-charcoal/80 editorial-spacing mb-8">
+        <p className="text-lg text-zapatos-charcoal/80 editorial-spacing mb-8">
           Thank you for your purchase. Your order has been received and is being processed.
         </p>
 
         {/* Order Number */}
-        <div className="luxury-border bg-allure-taupe/5 p-6 mb-8">
-          <p className="text-sm text-allure-charcoal/60 mb-2">Order Number</p>
+        <div className="luxury-border bg-zapatos-taupe/5 p-6 mb-8">
+          <p className="text-sm text-zapatos-charcoal/60 mb-2">Order Number</p>
           <p className="text-2xl font-serif tracking-wider">{txRef}</p>
         </div>
 
@@ -125,12 +125,12 @@ function ConfirmationContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <div className="luxury-border p-6 text-left">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-allure-gold/10 rounded-full">
-                <Mail className="h-5 w-5 text-allure-gold" />
+              <div className="p-3 bg-zapatos-gold/10 rounded-full">
+                <Mail className="h-5 w-5 text-zapatos-gold" />
               </div>
               <div>
                 <h3 className="font-medium mb-1">Confirmation Email</h3>
-                <p className="text-sm text-allure-charcoal/70">
+                <p className="text-sm text-zapatos-charcoal/70">
                   A confirmation email has been sent to your email address with order details.
                 </p>
               </div>
@@ -139,12 +139,12 @@ function ConfirmationContent() {
 
           <div className="luxury-border p-6 text-left">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-allure-gold/10 rounded-full">
-                <Package className="h-5 w-5 text-allure-gold" />
+              <div className="p-3 bg-zapatos-gold/10 rounded-full">
+                <Package className="h-5 w-5 text-zapatos-gold" />
               </div>
               <div>
                 <h3 className="font-medium mb-1">Shipping</h3>
-                <p className="text-sm text-allure-charcoal/70">
+                <p className="text-sm text-zapatos-charcoal/70">
                   Your order will be shipped within 2-3 business days. Track your package via email.
                 </p>
               </div>
@@ -168,9 +168,9 @@ function ConfirmationContent() {
         </div>
 
         {/* Support */}
-        <p className="text-sm text-allure-charcoal/60 mt-12">
+        <p className="text-sm text-zapatos-charcoal/60 mt-12">
           Questions about your order?{' '}
-          <Link href="/contact" className="underline hover:text-allure-gold transition-colors">
+          <Link href="/contact" className="underline hover:text-zapatos-gold transition-colors">
             Contact us
           </Link>
         </p>

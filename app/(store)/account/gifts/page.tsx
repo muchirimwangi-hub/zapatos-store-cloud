@@ -121,8 +121,8 @@ export default function SavedGiftsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-full border-2 border-allure-gold/20 border-t-allure-gold animate-spin mx-auto mb-4" />
-          <p className="text-sm text-allure-charcoal/60">Loading your saved gifts...</p>
+          <div className="w-10 h-10 rounded-full border-2 border-zapatos-gold/20 border-t-zapatos-gold animate-spin mx-auto mb-4" />
+          <p className="text-sm text-zapatos-charcoal/60">Loading your saved gifts...</p>
         </div>
       </div>
     )
@@ -138,20 +138,20 @@ export default function SavedGiftsPage() {
 
       <div className="min-h-screen">
         {/* Header */}
-        <section className="py-20 bg-allure-taupe/10">
+        <section className="py-20 bg-zapatos-taupe/10">
           <div className="container mx-auto px-6 lg:px-12 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-allure-gold/10 mb-6">
-                <Gift className="h-8 w-8 text-allure-gold" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zapatos-gold/10 mb-6">
+                <Gift className="h-8 w-8 text-zapatos-gold" />
               </div>
               <h1 className="text-5xl md:text-6xl font-serif font-light mb-4">
                 Saved Gifts
               </h1>
-              <p className="text-lg text-allure-charcoal/80 editorial-spacing max-w-2xl mx-auto">
+              <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto">
                 Your curated gift boxes, saved for whenever you&apos;re ready.
               </p>
             </motion.div>
@@ -167,9 +167,9 @@ export default function SavedGiftsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-20 luxury-border max-w-lg mx-auto"
               >
-                <Gift className="h-16 w-16 text-allure-charcoal/20 mx-auto mb-4" />
+                <Gift className="h-16 w-16 text-zapatos-charcoal/20 mx-auto mb-4" />
                 <h2 className="text-2xl font-serif mb-3">No saved gifts yet</h2>
-                <p className="text-sm text-allure-charcoal/60 mb-6 editorial-spacing">
+                <p className="text-sm text-zapatos-charcoal/60 mb-6 editorial-spacing">
                   Create a gift box and save it here for easy access later.
                 </p>
                 <Button asChild>
@@ -190,9 +190,9 @@ export default function SavedGiftsPage() {
                     className="luxury-border bg-white overflow-hidden"
                   >
                     {/* Product images grid */}
-                    <div className="grid grid-cols-2 gap-px bg-allure-taupe/20">
+                    <div className="grid grid-cols-2 gap-px bg-zapatos-taupe/20">
                       {box.items.slice(0, 4).map((item, i) => (
-                        <div key={item.id} className="aspect-square bg-allure-cream">
+                        <div key={item.id} className="aspect-square bg-zapatos-cream">
                           {item.product_snapshot?.image && (
                             <div
                               className="w-full h-full bg-cover bg-center"
@@ -202,8 +202,8 @@ export default function SavedGiftsPage() {
                         </div>
                       ))}
                       {Array.from({ length: Math.max(0, 4 - box.items.length) }).map((_, i) => (
-                        <div key={`empty-${i}`} className="aspect-square bg-allure-cream/50 flex items-center justify-center">
-                          <Gift className="h-6 w-6 text-allure-charcoal/10" />
+                        <div key={`empty-${i}`} className="aspect-square bg-zapatos-cream/50 flex items-center justify-center">
+                          <Gift className="h-6 w-6 text-zapatos-charcoal/10" />
                         </div>
                       ))}
                     </div>
@@ -219,7 +219,7 @@ export default function SavedGiftsPage() {
                         )}
                       </div>
 
-                      <p className="text-sm text-allure-charcoal/60 mb-1">
+                      <p className="text-sm text-zapatos-charcoal/60 mb-1">
                         {box.items.length} {box.items.length === 1 ? "item" : "items"}
                       </p>
                       <p className="text-sm font-medium mb-3">
@@ -227,12 +227,12 @@ export default function SavedGiftsPage() {
                       </p>
 
                       {box.gift_note && (
-                        <p className="text-xs text-allure-charcoal/50 italic mb-4 line-clamp-2">
+                        <p className="text-xs text-zapatos-charcoal/50 italic mb-4 line-clamp-2">
                           &ldquo;{box.gift_note}&rdquo;
                         </p>
                       )}
 
-                      <p className="text-xs text-allure-charcoal/40 mb-4">
+                      <p className="text-xs text-zapatos-charcoal/40 mb-4">
                         Created {new Date(box.created_at).toLocaleDateString()}
                       </p>
 
@@ -254,7 +254,7 @@ export default function SavedGiftsPage() {
 
                         <button
                           onClick={() => handleDelete(box.id)}
-                          className="w-full text-xs text-allure-charcoal/50 hover:text-red-600 transition-colors py-2"
+                          className="w-full text-xs text-zapatos-charcoal/50 hover:text-red-600 transition-colors py-2"
                         >
                           <Trash2 className="inline h-3.5 w-3.5 mr-1" />
                           Delete

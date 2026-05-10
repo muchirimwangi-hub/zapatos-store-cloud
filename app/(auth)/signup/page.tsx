@@ -86,11 +86,11 @@ export default function SignUpPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-allure-gold/30 mb-8">
-            <Sparkles className="h-8 w-8 text-allure-gold" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-zapatos-gold/30 mb-8">
+            <Sparkles className="h-8 w-8 text-zapatos-gold" />
           </div>
           <h1 className="text-3xl font-serif font-light mb-4">Check Your Email</h1>
-          <p className="text-allure-charcoal/70 editorial-spacing mb-8">
+          <p className="text-zapatos-charcoal/70 editorial-spacing mb-8">
             We&apos;ve sent a confirmation link to <strong>{email}</strong>.
             Click the link in the email to activate your account.
           </p>
@@ -105,27 +105,27 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left — Visual */}
-      <div className="hidden lg:flex flex-1 relative bg-allure-obsidian items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex flex-1 relative bg-zapatos-obsidian items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-40"
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=1200&q=80')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-allure-obsidian via-allure-obsidian/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zapatos-obsidian via-zapatos-obsidian/50 to-transparent" />
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3 }}
           className="relative z-10 text-center px-12"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-allure-gold/30 mb-6">
-            <Sparkles className="h-7 w-7 text-allure-gold" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-zapatos-gold/30 mb-6">
+            <Sparkles className="h-7 w-7 text-zapatos-gold" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-serif font-light text-allure-cream mb-4 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-serif font-light text-zapatos-cream mb-4 leading-tight">
             Begin Your
             <br />
-            <span className="italic text-allure-gold">Ritual</span>
+            <span className="italic text-zapatos-gold">Ritual</span>
           </h2>
-          <p className="text-allure-cream/60 editorial-spacing max-w-sm mx-auto">
+          <p className="text-zapatos-cream/60 editorial-spacing max-w-sm mx-auto">
             Create an account to save your quiz results, build wishlists, and receive personalized recommendations.
           </p>
         </motion.div>
@@ -141,9 +141,9 @@ export default function SignUpPage() {
         >
           <div className="text-center mb-10">
             <Link href="/">
-              <h1 className="text-3xl font-serif font-light tracking-wider mb-2">ALLURE</h1>
+              <h1 className="text-3xl font-serif font-light tracking-wider mb-2">Zapatos</h1>
             </Link>
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-charcoal/50">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-charcoal/50">
               Create your account
             </p>
           </div>
@@ -152,7 +152,7 @@ export default function SignUpPage() {
           <div className="space-y-3">
             <button
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-3 h-12 px-4 rounded-sm border border-allure-charcoal/20 bg-white text-allure-charcoal text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-center gap-3 h-12 px-4 rounded-sm border border-zapatos-charcoal/20 bg-white text-zapatos-charcoal text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -165,9 +165,9 @@ export default function SignUpPage() {
 
 {/* Divider */}
             <div className="flex items-center gap-4">
-              <div className="flex-1 h-px bg-allure-taupe/30" />
-              <span className="text-xs uppercase tracking-[0.2em] text-allure-charcoal/40">or</span>
-              <div className="flex-1 h-px bg-allure-taupe/30" />
+              <div className="flex-1 h-px bg-zapatos-taupe/30" />
+              <span className="text-xs uppercase tracking-[0.2em] text-zapatos-charcoal/40">or</span>
+              <div className="flex-1 h-px bg-zapatos-taupe/30" />
             </div>
           </div>
 
@@ -183,7 +183,7 @@ export default function SignUpPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-[0.15em] text-allure-charcoal/70">
+              <label className="text-xs uppercase tracking-[0.15em] text-zapatos-charcoal/70">
                 Full Name
               </label>
               <Input
@@ -197,7 +197,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-[0.15em] text-allure-charcoal/70">
+              <label className="text-xs uppercase tracking-[0.15em] text-zapatos-charcoal/70">
                 Email Address
               </label>
               <Input
@@ -211,7 +211,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-[0.15em] text-allure-charcoal/70">
+              <label className="text-xs uppercase tracking-[0.15em] text-zapatos-charcoal/70">
                 Password
               </label>
               <div className="relative">
@@ -227,7 +227,7 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-allure-charcoal/40 hover:text-allure-charcoal transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zapatos-charcoal/40 hover:text-zapatos-charcoal transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -246,11 +246,11 @@ export default function SignUpPage() {
           </form>
 
           <div className="mt-8 text-center">
-            <p className="text-sm text-allure-charcoal/60">
+            <p className="text-sm text-zapatos-charcoal/60">
               Already have an account?{" "}
               <Link
                 href="/signin"
-                className="text-allure-gold hover:text-allure-terracotta transition-colors font-medium"
+                className="text-zapatos-gold hover:text-zapatos-terracotta transition-colors font-medium"
               >
                 Sign in
               </Link>

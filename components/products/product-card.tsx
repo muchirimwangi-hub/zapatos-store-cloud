@@ -47,18 +47,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     >
       <Link href={`/shop/${product.slug}`} className="group block">
         {/* Product Image */}
-        <div className="relative aspect-[3/4] overflow-hidden luxury-border mb-4 bg-allure-cream/50">
+        <div className="relative aspect-[3/4] overflow-hidden luxury-border mb-4 bg-zapatos-cream/50">
           <div 
             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{ backgroundImage: `url('${primaryImage}')` }}
           />
           
           {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-allure-obsidian/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zapatos-obsidian/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
           {/* Featured badge */}
           {product.is_featured && (
-            <div className="absolute top-4 left-4 bg-allure-gold text-white text-xs uppercase tracking-widest px-3 py-1">
+            <div className="absolute top-4 left-4 bg-zapatos-gold text-white text-xs uppercase tracking-widest px-3 py-1">
               Featured
             </div>
           )}
@@ -67,7 +67,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               size="icon"
-              className="rounded-full bg-allure-cream text-allure-obsidian hover:bg-white shadow-lg"
+              className="rounded-full bg-zapatos-cream text-zapatos-obsidian hover:bg-white shadow-lg"
               onClick={handleAddToCart}
             >
               <ShoppingBag className="h-5 w-5" />
@@ -79,26 +79,26 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         <div className="space-y-2">
           {/* Brand */}
           {product.brand && (
-            <p className="text-xs uppercase tracking-widest text-allure-charcoal/60">
+            <p className="text-xs uppercase tracking-widest text-zapatos-charcoal/60">
               {product.brand}
             </p>
           )}
 
           {/* Product Name */}
-          <h3 className="text-xl font-serif group-hover:text-allure-gold transition-colors">
+          <h3 className="text-xl font-serif group-hover:text-zapatos-gold transition-colors">
             {product.name}
           </h3>
 
           {/* Short Description */}
           {product.short_description && (
-            <p className="text-sm text-allure-charcoal/70 editorial-spacing line-clamp-2">
+            <p className="text-sm text-zapatos-charcoal/70 editorial-spacing line-clamp-2">
               {product.short_description}
             </p>
           )}
 
           {/* Volume */}
           {product.volume && (
-            <p className="text-xs text-allure-charcoal/50">
+            <p className="text-xs text-zapatos-charcoal/50">
               {product.volume}
             </p>
           )}
@@ -109,7 +109,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               {formatCurrency(product.price)}
             </span>
             {product.compare_at_price && product.compare_at_price > product.price && (
-              <span className="text-sm text-allure-charcoal/50 line-through">
+              <span className="text-sm text-zapatos-charcoal/50 line-through">
                 {formatCurrency(product.compare_at_price)}
               </span>
             )}
@@ -121,7 +121,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               {product.personality_tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="text-xs px-2 py-1 bg-allure-taupe/30 text-allure-charcoal/70 rounded-sm"
+                  className="text-xs px-2 py-1 bg-zapatos-taupe/30 text-zapatos-charcoal/70 rounded-sm"
                 >
                   {tag}
                 </span>

@@ -41,7 +41,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-allure-cream text-allure-obsidian font-sans;
+    @apply bg-zapatos-cream text-zapatos-obsidian font-sans;
     font-feature-settings: "kern" 1, "liga" 1;
   }
   
@@ -55,15 +55,15 @@
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-allure-cream;
+    @apply bg-zapatos-cream;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-allure-taupe rounded-full;
+    @apply bg-zapatos-taupe rounded-full;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-allure-terracotta;
+    @apply bg-zapatos-terracotta;
   }
 }
 
@@ -77,7 +77,7 @@
   }
   
   .luxury-border {
-    @apply border border-allure-taupe/30;
+    @apply border border-zapatos-taupe/30;
   }
   
   .glass-effect {

@@ -7,7 +7,7 @@ const config = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
-	],
+  ],
   prefix: "",
   theme: {
     container: {
@@ -52,20 +52,23 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Brand colors
-        allure: {
-          cream: "#FDF6F0",       // Warm Cream
-          lavender: "#DAC2FE",    // Whisper Lavender
-          rose: "#B76E79",        // Rose Gold (primary)
-          plum: "#350052",        // Deep Plum (secondary)
-          black: "#252525",       // Black
-          white: "#FFFFFF",       // White
-          // Legacy aliases (mapped to new palette)
-          gold: "#B76E79",
-          obsidian: "#350052",
-          charcoal: "#252525",
-          taupe: "#DAC2FE",
-          terracotta: "#B76E79",
+        // Brand colors - Zapatos Cave Minimalist Palette
+        zapatos: {
+          black: "#000000",       // Pure black for stark contrast
+          white: "#FFFFFF",       // Pure white for heavy negative space
+          gray: "#F5F5F7",        // Clean light gray for subtle borders
+          dark: "#1D1D1F",        // Deep charcoal for highly legible typography
+          
+          // Legacy mappings 
+          cream: "#FFFFFF",       
+          lavender: "#F5F5F7",    
+          rose: "#000000",        
+          plum: "#000000",        
+          gold: "#000000",        
+          obsidian: "#000000",    
+          charcoal: "#1D1D1F",    
+          taupe: "#E5E5EA",       
+          terracotta: "#000000",  
         }
       },
       borderRadius: {
@@ -74,8 +77,8 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        serif: ['var(--font-noto-serif)', 'Noto Serif', 'serif'],
-        sans: ['var(--font-montserrat)', 'Montserrat', 'sans-serif'],
+        serif: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'sans-serif'], 
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {

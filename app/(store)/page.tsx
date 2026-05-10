@@ -23,7 +23,7 @@ export default function HomePage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 2.5, ease: "easeOut" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-allure-obsidian/40 via-allure-obsidian/20 to-allure-cream" />
+          <div className="absolute inset-0 bg-gradient-to-b from-zapatos-obsidian/40 via-zapatos-obsidian/20 to-zapatos-cream" />
         </div>
 
         {/* Content */}
@@ -33,22 +33,22 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-cream/90 mb-6 editorial-spacing">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-cream/90 mb-6 editorial-spacing">
               Beauty, Thoughtfully Curated
             </p>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-allure-cream mb-8 leading-tight">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-zapatos-cream mb-8 leading-tight">
               Discover Your
               <br />
               <span className="italic">Aura</span>
             </h1>
-            <p className="text-lg md:text-xl text-allure-cream/80 max-w-2xl mx-auto mb-12 editorial-spacing">
+            <p className="text-lg md:text-xl text-zapatos-cream/80 max-w-2xl mx-auto mb-12 editorial-spacing">
               Experience Luxury-Inspired Personal Care, Without Compromise.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
                 size="lg" 
-                className="group text-base px-10 py-6 bg-allure-cream text-allure-obsidian hover:bg-white"
+                className="group text-base px-10 py-6 bg-zapatos-cream text-zapatos-obsidian hover:bg-white"
                 asChild
               >
                 <Link href="/shop">
@@ -59,7 +59,7 @@ export default function HomePage() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="group text-base px-10 py-6 border-allure-cream text-allure-cream hover:bg-allure-cream/10"
+                className="group text-base px-10 py-6 border-zapatos-cream text-zapatos-cream hover:bg-zapatos-cream/10"
                 asChild
               >
                 <Link href="/quiz">
@@ -84,7 +84,7 @@ export default function HomePage() {
           <h2 className="text-4xl md:text-5xl font-serif font-light mb-4">
             Shop by Category
           </h2>
-          <p className="text-allure-charcoal/70 editorial-spacing">
+          <p className="text-zapatos-charcoal/70 editorial-spacing">
             Find What Feels Like You
           </p>
         </motion.div>
@@ -117,12 +117,12 @@ export default function HomePage() {
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                     style={{ backgroundImage: `url('${category.image}')` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-allure-obsidian/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zapatos-obsidian/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-                <h3 className="text-2xl font-serif mb-2 group-hover:text-allure-gold transition-colors">
+                <h3 className="text-2xl font-serif mb-2 group-hover:text-zapatos-gold transition-colors">
                   {category.title}
                 </h3>
-                <p className="text-sm text-allure-charcoal/70 editorial-spacing">
+                <p className="text-sm text-zapatos-charcoal/70 editorial-spacing">
                   {category.description}
                 </p>
               </Link>
@@ -132,7 +132,7 @@ export default function HomePage() {
       </section>
 
       {/* Experience Section */}
-      <section className="py-24 bg-allure-taupe/20">
+      <section className="py-24 bg-zapatos-taupe/20">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -141,15 +141,15 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <p className="text-sm uppercase tracking-[0.3em] text-allure-gold mb-4">
+              <p className="text-sm uppercase tracking-[0.3em] text-zapatos-gold mb-4">
                 The Scent Personality Test
               </p>
               <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">
                 Embrace Your
                 <br />
-                <span className="italic">Allure</span>
+                <span className="italic">Zapatos</span>
               </h2>
-              <p className="text-lg text-allure-charcoal/80 editorial-spacing mb-8">
+              <p className="text-lg text-zapatos-charcoal/80 editorial-spacing mb-8">
                 Our signature Scent Personality Test cuts through the noise of endless options 
                 and curates recommendations tailored to your unique identity and lifestyle. 
                 Leave with more than a product, leave with a scent that is unmistakably yours.
@@ -193,7 +193,7 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">
               Create the Perfect Gift
             </h2>
-            <p className="text-lg text-allure-charcoal/80 editorial-spacing max-w-2xl mx-auto mb-8">
+            <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto mb-8">
              Curate a personalized gift box, infuse it with a heartfelt message, and transform a simple gesture into a cherished memory.
             </p>
             <Button size="lg" variant="outline" asChild>

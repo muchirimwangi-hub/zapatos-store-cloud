@@ -26,7 +26,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-allure-obsidian/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-zapatos-obsidian/60 backdrop-blur-sm z-50"
           />
 
           {/* Drawer */}
@@ -35,19 +35,19 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-allure-cream shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-md bg-zapatos-cream shadow-2xl z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-allure-taupe/30">
+            <div className="flex items-center justify-between p-6 border-b border-zapatos-taupe/30">
               <div>
                 <h2 className="text-2xl font-serif">Shopping Bag</h2>
-                <p className="text-sm text-allure-charcoal/60 mt-1">
+                <p className="text-sm text-zapatos-charcoal/60 mt-1">
                   {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-allure-taupe/20 rounded-full transition-colors"
+                className="p-2 hover:bg-zapatos-taupe/20 rounded-full transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -57,9 +57,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <div className="flex-1 overflow-y-auto p-6">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                  <ShoppingBag className="h-16 w-16 text-allure-charcoal/30 mb-4" />
+                  <ShoppingBag className="h-16 w-16 text-zapatos-charcoal/30 mb-4" />
                   <h3 className="text-xl font-serif mb-2">Your bag is empty</h3>
-                  <p className="text-sm text-allure-charcoal/60 mb-6">
+                  <p className="text-sm text-zapatos-charcoal/60 mb-6">
                     Start adding your favorite products
                   </p>
                   <Button onClick={onClose} asChild>
@@ -77,7 +77,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -100 }}
-                      className="flex gap-4 pb-6 border-b border-allure-taupe/20"
+                      className="flex gap-4 pb-6 border-b border-zapatos-taupe/20"
                     >
                       {/* Product Image */}
                       <Link
@@ -96,7 +96,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <Link
                           href={`/shop/${item.product.slug}`}
                           onClick={onClose}
-                          className="block hover:text-allure-gold transition-colors"
+                          className="block hover:text-zapatos-gold transition-colors"
                         >
                           <h3 className="font-serif text-lg mb-1 truncate">
                             {item.product.name}
@@ -104,7 +104,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         </Link>
                         
                         {item.product.volume && (
-                          <p className="text-xs text-allure-charcoal/60 mb-2">
+                          <p className="text-xs text-zapatos-charcoal/60 mb-2">
                             {item.product.volume}
                           </p>
                         )}
@@ -118,7 +118,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           <div className="flex items-center luxury-border">
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="p-1.5 hover:bg-allure-taupe/10 transition-colors"
+                              className="p-1.5 hover:bg-zapatos-taupe/10 transition-colors"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
@@ -126,7 +126,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             <button
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
                               disabled={item.quantity >= item.product.stock_quantity}
-                              className="p-1.5 hover:bg-allure-taupe/10 transition-colors disabled:opacity-30"
+                              className="p-1.5 hover:bg-zapatos-taupe/10 transition-colors disabled:opacity-30"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
@@ -134,7 +134,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                           <button
                             onClick={() => removeItem(item.id)}
-                            className="text-xs text-allure-charcoal/60 hover:text-red-600 transition-colors underline"
+                            className="text-xs text-zapatos-charcoal/60 hover:text-red-600 transition-colors underline"
                           >
                             Remove
                           </button>
@@ -155,14 +155,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
             {/* Footer with Total and Checkout */}
             {items.length > 0 && (
-              <div className="border-t border-allure-taupe/30 p-6 space-y-4 bg-allure-taupe/5">
+              <div className="border-t border-zapatos-taupe/30 p-6 space-y-4 bg-zapatos-taupe/5">
                 {/* Subtotal */}
                 <div className="flex justify-between text-lg">
                   <span className="font-serif">Subtotal</span>
                   <span className="font-medium">{formatCurrency(getTotal())}</span>
                 </div>
 
-                <p className="text-xs text-allure-charcoal/60 text-center">
+                <p className="text-xs text-zapatos-charcoal/60 text-center">
                   Shipping and taxes calculated at checkout
                 </p>
 

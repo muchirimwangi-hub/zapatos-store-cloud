@@ -1,4 +1,4 @@
-# Allure Beauty Atelier - Setup Guide
+# Zapatos - Setup Guide
 
 ## 🚀 Getting Started
 
@@ -64,7 +64,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📁 Project Structure
 
 ```
-allure/
+Zapatos/
 ├── app/                    # Next.js App Router pages
 │   ├── layout.tsx         # Root layout with fonts and navigation
 │   ├── page.tsx           # Landing page

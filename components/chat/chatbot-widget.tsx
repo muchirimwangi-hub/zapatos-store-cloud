@@ -15,7 +15,7 @@ interface Message {
 const GREETING: Message = {
   id: "greeting",
   role: "bot",
-  text: "Welcome to Allure Beauty Atelier! I can help you with fragrance advice, body care tips, our Scent Personality Test, gift curation, and more. Ask me anything or pick a suggestion below.",
+  text: "Welcome to Zapatos! I can help you with fragrance advice, body care tips, our Scent Personality Test, gift curation, and more. Ask me anything or pick a suggestion below.",
   timestamp: new Date(),
 }
 
@@ -95,14 +95,14 @@ export function ChatbotWidget() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-allure-obsidian shadow-2xl flex items-center justify-center group transition-shadow hover:shadow-allure-gold/20"
+            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-zapatos-obsidian shadow-2xl flex items-center justify-center group transition-shadow hover:shadow-zapatos-gold/20"
             aria-label="Open chat"
           >
-            <span className="text-2xl font-serif font-light text-allure-cream group-hover:text-allure-gold transition-colors">
+            <span className="text-2xl font-serif font-light text-zapatos-cream group-hover:text-zapatos-gold transition-colors">
               A
             </span>
             {/* Pulse ring */}
-            <span className="absolute inset-0 rounded-full border-2 border-allure-gold/30 animate-ping opacity-40" />
+            <span className="absolute inset-0 rounded-full border-2 border-zapatos-gold/30 animate-ping opacity-40" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -115,19 +115,19 @@ export function ChatbotWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-3rem)] bg-allure-cream rounded-2xl shadow-2xl border border-allure-taupe/30 flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-3rem)] bg-zapatos-cream rounded-2xl shadow-2xl border border-zapatos-taupe/30 flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-allure-obsidian px-5 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="bg-zapatos-obsidian px-5 py-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-allure-gold/20 flex items-center justify-center">
-                  <span className="text-lg font-serif font-light text-allure-gold">A</span>
+                <div className="w-9 h-9 rounded-full bg-zapatos-gold/20 flex items-center justify-center">
+                  <span className="text-lg font-serif font-light text-zapatos-gold">A</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-allure-cream">Allure Assistant</h3>
+                  <h3 className="text-sm font-medium text-zapatos-cream">Zapatos Assistant</h3>
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                    <span className="text-[11px] text-allure-cream/60">Online</span>
+                    <span className="text-[11px] text-zapatos-cream/60">Online</span>
                   </div>
                 </div>
               </div>
@@ -135,7 +135,7 @@ export function ChatbotWidget() {
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
               >
-                <X className="h-5 w-5 text-allure-cream/70" />
+                <X className="h-5 w-5 text-zapatos-cream/70" />
               </button>
             </div>
 
@@ -150,15 +150,15 @@ export function ChatbotWidget() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "bot" && (
-                    <div className="w-7 h-7 rounded-full bg-allure-gold/15 flex items-center justify-center flex-shrink-0 mr-2 mt-1">
-                      <span className="text-xs font-serif font-light text-allure-gold">A</span>
+                    <div className="w-7 h-7 rounded-full bg-zapatos-gold/15 flex items-center justify-center flex-shrink-0 mr-2 mt-1">
+                      <span className="text-xs font-serif font-light text-zapatos-gold">A</span>
                     </div>
                   )}
                   <div
                     className={`max-w-[75%] px-4 py-3 text-sm leading-relaxed ${
                       msg.role === "user"
-                        ? "bg-allure-obsidian text-allure-cream rounded-2xl rounded-br-sm"
-                        : "bg-white text-allure-charcoal rounded-2xl rounded-bl-sm border border-allure-taupe/20"
+                        ? "bg-zapatos-obsidian text-zapatos-cream rounded-2xl rounded-br-sm"
+                        : "bg-white text-zapatos-charcoal rounded-2xl rounded-bl-sm border border-zapatos-taupe/20"
                     }`}
                   >
                     {msg.text}
@@ -173,14 +173,14 @@ export function ChatbotWidget() {
                   animate={{ opacity: 1 }}
                   className="flex justify-start"
                 >
-                  <div className="w-7 h-7 rounded-full bg-allure-gold/15 flex items-center justify-center flex-shrink-0 mr-2 mt-1">
-                    <span className="text-xs font-serif font-light text-allure-gold">A</span>
+                  <div className="w-7 h-7 rounded-full bg-zapatos-gold/15 flex items-center justify-center flex-shrink-0 mr-2 mt-1">
+                    <span className="text-xs font-serif font-light text-zapatos-gold">A</span>
                   </div>
-                  <div className="bg-white text-allure-charcoal rounded-2xl rounded-bl-sm border border-allure-taupe/20 px-4 py-3">
+                  <div className="bg-white text-zapatos-charcoal rounded-2xl rounded-bl-sm border border-zapatos-taupe/20 px-4 py-3">
                     <div className="flex gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-allure-charcoal/30 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-2 h-2 rounded-full bg-allure-charcoal/30 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-2 h-2 rounded-full bg-allure-charcoal/30 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-zapatos-charcoal/30 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-zapatos-charcoal/30 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-zapatos-charcoal/30 animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </motion.div>
@@ -194,7 +194,7 @@ export function ChatbotWidget() {
                   transition={{ delay: 0.3 }}
                   className="space-y-2 pt-2"
                 >
-                  <p className="text-[11px] text-allure-charcoal/40 uppercase tracking-wider px-1">
+                  <p className="text-[11px] text-zapatos-charcoal/40 uppercase tracking-wider px-1">
                     Suggestions
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -202,7 +202,7 @@ export function ChatbotWidget() {
                       <button
                         key={s}
                         onClick={() => handleSend(s)}
-                        className="text-xs px-3 py-1.5 rounded-full border border-allure-taupe/30 bg-white hover:bg-allure-taupe/10 text-allure-charcoal/80 transition-colors"
+                        className="text-xs px-3 py-1.5 rounded-full border border-zapatos-taupe/30 bg-white hover:bg-zapatos-taupe/10 text-zapatos-charcoal/80 transition-colors"
                       >
                         {s}
                       </button>
@@ -215,7 +215,7 @@ export function ChatbotWidget() {
             </div>
 
             {/* Input */}
-            <div className="border-t border-allure-taupe/20 p-3 flex-shrink-0 bg-white">
+            <div className="border-t border-zapatos-taupe/20 p-3 flex-shrink-0 bg-white">
               <div className="flex items-center gap-2">
                 <input
                   ref={inputRef}
@@ -224,18 +224,18 @@ export function ChatbotWidget() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask about fragrance, body care..."
-                  className="flex-1 px-4 py-2.5 text-sm rounded-full border border-allure-taupe/30 bg-allure-cream/50 focus:outline-none focus:border-allure-gold/50 transition-colors placeholder:text-allure-charcoal/40"
+                  className="flex-1 px-4 py-2.5 text-sm rounded-full border border-zapatos-taupe/30 bg-zapatos-cream/50 focus:outline-none focus:border-zapatos-gold/50 transition-colors placeholder:text-zapatos-charcoal/40"
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || isTyping}
-                  className="p-2.5 rounded-full bg-allure-obsidian text-allure-cream hover:bg-allure-charcoal disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-2.5 rounded-full bg-zapatos-obsidian text-zapatos-cream hover:bg-zapatos-charcoal disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <p className="text-[10px] text-allure-charcoal/30 text-center mt-2">
-                Allure Beauty Atelier Assistant
+              <p className="text-[10px] text-zapatos-charcoal/30 text-center mt-2">
+                Zapatos Assistant
               </p>
             </div>
           </motion.div>

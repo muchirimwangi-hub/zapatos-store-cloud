@@ -137,7 +137,7 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-serif mb-4">Your cart is empty</h1>
-          <p className="text-allure-charcoal/70 mb-6">Add some products before checking out</p>
+          <p className="text-zapatos-charcoal/70 mb-6">Add some products before checking out</p>
           <Button asChild>
             <Link href="/shop">Continue Shopping</Link>
           </Button>
@@ -152,7 +152,7 @@ export default function CheckoutPage() {
         {/* Back Button */}
         <Link 
           href="/shop" 
-          className="inline-flex items-center text-sm text-allure-charcoal/70 hover:text-allure-gold transition-colors mb-8"
+          className="inline-flex items-center text-sm text-zapatos-charcoal/70 hover:text-zapatos-gold transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Shop
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-serif font-light mb-4">Checkout</h1>
-          <p className="text-allure-charcoal/70">Complete your order</p>
+          <p className="text-zapatos-charcoal/70">Complete your order</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -248,9 +248,9 @@ export default function CheckoutPage() {
                       type="checkbox"
                       checked={sameAsShipping}
                       onChange={(e) => setSameAsShipping(e.target.checked)}
-                      className="w-4 h-4 accent-allure-gold"
+                      className="w-4 h-4 accent-zapatos-gold"
                     />
-                    <span className="text-sm text-allure-charcoal/70">Same as shipping</span>
+                    <span className="text-sm text-zapatos-charcoal/70">Same as shipping</span>
                   </label>
                 </div>
                 {!sameAsShipping && (
@@ -303,13 +303,13 @@ export default function CheckoutPage() {
                 className="luxury-border p-8"
               >
                 <h2 className="text-2xl font-serif mb-6">Payment Method</h2>
-                <div className="bg-allure-taupe/10 luxury-border p-6 text-center">
-                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-allure-charcoal/50" />
-                  <p className="text-allure-charcoal/70 mb-2">Secure Payment via Flutterwave</p>
-                  <p className="text-sm text-allure-charcoal/50">
+                <div className="bg-zapatos-taupe/10 luxury-border p-6 text-center">
+                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-zapatos-charcoal/50" />
+                  <p className="text-zapatos-charcoal/70 mb-2">Secure Payment via Flutterwave</p>
+                  <p className="text-sm text-zapatos-charcoal/50">
                     Card, Bank Transfer & USSD supported
                   </p>
-                  <div className="flex items-center justify-center gap-2 mt-3 text-xs text-allure-charcoal/40">
+                  <div className="flex items-center justify-center gap-2 mt-3 text-xs text-zapatos-charcoal/40">
                     <Shield className="h-3 w-3" />
                     <span>256-bit SSL Encrypted</span>
                   </div>
@@ -333,7 +333,7 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-serif mb-6">Order Summary</h2>
                 
                 {/* Cart Items */}
-                <div className="space-y-4 mb-6 pb-6 border-b border-allure-taupe/30">
+                <div className="space-y-4 mb-6 pb-6 border-b border-zapatos-taupe/30">
                   {items.map((item) => {
                     const imgUrl = Array.isArray(item.product.images) && item.product.images.length > 0
                       ? typeof item.product.images[0] === 'string' ? item.product.images[0] : item.product.images[0].url
@@ -341,12 +341,12 @@ export default function CheckoutPage() {
                     return (
                     <div key={item.id} className="flex gap-3">
                       <div
-                        className="w-16 h-16 luxury-border bg-allure-taupe/10 flex-shrink-0 bg-cover bg-center"
+                        className="w-16 h-16 luxury-border bg-zapatos-taupe/10 flex-shrink-0 bg-cover bg-center"
                         style={{ backgroundImage: `url('${imgUrl}')` }}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.product.name}</p>
-                        <p className="text-xs text-allure-charcoal/60">Qty: {item.quantity}</p>
+                        <p className="text-xs text-zapatos-charcoal/60">Qty: {item.quantity}</p>
                       </div>
                       <p className="text-sm font-medium">
                         {formatCurrency(item.product.price * item.quantity)}
@@ -357,13 +357,13 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Pricing Breakdown */}
-                <div className="space-y-3 mb-6 pb-6 border-b border-allure-taupe/30">
+                <div className="space-y-3 mb-6 pb-6 border-b border-zapatos-taupe/30">
                   <div className="flex justify-between text-sm">
-                    <span className="text-allure-charcoal/70">Subtotal</span>
+                    <span className="text-zapatos-charcoal/70">Subtotal</span>
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-allure-charcoal/70">Tax</span>
+                    <span className="text-zapatos-charcoal/70">Tax</span>
                     <span>{formatCurrency(tax)}</span>
                   </div>
                 </div>
@@ -392,7 +392,7 @@ export default function CheckoutPage() {
                   )}
                 </Button>
 
-                <p className="text-xs text-allure-charcoal/50 text-center">
+                <p className="text-xs text-zapatos-charcoal/50 text-center">
                   Your payment information is secure and encrypted
                 </p>
               </motion.div>

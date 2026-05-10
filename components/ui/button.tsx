@@ -9,15 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-allure-obsidian text-allure-cream hover:bg-allure-charcoal",
+        default: "bg-zapatos-obsidian text-zapatos-cream hover:bg-zapatos-charcoal",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-allure-obsidian bg-transparent hover:bg-allure-cream/5",
+          "border border-zapatos-obsidian bg-transparent hover:bg-zapatos-cream/5",
         secondary:
-          "bg-allure-taupe text-allure-obsidian hover:bg-allure-taupe/80",
-        ghost: "hover:bg-allure-cream/10",
-        link: "text-allure-obsidian underline-offset-4 hover:underline",
+          "bg-zapatos-taupe text-zapatos-obsidian hover:bg-zapatos-taupe/80",
+        ghost: "hover:bg-zapatos-cream/10",
+        link: "text-zapatos-obsidian underline-offset-4 hover:underline",
       },
       size: {
         default: "h-12 px-8 py-3",

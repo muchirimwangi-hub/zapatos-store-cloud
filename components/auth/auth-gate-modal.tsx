@@ -33,7 +33,7 @@ export function AuthGateModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-allure-obsidian/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-zapatos-obsidian/60 backdrop-blur-sm z-50"
           />
 
           {/* Modal */}
@@ -44,23 +44,23 @@ export function AuthGateModal({
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-6"
           >
-            <div className="bg-allure-cream w-full max-w-md luxury-border p-8 relative">
+            <div className="bg-zapatos-cream w-full max-w-md luxury-border p-8 relative">
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-2 hover:bg-allure-taupe/20 rounded-full transition-colors"
+                className="absolute top-4 right-4 p-2 hover:bg-zapatos-taupe/20 rounded-full transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
 
               {/* Content */}
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-allure-gold/10 mb-6">
-                  <LogIn className="h-7 w-7 text-allure-gold" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zapatos-gold/10 mb-6">
+                  <LogIn className="h-7 w-7 text-zapatos-gold" />
                 </div>
 
                 <h2 className="text-2xl font-serif mb-3">{title}</h2>
-                <p className="text-sm text-allure-charcoal/70 editorial-spacing mb-8">
+                <p className="text-sm text-zapatos-charcoal/70 editorial-spacing mb-8">
                   {message}
                 </p>
 
@@ -80,7 +80,7 @@ export function AuthGateModal({
                   </Button>
                 </div>
 
-                <p className="text-xs text-allure-charcoal/50 mt-6">
+                <p className="text-xs text-zapatos-charcoal/50 mt-6">
                   Creating an account lets you save gifts, track orders, and get personalized recommendations.
                 </p>
               </div>

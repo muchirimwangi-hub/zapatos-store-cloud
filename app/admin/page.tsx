@@ -145,7 +145,7 @@ export default function AdminDashboard() {
             <h3 className="font-medium text-gray-900">Recent Orders</h3>
             <Link
               href="/admin/orders"
-              className="text-sm text-allure-gold hover:text-allure-terracotta transition-colors"
+              className="text-sm text-zapatos-gold hover:text-zapatos-terracotta transition-colors"
             >
               View all →
             </Link>
@@ -193,13 +193,13 @@ export default function AdminDashboard() {
           <div className="p-6 space-y-3">
             <Link
               href="/admin/products/new"
-              className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-allure-gold hover:bg-allure-gold/5 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-zapatos-gold hover:bg-zapatos-gold/5 transition-all group"
             >
-              <div className="p-2 bg-allure-gold/10 rounded-lg">
-                <Package className="h-5 w-5 text-allure-gold" />
+              <div className="p-2 bg-zapatos-gold/10 rounded-lg">
+                <Package className="h-5 w-5 text-zapatos-gold" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 group-hover:text-allure-gold transition-colors">
+                <p className="text-sm font-medium text-gray-900 group-hover:text-zapatos-gold transition-colors">
                   Add New Product
                 </p>
                 <p className="text-xs text-gray-400">Create a new product listing</p>
@@ -210,13 +210,13 @@ export default function AdminDashboard() {
             <Link
               href="/"
               target="_blank"
-              className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-allure-gold hover:bg-allure-gold/5 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-zapatos-gold hover:bg-zapatos-gold/5 transition-all group"
             >
               <div className="p-2 bg-blue-500/10 rounded-lg">
                 <Eye className="h-5 w-5 text-blue-500" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 group-hover:text-allure-gold transition-colors">
+                <p className="text-sm font-medium text-gray-900 group-hover:text-zapatos-gold transition-colors">
                   View Storefront
                 </p>
                 <p className="text-xs text-gray-400">See your store as customers see it</p>
@@ -226,13 +226,13 @@ export default function AdminDashboard() {
 
             <Link
               href="/admin/orders"
-              className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-allure-gold hover:bg-allure-gold/5 transition-all group"
+              className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-zapatos-gold hover:bg-zapatos-gold/5 transition-all group"
             >
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <ShoppingCart className="h-5 w-5 text-green-500" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 group-hover:text-allure-gold transition-colors">
+                <p className="text-sm font-medium text-gray-900 group-hover:text-zapatos-gold transition-colors">
                   Manage Orders
                 </p>
                 <p className="text-xs text-gray-400">View and process orders</p>

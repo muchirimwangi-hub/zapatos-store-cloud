@@ -41,20 +41,20 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="py-24 bg-allure-taupe/10">
+      <section className="py-24 bg-zapatos-taupe/10">
         <div className="container mx-auto px-6 lg:px-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <p className="text-sm uppercase tracking-[0.3em] text-allure-gold mb-4">
+            <p className="text-sm uppercase tracking-[0.3em] text-zapatos-gold mb-4">
               Get In Touch
             </p>
             <h1 className="text-5xl md:text-6xl font-serif font-light mb-6">
               Contact Us
             </h1>
-            <p className="text-lg text-allure-charcoal/80 editorial-spacing max-w-2xl mx-auto">
+            <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto">
               We would love to hear from you. Whether you have a question about our 
               products, need assistance with an order, or just want to say hello.
             </p>
@@ -77,14 +77,14 @@ export default function ContactPage() {
                     <Send className="h-8 w-8 text-green-600" />
                   </div>
                   <h2 className="text-3xl font-serif mb-4">Message Sent</h2>
-                  <p className="text-allure-charcoal/70 editorial-spacing">
+                  <p className="text-zapatos-charcoal/70 editorial-spacing">
                     Thank you for reaching out. We will get back to you within 24 hours.
                   </p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <h2 className="text-3xl font-serif mb-2">Send a Message</h2>
-                  <p className="text-sm text-allure-charcoal/60 mb-6">
+                  <p className="text-sm text-zapatos-charcoal/60 mb-6">
                     Fill out the form and our team will respond promptly.
                   </p>
 
@@ -127,7 +127,7 @@ export default function ContactPage() {
                       placeholder="Tell us more..."
                       value={formData.message}
                       onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-                      className="flex w-full luxury-border bg-transparent px-4 py-3 text-sm transition-colors placeholder:text-allure-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allure-gold/50 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                      className="flex w-full luxury-border bg-transparent px-4 py-3 text-sm transition-colors placeholder:text-zapatos-charcoal/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zapatos-gold/50 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                     />
                   </div>
 
@@ -152,7 +152,7 @@ export default function ContactPage() {
             >
               <div>
                 <h2 className="text-3xl font-serif mb-6">Other Ways to Reach Us</h2>
-                <p className="text-allure-charcoal/70 editorial-spacing">
+                <p className="text-zapatos-charcoal/70 editorial-spacing">
                   Our customer care team is here to assist you with anything you need.
                 </p>
               </div>
@@ -162,7 +162,7 @@ export default function ContactPage() {
                   {
                     icon: Mail,
                     title: "Email",
-                    detail: "helloallure.atelier@gmail.com",
+                    detail: "helloZapatos.atelier@gmail.com",
                     // sub: "We respond during work hours",
                   },
                   {
@@ -185,13 +185,13 @@ export default function ContactPage() {
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-4 luxury-border p-6">
-                    <div className="p-3 bg-allure-gold/10 rounded-full h-fit">
-                      <item.icon className="h-5 w-5 text-allure-gold" />
+                    <div className="p-3 bg-zapatos-gold/10 rounded-full h-fit">
+                      <item.icon className="h-5 w-5 text-zapatos-gold" />
                     </div>
                     <div>
                       <h3 className="font-medium mb-1">{item.title}</h3>
-                      <p className="text-sm text-allure-charcoal/80">{item.detail}</p>
-                      <p className="text-xs text-allure-charcoal/50 mt-1">{item.sub}</p>
+                      <p className="text-sm text-zapatos-charcoal/80">{item.detail}</p>
+                      <p className="text-xs text-zapatos-charcoal/50 mt-1">{item.sub}</p>
                     </div>
                   </div>
                 ))}

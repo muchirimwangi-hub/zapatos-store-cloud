@@ -2,9 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ProductForm from "@/app/admin/products/new/ProductForm"; 
 
-// Next.js 14 uses a direct object for params
-export default async function EditProductPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
+  // This line handles both older and newer Next.js versions automatically
+  const resolvedParams = 'then' in params ? await params : params;
+  const { id } = resolvedParams;
   
   const supabase = createClient() as any;
   

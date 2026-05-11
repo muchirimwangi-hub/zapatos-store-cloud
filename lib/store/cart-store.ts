@@ -18,24 +18,26 @@ export const useCartStore = create<CartStore>()(
       items: [],
 
       addItem: (product, quantity = 1) => {
-        set((state) => {
-          const existingItem = state.items.find((item) => item.id === product.id)
+  set((state) => {
+    // We look for the ID inside the nested product object
+    const existingItem = state.items.find((item) => item.product.id === product.id)
 
-          if (existingItem) {
-            return {
-              items: state.items.map((item) =>
-                item.id === product.id
-                  ? { ...item, quantity: item.quantity + quantity }
-                  : item
-              ),
-            }
-          }
+    if (existingItem) {
+      return {
+        items: state.items.map((item) =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        ),
+      }
+    }
 
-          return {
-            items: [...state.items, { id: product.id, product, quantity }],
-          }
-        })
-      },
+    // This is the structure TypeScript was asking for!
+    return { 
+      items: [...state.items, { id: product.id, product, quantity }] 
+    }
+  })
+},
 
       removeItem: (productId) => {
         set((state) => ({

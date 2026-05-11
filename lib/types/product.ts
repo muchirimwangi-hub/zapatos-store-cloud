@@ -7,7 +7,7 @@ export interface Product {
   price: number;
   compare_at_price?: number;
   stock_quantity: number;
-  images: any; // Using any for the array to handle both string and object formats
+  images: any; 
   category: string;
   subcategory?: string;
   brand?: string;
@@ -19,4 +19,8 @@ export interface Product {
   personality_tags?: string[];
   sku?: string;
   created_at?: string;
+}
+
+export interface CartItem extends Product {
+  quantity: number;
 }

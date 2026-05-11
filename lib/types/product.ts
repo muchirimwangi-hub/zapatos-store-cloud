@@ -21,6 +21,8 @@ export interface Product {
   created_at?: string;
 }
 
-export interface CartItem extends Product {
+// Change this to a "Nested" structure to satisfy the checkout page
+export interface CartItem {
+  product: Product;
   quantity: number;
 }

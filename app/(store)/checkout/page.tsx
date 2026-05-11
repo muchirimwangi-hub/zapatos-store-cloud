@@ -335,11 +335,12 @@ export default function CheckoutPage() {
                 {/* Cart Items */}
                 <div className="space-y-4 mb-6 pb-6 border-b border-zapatos-taupe/30">
                   {items.map((item) => {
-                    const imgUrl = Array.isArray(item.product.images) && item.product.images.length > 0
-                      ? typeof item.product.images[0] === 'string' ? item.product.images[0] : item.product.images[0].url
-                      : 'https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?w=400&q=80'
-                    return (
-                    <div key={item.id} className="flex gap-3">
+                    const imgUrl = Array.isArray(item.product?.images) && item.product.images.length > 0
+  ? (typeof item.product.images[0] === 'string' ? item.product.images[0] : item.product.images[0].url)
+  : 'https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?w=400&q=80';
+
+return (
+  <div key={item.product?.id || item.id} className="flex gap-3">
                       <div
                         className="w-16 h-16 luxury-border bg-zapatos-taupe/10 flex-shrink-0 bg-cover bg-center"
                         style={{ backgroundImage: `url('${imgUrl}')` }}

@@ -21,8 +21,8 @@ export interface Product {
   created_at?: string;
 }
 
-// Change this to a "Nested" structure to satisfy the checkout page
-export interface CartItem {
-  product: Product;
+// THE HYBRID FIX: Satisfies both item.id (Flat) and item.product.id (Nested)
+export interface CartItem extends Product {
+  product: Product; 
   quantity: number;
 }

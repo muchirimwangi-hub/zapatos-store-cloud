@@ -225,7 +225,7 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                            <Link href={`/admin/products/${product.id}`}>
+                            <Link href={`/admin/products/edit/${product.id}`}>
                               <Edit className="h-4 w-4" />
                             </Link>
                           </Button>

@@ -283,29 +283,29 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
           )}
 
-          {/* Notes (for fragrances) */}
-          {product.notes && product.notes.length > 0 && (
-            <div className="max-w-3xl">
-              <h2 className="text-2xl font-serif mb-4">Notes</h2>
-              <div className="space-y-2">
-                {product.notes.map((note, index) => (
-                  <p key={index} className="text-zapatos-charcoal/80 editorial-spacing">
-                    • {note}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Technical Specs (Previously Notes) */}
+{product.notes && product.notes.length > 0 && (
+  <div className="max-w-3xl">
+    <h2 className="text-xl font-bold uppercase tracking-widest mb-4">Technical Specs</h2>
+    <div className="space-y-2">
+      {product.notes?.map((note, index) => ( // Added the '?'
+        <p key={index} className="text-zapatos-charcoal/80 text-sm">
+          • {note}
+        </p>
+      ))}
+    </div>
+  </div>
+)}
 
-          {/* Ingredients */}
-          {product.ingredients && product.ingredients.length > 0 && (
-            <div className="max-w-3xl">
-              <h2 className="text-2xl font-serif mb-4">Ingredients</h2>
-              <p className="text-sm text-zapatos-charcoal/70 editorial-spacing">
-                {product.ingredients.join(', ')}
-              </p>
-            </div>
-          )}
+{/* Materials & Build (Previously Ingredients) */}
+{product.ingredients && product.ingredients.length > 0 && (
+  <div className="max-w-3xl">
+    <h2 className="text-xl font-bold uppercase tracking-widest mb-4">Materials & Build</h2>
+    <p className="text-sm text-zapatos-charcoal/70 leading-relaxed">
+      {product.ingredients?.join(', ')} {/* Added the '?' */}
+    </p>
+  </div>
+)}
         </motion.div>
       </section>
     </div>

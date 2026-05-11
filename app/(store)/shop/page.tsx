@@ -84,9 +84,9 @@ export default function ShopPage() {
               Our Collection
             </h1>
             <p className="text-lg text-zapatos-charcoal/80 editorial-spacing max-w-2xl mx-auto mb-8">
-              Explore our carefully curated selection of luxury-inspired fragrances 
-              and body care essentials.
-            </p>
+  Explore our high-performance sportswear and minimalist gear, 
+  meticulously engineered for the modern athlete.
+</p>
             
             {/* Inline Search Bar */}
             <div className="max-w-2xl mx-auto relative">

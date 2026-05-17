@@ -25,7 +25,40 @@ export default function Navigation() {
   const [authUser, setAuthUser] = useState<{ email?: string; full_name?: string } | null>(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  
+  // Zustand State hooks integration mapping handles
   const itemCount = useCartStore((state) => state.getItemCount())
+  const addItem = useCartStore((state) => state.addItem)
+
+  // FIXED: Listens for variant click streams and opens the sidebar cart drawer
+  useEffect(() => {
+    const handleVariantCartAddition = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const payload = customEvent.detail;
+
+      if (!payload) return;
+
+      // Unpack raw context variables to align matching structures inside useCartStore
+      const formattedProductMock = {
+        id: payload.variantId || payload.productId, 
+        name: payload.name,
+        price: payload.price,
+        images: [payload.image], 
+        slug: payload.sku,
+        brand: "Zapatos Cave",
+        selectedOptions: payload.selectedOptions 
+      };
+
+      // Dispatches values directly to your Zustand cache store
+      addItem(formattedProductMock as any);
+
+      // Slides open your canvas Cart Drawer interface layer smoothly
+      setIsCartOpen(true);
+    };
+
+    window.addEventListener("zapatos-add-to-cart", handleVariantCartAddition);
+    return () => window.removeEventListener("zapatos-add-to-cart", handleVariantCartAddition);
+  }, [addItem]);
 
   useEffect(() => {
     setIsMounted(true)
@@ -142,7 +175,6 @@ export default function Navigation() {
               <Menu className="h-5 w-5" />
             </Button>
 
-            {/* Zapatos Text Logo */}
             <Link href="/" className="group">
                <span className="text-2xl font-black tracking-tighter group-hover:opacity-70 transition-opacity">ZAPATOS</span>
             </Link>

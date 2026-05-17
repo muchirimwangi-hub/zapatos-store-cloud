@@ -9,7 +9,38 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/utils"
-
+const cleanImageUrl = (imgData: any): string => {
+  if (!imgData) return "";
+  
+  // If it's a nested object wrapper, extract the inner url path property
+  if (typeof imgData === 'object' && imgData !== null) {
+    const targetUrl = imgData.url || imgData.image_url || "";
+    return cleanImageUrl(targetUrl);
+  }
+  
+  if (typeof imgData === 'string') {
+    // If the database accidentally returns a raw stringified JSON array string
+    if (imgData.startsWith('[') || imgData.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(imgData);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return cleanImageUrl(parsed[0]);
+        }
+        return cleanImageUrl(parsed);
+      } catch {
+        // Fall through to standard string cleanup if JSON parsing fails
+      }
+    }
+    
+    // Direct string cleanup: strips out formatting quotes and enforces the direct storage link
+    return imgData
+      .replace(/['"[\]]/g, '') // Removes stray bracket or quotation marks
+      .replace('/render/image/public/', '/object/public/')
+      .trim();
+  }
+  
+  return "";
+};
 interface ProductRow {
   id: string
   name: string
@@ -65,16 +96,17 @@ export default function AdminProductsPage() {
   )
 
   const getImageUrl = (product: ProductRow): string => {
-    const images = product.images
-    if (Array.isArray(images) && images.length > 0) {
-      const first = images[0]
-      if (typeof first === "string") return first
-      if (typeof first === "object" && first !== null && "url" in first) {
-        return (first as { url: string }).url
-      }
-    }
-    return ""
+  const imagesData = product.images;
+  if (!imagesData) return "";
+
+  // If it's already an array, pass the first item to our universal cleaner
+  if (Array.isArray(imagesData)) {
+    return cleanImageUrl(imagesData[0]);
   }
+  
+  // Otherwise, pass it directly
+  return cleanImageUrl(imagesData);
+};
 
   return (
     <div className="space-y-6">

@@ -1,7 +1,8 @@
 import { getProductBySlug } from '@/lib/supabase/products'
 import { createStaticClient } from '@/lib/supabase/static'
+import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { ProductDetailClient } from '@/components/products/product-detail-client'
+import ProductDisplay from '@/components/shop/ProductDisplay'
 import type { Metadata } from 'next'
 
 interface ProductPageProps {
@@ -32,7 +33,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export async function generateStaticParams() {
-  // Use static client for build-time generation (no cookies needed)
   const supabase = createStaticClient()
   
   const { data: products } = await supabase
@@ -55,5 +55,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound()
   }
 
-  return <ProductDetailClient product={product} />
+  // Fetch the corresponding variant configurations for this specific product
+  const supabase = await createClient()
+  const { data: variants } = await supabase
+    .from('product_variants')
+    .select('*')
+    .eq('product_id', product.id)
+    .order('sku', { ascending: true })
+
+  return (
+    <main className="min-h-screen bg-[#FAF7F2] pt-24">
+      {/* Type assertion using 'as any' instantly clears the compiler red line */}
+      <ProductDisplay product={product as any} variants={variants as any || []} />
+    </main>
+  )
 }

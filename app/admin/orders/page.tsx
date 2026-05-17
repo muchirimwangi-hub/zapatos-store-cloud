@@ -8,17 +8,16 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/utils"
 
+// Updated to perfectly map your database schema columns
 interface OrderRow {
   id: string
-  order_number: string
+  email: string
   status: string
-  total: number
-  subtotal: number
-  shipping: number
+  total_amount: number
+  shipping_cost: number
   tax: number
   created_at: string
-  user_id: string | null
-  shipping_address: unknown
+  shipping_address: any
 }
 
 const statusColors: Record<string, string> = {
@@ -56,11 +55,19 @@ export default function AdminOrdersPage() {
     )
   }
 
-  const filtered = orders.filter(
-    (o) =>
-      o.order_number.toLowerCase().includes(search.toLowerCase()) ||
-      o.status.toLowerCase().includes(search.toLowerCase())
-  )
+  // FIXED: Defensively strings out variables to completely block runtime .toLowerCase() crashes
+  const filtered = orders.filter((o) => {
+    const currentSearch = (search || "").toLowerCase();
+    const orderRef = (o.id || "").toLowerCase();
+    const orderStatus = (o.status || "").toLowerCase();
+    const customerEmail = (o.email || "").toLowerCase();
+
+    return (
+      orderRef.includes(currentSearch) ||
+      orderStatus.includes(currentSearch) ||
+      customerEmail.includes(currentSearch)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -73,7 +80,7 @@ export default function AdminOrdersPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search orders..."
+          placeholder="Search by ID, Status, or Email..."
           className="bg-white"
         />
       </div>
@@ -91,7 +98,8 @@ export default function AdminOrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order Reference</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Info</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
@@ -108,7 +116,16 @@ export default function AdminOrdersPage() {
                     className="hover:bg-gray-50"
                   >
                     <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-900">#{order.order_number}</p>
+                      {/* Shortens the raw UUID string to form a clean tracking reference badge */}
+                      <p className="text-sm font-mono font-medium text-gray-900 uppercase">
+                        #{order.id.substring(0, 8)}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-medium text-gray-700">
+                        {order.shipping_address?.first_name || ""} {order.shipping_address?.last_name || ""}
+                      </p>
+                      <p className="text-xs text-gray-400">{order.email}</p>
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-gray-500">
@@ -131,7 +148,8 @@ export default function AdminOrdersPage() {
                       </select>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium">{formatCurrency(order.total)}</span>
+                      {/* FIXED: Uses total_amount parameter to display values safely */}
+                      <span className="text-sm font-medium">{formatCurrency(order.total_amount)}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Button variant="ghost" size="sm" className="text-xs">

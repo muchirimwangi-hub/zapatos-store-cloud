@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Instagram } from "lucide-react"
 
@@ -5,116 +7,110 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="luxury-border border-b-0 border-l-0 border-r-0 bg-zapatos-cream mt-32">
-      <div className="container mx-auto px-6 lg:px-12 py-16">
-        {/* Brand */}
-        <div className="text-center mb-12">
-          <h2 className="font-serif font-light tracking-wider mb-3">
-            <span className="text-4xl italic">Zapatos</span>
-            <br />
-            <span className="text-xs uppercase tracking-[0.4em] text-zapatos-charcoal/60">Beauty Atelier</span>
+    <footer className="w-full bg-white dark:bg-[#08080A] border-t border-zinc-100 dark:border-zinc-900 transition-colors duration-500 mt-32 pb-20 md:pb-8">
+      <div className="max-w-6xl mx-auto px-6 lg:px-12 py-16">
+        
+        {/* 1. BRAND MONOLITH LOGO */}
+        <div className="text-center mb-16">
+          <h2 className="tracking-[0.5em] uppercase font-black text-zinc-950 dark:text-white text-lg">
+            Zapatos Cave
           </h2>
-          <div className="w-12 h-[1px] bg-zapatos-gold/40 mx-auto mt-4" />
+          <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 mt-2">
+            // Technical Apparel Framework
+          </p>
+          <div className="w-8 h-[1px] bg-zinc-900 dark:bg-zinc-800 mx-auto mt-6" />
         </div>
 
-        {/* Links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-center">
-          {/* Shop */}
-          <div>
-            <h3 className="text-xs uppercase tracking-[0.2em] font-medium mb-4">Shop</h3>
-            <ul className="space-y-2 text-sm text-zapatos-charcoal/70">
+        {/* 2. BRUTALIST STRUCTURAL NAVIGATION GRID */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-12 mb-16 text-left max-w-4xl mx-auto">
+          
+          {/* CATEGORY VECTOR INDEX */}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-zinc-400 dark:text-zinc-600">
+              // SPEC INDEX
+            </h3>
+            <ul className="space-y-2.5 text-xs font-black uppercase tracking-wider">
               <li>
-                <Link href="/shop/fragrance" className="hover:text-zapatos-gold transition-colors">
-                  Fragrance
+                <Link href="/shop?filter=new" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  New Drops
                 </Link>
               </li>
               <li>
-                <Link href="/shop/bodycare" className="hover:text-zapatos-gold transition-colors">
-                  Body Care
+                <Link href="/shop?category=compression" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Compression Arrays
                 </Link>
               </li>
               <li>
-                <Link href="/shop" className="hover:text-zapatos-gold transition-colors">
-                  All Products
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Experience */}
-          <div>
-            <h3 className="text-xs uppercase tracking-[0.2em] font-medium mb-4">Experience</h3>
-            <ul className="space-y-2 text-sm text-zapatos-charcoal/70">
-              <li>
-                <Link href="/quiz" className="hover:text-zapatos-gold transition-colors">
-                  Personality Quiz
-                </Link>
-              </li>
-              <li>
-                <Link href="/gift-curator" className="hover:text-zapatos-gold transition-colors">
-                  Gift Curator
+                <Link href="/shop?category=tracksuits" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Thermal Tracksuits
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Company */}
-          <div>
-            <h3 className="text-xs uppercase tracking-[0.2em] font-medium mb-4">Company</h3>
-            <ul className="space-y-2 text-sm text-zapatos-charcoal/70">
+          {/* SYSTEM ARCHITECTURE METRICS */}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-zinc-400 dark:text-zinc-600">
+              // LOGISTICS
+            </h3>
+            <ul className="space-y-2.5 text-xs font-black uppercase tracking-wider">
               <li>
-                <Link href="/about" className="hover:text-zapatos-gold transition-colors">
-                  Our Story
+                <Link href="/about" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Read Manifesto
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-zapatos-gold transition-colors">
-                  Contact
+                <Link href="/contact" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Contact Terminal
+                </Link>
+              </li>
+              <li>
+                <Link href="/shipping" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Shipping &amp; Returns
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Support */}
-          <div>
-            <h3 className="text-xs uppercase tracking-[0.2em] font-medium mb-4">Support</h3>
-            <ul className="space-y-2 text-sm text-zapatos-charcoal/70">
+          {/* LEGAL LOG ENFORCEMENT */}
+          <div className="space-y-4 col-span-2 md:col-span-1">
+            <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-zinc-400 dark:text-zinc-600">
+              // COMPLIANCE
+            </h3>
+            <ul className="space-y-2.5 text-xs font-black uppercase tracking-wider">
               <li>
-                <Link href="/shipping" className="hover:text-zapatos-gold transition-colors">
-                  Shipping & Returns
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="hover:text-zapatos-gold transition-colors">
+                <Link href="/privacy" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-zapatos-gold transition-colors">
+                <Link href="/terms" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
                   Terms of Service
                 </Link>
               </li>
             </ul>
           </div>
+
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-6 border-t border-zapatos-taupe/30 text-center">
-          <div className="flex justify-center gap-4 mb-4">
+        {/* 3. LOWER TERMINAL STATUS BAR */}
+        <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 text-center space-y-4">
+          <div className="flex justify-center">
             <a
-              href="https://www.instagram.com/Zapatosbeautyatelier_ng?igsh=azlvdXFuYm04NWV2"
+              href="https://www.instagram.com/zapatoscave"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-full hover:bg-zapatos-taupe/20 transition-colors text-zapatos-charcoal/60 hover:text-zapatos-gold"
-              aria-label="Instagram"
+              className="p-2 border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
+              aria-label="Instagram Link"
             >
-              <Instagram className="h-5 w-5" />
+              <Instagram className="h-4 w-4 stroke-[1.5]" />
             </a>
           </div>
-          <p className="text-xs text-zapatos-charcoal/50">
-            © {currentYear} Zapatos. All rights reserved.
+          <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
+            © {currentYear} Zapatos Cave. System connection closed.
           </p>
         </div>
+
       </div>
     </footer>
   )

@@ -1,36 +1,36 @@
-import type { Metadata } from "next"
-import { Noto_Serif, Montserrat } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { Montserrat } from "next/font/google"
 import { Analytics } from '@vercel/analytics/next'
 import "./globals.css"
 import { cn } from "@/lib/utils"
-
-const notoSerif = Noto_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-  variable: "--font-noto-serif",
-  display: "swap",
-})
+import { AppNavigation } from "@/components/shop/AppNavigation"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "700", "900"],
   variable: "--font-montserrat",
   display: "swap",
 })
 
+// Locks down mobile browsers to prevent pinch-zooming and browser chrome bouncing
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover", 
+}
+
 export const metadata: Metadata = {
-  title: "Zapatos | Luxury Fragrance & Body Care",
-  description: "A Nigerian beauty and personal care brand specialising in fragrances and body care essentials. Luxury personal care, accessible without compromise. Beauty, thoughtfully curated.",
-  keywords: ["luxury beauty", "Nigerian beauty brand", "fragrance", "perfume", "body care", "scent personality test", "beauty atelier"],
-  authors: [{ name: "Zapatos" }],
+  title: "Zapatos Cave | Technical Apparel System",
+  description: "High-performance sportswear and architectural activewear engineered for the modern professional athlete.",
+  keywords: ["technical activewear", "sportswear", "compression gear", "minimalist gym wear", "Zapatos Cave"],
   openGraph: {
     type: "website",
-    locale: "en_NG",
-    url: "https://Zapatosbeautyatelier.com",
-    title: "Zapatos | Luxury Fragrance & Body Care",
-    description: "A Nigerian beauty and personal care brand making luxury personal care accessible. Fragrances and body care essentials, thoughtfully curated.",
-    siteName: "Zapatos",
+    url: "https://zapatoscave.com",
+    title: "Zapatos Cave | Technical Apparel System",
+    description: "High-performance sportswear and architectural activewear engineered for the modern professional athlete.",
+    siteName: "Zapatos Cave",
   },
 }
 
@@ -40,9 +40,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={cn(notoSerif.variable, montserrat.variable)}>
-      <body className="antialiased min-h-screen flex flex-col">
-        {children}
+    <html lang="en" className={cn(montserrat.variable, "h-full scroll-smooth")}>
+      <body className="font-sans antialiased bg-background text-foreground min-h-full flex flex-col overflow-x-hidden pb-16 md:pb-0">
+        {/* Dynamic Nav Shell Component */}
+        <AppNavigation />
+        
+        {/* Main Content Area */}
+        <main className="flex-1 w-full">
+          {children}
+        </main>
+        
         <Analytics />
       </body>
     </html>

@@ -4,10 +4,12 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'fmnyrfsgzpypwrfuamhh.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
+        hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      }
     ],
   },
 };

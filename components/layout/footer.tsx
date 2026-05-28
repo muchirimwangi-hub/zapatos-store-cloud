@@ -16,18 +16,18 @@ export default function Footer() {
             Zapatos Cave
           </h2>
           <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600 mt-2">
-            // Technical Apparel Framework
+            Premium Training Systems
           </p>
           <div className="w-8 h-[1px] bg-zinc-900 dark:bg-zinc-800 mx-auto mt-6" />
         </div>
 
-        {/* 2. BRUTALIST STRUCTURAL NAVIGATION GRID */}
+        {/* 2. NAVIGATION GRID */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-12 mb-16 text-left max-w-4xl mx-auto">
           
-          {/* CATEGORY VECTOR INDEX */}
+          {/* COLLECTIONS INDEX */}
           <div className="space-y-4">
             <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-zinc-400 dark:text-zinc-600">
-              // SPEC INDEX
+              COLLECTIONS
             </h3>
             <ul className="space-y-2.5 text-xs font-black uppercase tracking-wider">
               <li>
@@ -37,31 +37,31 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/shop?category=compression" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
-                  Compression Arrays
+                  Compression Wear
                 </Link>
               </li>
               <li>
                 <Link href="/shop?category=tracksuits" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
-                  Thermal Tracksuits
+                  Premium Tracksuits
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* SYSTEM ARCHITECTURE METRICS */}
+          {/* CUSTOMER ASSISTANCE */}
           <div className="space-y-4">
             <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-zinc-400 dark:text-zinc-600">
-              // LOGISTICS
+              ASSISTANCE
             </h3>
             <ul className="space-y-2.5 text-xs font-black uppercase tracking-wider">
               <li>
                 <Link href="/about" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
-                  Read Manifesto
+                  Our Story
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
-                  Contact Terminal
+                  Contact Studio
                 </Link>
               </li>
               <li>
@@ -72,10 +72,10 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* LEGAL LOG ENFORCEMENT */}
+          {/* LEGAL & COMPLIANCE */}
           <div className="space-y-4 col-span-2 md:col-span-1">
             <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-zinc-400 dark:text-zinc-600">
-              // COMPLIANCE
+              LEGAL
             </h3>
             <ul className="space-y-2.5 text-xs font-black uppercase tracking-wider">
               <li>
@@ -93,7 +93,7 @@ export default function Footer() {
 
         </div>
 
-        {/* 3. LOWER TERMINAL STATUS BAR */}
+        {/* 3. LOWER STATUS BAR */}
         <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 text-center space-y-4">
           <div className="flex justify-center">
             <a
@@ -107,7 +107,7 @@ export default function Footer() {
             </a>
           </div>
           <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
-            © {currentYear} Zapatos Cave. System connection closed.
+            © {currentYear} Zapatos Cave. All rights reserved.
           </p>
         </div>
 

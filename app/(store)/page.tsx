@@ -11,13 +11,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#08080A] text-zinc-900 dark:text-zinc-100 font-sans antialiased transition-colors duration-500 selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
       
-      {/* TECHNICAL LAYOUT BLUEPRINT GRID OVERLAY */}
+      {/* MINIMALIST GEOMETRIC BACKGROUND OVERLAY */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px] z-20" />
 
-      {/* 1. HERO MANIFESTO BLOCK WITH PARALLAX BACKDROP */}
+      {/* 1. HERO BLOCK WITH PARALLAX BACKDROP */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden border-b border-zinc-100 dark:border-zinc-900/80 bg-black attachment-fixed">
         
-        {/* Cinematic High-Performance Hardware Backdrop (Parallax Optimized) */}
+        {/* High-Resolution Performance Media Backdrop (Parallax Optimized) */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <motion.div 
             className="absolute inset-0 bg-no-repeat bg-scroll sm:bg-fixed"
@@ -30,7 +30,7 @@ export default function HomePage() {
             animate={{ scale: 1, opacity: 0.55 }}
             transition={{ duration: 1.8, ease: easeQuint }}
           />
-          {/* Heavy Gritty Vignette Screen */}
+          {/* Subtle Vignette Layer */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-zinc-950/40 to-white dark:to-[#08080A] transition-colors duration-500 z-10" />
         </div>
 
@@ -43,7 +43,7 @@ export default function HomePage() {
             className="space-y-6"
           >
             <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-white/90 dark:text-zinc-400 font-bold">
-              // ARCHITECTURAL TRAINING SYSTEMS
+              PREMIUM TRAINING SYSTEMS
             </p>
             <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white uppercase leading-[0.85]">
               RAW UTILITY.
@@ -51,7 +51,7 @@ export default function HomePage() {
               <span className="text-zinc-400 dark:text-zinc-600">ZERO EXCESS.</span>
             </h1>
             <p className="text-sm md:text-base text-zinc-200 dark:text-zinc-400 max-w-xl mx-auto font-light leading-relaxed tracking-wide">
-              High-end technical activewear, compression matrices, and tracksuits engineered directly for elite biomechanical performance.
+              High-end technical activewear, premium compression apparel, and luxury tracksuits designed for elite movement and daily comfort.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
@@ -61,7 +61,7 @@ export default function HomePage() {
                 asChild
               >
                 <Link href="/shop">
-                  DEPLOY GEAR
+                  SHOP COLLECTION
                   <ArrowRight className="ml-2 h-4 w-4 stroke-[2] transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -72,7 +72,7 @@ export default function HomePage() {
                 asChild
               >
                 <Link href="/about">
-                  READ MANIFESTO
+                  OUR BRAND MANIFESTO
                 </Link>
               </Button>
             </div>
@@ -80,7 +80,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. SPECIFICATION CATEGORIES GRID */}
+      {/* 2. CATEGORIES GRID */}
       <section className="relative py-32 max-w-6xl mx-auto px-6 border-b border-zinc-100 dark:border-zinc-900/80 z-30">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -89,27 +89,27 @@ export default function HomePage() {
           transition={{ duration: 0.8, ease: easeQuint }}
           className="space-y-2 mb-20 text-left border-l-2 border-zinc-950 dark:border-white pl-6"
         >
-          <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">// INFRASTRUCTURE CATEGORIES</span>
+          <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">PRODUCT CATEGORIES</span>
           <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">
-            SHOP BY SPECIFICATION
+            SHOP BY DESIGN
           </h2>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {[
             {
-              title: "Compression Arrays",
-              description: "High-tension poly-spandex blueprints built to optimize localized cardiovascular return and lock down structural vibration under performance load.",
+              title: "Compression Wear",
+              description: "High-tension, responsive apparel crafted to support targeted muscle groups and optimize body alignment under load during heavy studio and track sessions.",
               image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop",
               href: "/shop?category=compression",
-              spec: "POLY-SPANDEX V.1"
+              spec: "CORE EDITION V.1"
             },
             {
-              title: "Thermal Tracksuits",
-              description: "Engineered synthetic matrices built to handle heat transfer insulation loops and keep baseline muscular core warmth locked in across varying climates.",
+              title: "Premium Tracksuits",
+              description: "Expertly tailored premium synthetic sets designed to balance thermal insulation with breathable properties across changing climates.",
               image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2070&auto=format&fit=crop",
               href: "/shop?category=tracksuits",
-              spec: "INSULATED CORE V.2"
+              spec: "THERMAL CORE V.2"
             }
           ].map((category, index) => (
             <motion.div
@@ -145,7 +145,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. HARDWARE CAPABILITY MATRIX PANEL */}
+      {/* 3. CAPABILITY MATRIX PANEL */}
       <section className="relative py-32 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/60 transition-colors duration-500 z-30">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           
@@ -156,14 +156,14 @@ export default function HomePage() {
             transition={{ duration: 0.8, ease: easeQuint }}
             className="lg:col-span-6 space-y-6 text-left"
           >
-            <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">// STRUCTURAL OPTIMIZATION</span>
+            <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">DESIGN PHILOSOPHY</span>
             <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-tight">
-              BUILT FOR PURIFIED
+              BUILT FOR ELEVATED
               <br />
               <span className="text-zinc-400 dark:text-zinc-700">ATHLETIC EXECUTION.</span>
             </h2>
             <p className="text-sm md:text-base text-zinc-500 dark:text-zinc-400 font-light leading-relaxed tracking-wide">
-              Every engineered panel vector, low-profile flatlock seam, and localized compression mapping zone runs down to explicit human anatomy. We completely remove superficial design aesthetics to present absolute, distraction-free equipment that outlasts heavy operational routines.
+              Every curve, low-profile flatlock seam, and localized compression zone maps perfectly to human movement. We filter out unnecessary visual noise to offer absolute, distraction-free garments that look impeccable and outlast heavy workout schedules.
             </p>
             <div className="pt-2">
               <Button 
@@ -172,7 +172,7 @@ export default function HomePage() {
                 asChild
               >
                 <Link href="/about">
-                  EXPLORE ARCHITECTURE
+                  DISCOVER THE DESIGN
                 </Link>
               </Button>
             </div>
@@ -195,7 +195,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. FINALE BRUTALIST CALL TO ACTION TERMINAL */}
+      {/* 4. FINALE CALL TO ACTION */}
       <section className="relative py-36 bg-white dark:bg-[#08080A] transition-colors duration-500 z-30">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
@@ -211,10 +211,10 @@ export default function HomePage() {
               <ShieldAlert className="w-5 h-5 stroke-[1.5]" />
             </div>
             <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">
-              ARMOR YOUR FRAMEWORK.
+              UPGRADE YOUR APPAREL.
             </h2>
             <p className="text-sm md:text-base text-zinc-500 dark:text-zinc-400 font-light max-w-xl mx-auto leading-relaxed tracking-wide">
-              Deploy raw sporting utility hidden completely beneath an aesthetic of extreme tactical restraint. Access elite technical garments built to survive the heaviest strain blocks.
+              Experience upscale sporting performance styled with luxury aesthetic restraint. Find your new premium activewear built to survive the heavy demands of modern lifestyle paces.
             </p>
             <div className="pt-4">
               <Button 
@@ -223,7 +223,7 @@ export default function HomePage() {
                 asChild
               >
                 <Link href="/shop">
-                  DEPLOY EQUIPMENT
+                  EXPLORE APPAREL
                 </Link>
               </Button>
             </div>

@@ -4,9 +4,9 @@ import type { Product, CartItem } from '@/lib/types/product'
 
 interface CartStore {
   items: CartItem[]
-  addItem: (product: Product, quantity?: number) => void
-  removeItem: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
+  addItem: (product: Product, quantity?: number, selectedOptions?: Record<string, string>) => void
+  removeItem: (itemId: string) => void
+  updateQuantity: (itemId: string, quantity: number) => void
   clearCart: () => void
   getTotal: () => number
   getItemCount: () => number
@@ -17,43 +17,55 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
 
-      addItem: (product, quantity = 1) => {
-  set((state) => {
-    // We look for the ID inside the nested product object
-    const existingItem = state.items.find((item) => item.product.id === product.id)
+      addItem: (product, quantity = 1, selectedOptions = {}) => {
+        set((state) => {
+          // Generate a composite key based on ID + selected attributes (Size/Color options)
+          const optionsString = JSON.stringify(selectedOptions)
+          const generatedItemId = `${product.id}-${optionsString}`
 
-    if (existingItem) {
-      return {
-        items: state.items.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        ),
-      }
-    }
+          // Look for an entry matching both the product ID and the exact options chosen
+          const existingItem = state.items.find((item) => item.id === generatedItemId)
 
-    // This is the structure TypeScript was asking for!
-    return { 
-      items: [...state.items, { id: product.id, product, quantity }] 
-    }
-  })
-},
+          if (existingItem) {
+            return {
+              items: state.items.map((item) =>
+                item.id === generatedItemId
+                  ? { ...item, quantity: item.quantity + quantity }
+                  : item
+              ),
+            }
+          }
 
-      removeItem: (productId) => {
+          // Build item payload preserving core options
+          const newItem: CartItem = {
+            id: generatedItemId,
+            product,
+            quantity,
+            // Attaching options explicitly prevents type lint failures in drawers
+            selectedOptions
+          } as any
+
+          return { 
+            items: [...state.items, newItem] 
+          }
+        })
+      },
+
+      removeItem: (itemId) => {
         set((state) => ({
-          items: state.items.filter((item) => item.id !== productId),
+          items: state.items.filter((item) => item.id !== itemId),
         }))
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (itemId, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(productId)
+          get().removeItem(itemId)
           return
         }
 
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
+            item.id === itemId ? { ...item, quantity } : item
           ),
         }))
       },

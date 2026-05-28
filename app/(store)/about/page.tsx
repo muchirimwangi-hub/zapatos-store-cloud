@@ -16,7 +16,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#08080A] text-black dark:text-white font-sans antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-500">
       
-      {/* BACKGROUND GRAPH LAYER: TECHNICAL UTILITY LINES */}
+      {/* MINIMALIST BACKGROUND LAYOUT LINES */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]" />
 
       {/* 1. HERO MANIFESTO: MONOLITHIC STRUCTURAL TYPOGRAPHY */}
@@ -24,8 +24,8 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           
           <div className="flex items-center justify-between text-[10px] font-mono tracking-[0.5em] text-zinc-400 dark:text-zinc-600 uppercase">
-            <span>SYS.LOC // CAVE.MANIFESTO</span>
-            <span>VER.2026.05</span>
+            <span>ZAPATOS CAVE MANIFESTO</span>
+            <span>ESTABLISHED 2026</span>
           </div>
 
           <div className="space-y-4">
@@ -35,7 +35,7 @@ export default function AboutPage() {
               transition={{ duration: 0.9, ease: easeQuint }}
               className="text-6xl sm:text-8xl lg:text-9xl font-black tracking-tighter uppercase leading-[0.85] text-zinc-950 dark:text-white"
             >
-              RAW ARMOR.<br />
+              RAW UTILITY.<br />
               <span className="text-zinc-300 dark:text-zinc-800">ZERO EXCESS.</span>
             </motion.h1>
           </div>
@@ -49,7 +49,7 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-4">
             <div className="md:col-span-4 text-[11px] font-mono tracking-widest text-zinc-400 dark:text-zinc-500 uppercase">
-              // CORE OBJECTIVE
+              OUR MISSION
             </div>
             <motion.p
               initial={{ opacity: 0, y: 15 }}
@@ -57,13 +57,13 @@ export default function AboutPage() {
               transition={{ duration: 0.8, delay: 0.2, ease: easeQuint }}
               className="md:col-span-8 text-base md:text-lg text-zinc-600 dark:text-zinc-400 font-light leading-relaxed tracking-wide"
             >
-              Zapatos Cave is an industrial activewear laboratory executing high-grade compression gear, tracksuits, and heavy training machinery specs. We design layout architectures exclusively for professionals who manage physical conditioning like a tactical operation.
+              Zapatos Cave is a premium athleisure brand designing high-performance compression wear, luxury tracksuits, and elite training apparel. We create sophisticated garments exclusively for individuals who manage their physical conditioning and lifestyle with absolute precision.
             </motion.p>
           </div>
         </div>
       </section>
 
-      {/* 2. BRUTALIST MEDIA DISPLAY: IMMERSIVE ANATOMICAL CROP */}
+      {/* 2. BRUTALIST MEDIA DISPLAY */}
       <section className="py-20 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/60 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div 
@@ -75,7 +75,7 @@ export default function AboutPage() {
           >
             <Image 
               src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2070&auto=format&fit=crop" 
-              alt="Zapatos Cave high-stress athletic testing"
+              alt="Premium performance apparel training"
               fill
               priority
               className="object-cover grayscale contrast-[1.2] brightness-[0.9] dark:brightness-[0.65] dark:contrast-[1.25] transition-transform duration-[4000ms] ease-out hover:scale-105"
@@ -85,15 +85,15 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 3. SPLIT SPECIFICATION MATRIX */}
+      {/* 3. SPLIT DESIGN PHILOSOPHY */}
       <section className="py-32 bg-white dark:bg-[#08080A] border-b border-zinc-100 dark:border-zinc-900/80 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16">
           <div className="lg:col-span-4 space-y-4">
-            <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">// STRUCTURAL ANALYSIS</span>
+            <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">DESIGN PHILOSOPHY</span>
             <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">
               BUILT FOR <br />
               KINETIC <br />
-              <span className="text-zinc-300 dark:text-zinc-700">EXECUTION.</span>
+              <span className="text-zinc-300 dark:text-zinc-700">MOVEMENT.</span>
             </h2>
           </div>
           
@@ -101,38 +101,38 @@ export default function AboutPage() {
             <div className="space-y-4">
               <div className="h-[1px] w-8 bg-zinc-900 dark:bg-white" />
               <p>
-                We completely reject standard commercial decorative textiles. Every structural item, double-knit fabric matrix, and flatlock point layer is mapped directly down to your body&apos;s natural bio-mechanics. Our gear absorbs target friction, reduces heavy layout stress, and dampens soft muscle vibration.
+                We completely reject standard, mass-market decorative textiles. Every structural panel, double-knit fabric finish, and flatlock stitch line is mapped intentionally to enhance your body’s natural range of motion. Our apparel minimizes friction, handles high training stress, and stabilizes active muscles.
               </p>
             </div>
             <div className="space-y-4">
               <div className="h-[1px] w-8 bg-zinc-300 dark:bg-zinc-800" />
               <p>
-                This framework is engineered specifically for the <strong className="font-bold text-zinc-950 dark:text-white uppercase tracking-wider text-xs bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2 py-1">Aspirational Modern Professional</strong>. For individuals who treat physical consistency and enterprise scaling metrics as one unified objective.
+                Our collections are curated directly for the modern professional. For individuals who view physical consistency, sharp aesthetic presentation, and personal performance as one unified target.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. TECH LAYER INDEX: MASSIVE NUMBERS GRID */}
+      {/* 4. FABRIC TECHNOLOGY INDEX */}
       <section className="py-36 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/80 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-12">
             {[
               {
-                idx: "01 // COMPOSITION",
-                title: "Tactical Synthetic Polymers",
-                description: "Heavyweight nylon-spandex technical matrices explicitly rated to dissipate high thermal outputs and maintain baseline compression structure under load.",
+                idx: "01 FABRIC",
+                title: "Premium Advanced Synthetics",
+                description: "Heavyweight nylon-spandex stretch blends engineered to manage moisture, dissipate heat, and retain their perfect shape over extensive active wear.",
               },
               {
-                idx: "02 // ARCHITECTURE",
-                title: "Anatomical Vector Mapping",
-                description: "Garment panels stitched securely along biological muscle-group trajectories, keeping posture locked and ensuring zero explosive mobility limits.",
+                idx: "02 FIT",
+                title: "Anatomical Panel Mapping",
+                description: "Garment panels tailored specifically along natural muscle trajectories, keeping posture aligned while offering entirely unrestrained mobility.",
               },
               {
-                idx: "03 // DURABILITY",
-                title: "Utilitarian Strain Standard",
-                description: "Stripped of external visual clutter. Built purely to survive extreme friction loads, structural torque, and continuous high-temperature wash cycles.",
+                idx: "03 STYLE",
+                title: "Minimalist Performance Standards",
+                description: "Completely stripped of unnecessary visual clutter. Crafted carefully to focus on structural strength, clean lines, and long-lasting fabric durability.",
               },
             ].map((value, index) => (
               <motion.div
@@ -147,7 +147,7 @@ export default function AboutPage() {
                   {value.idx.split(" ")[0]}
                 </div>
                 <div className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mt-1 mb-6">
-                  {value.idx.split("//")[1] || ""}
+                  {value.idx.split(" ")[1] || ""}
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xs uppercase tracking-widest font-black text-zinc-950 dark:text-white">{value.title}</h3>
@@ -161,14 +161,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 5. FINALE SIGN-OFF TERMINAL */}
+      {/* 5. FINALE CALL TO ACTION */}
       <section className="py-44 bg-white dark:bg-[#08080A] transition-colors duration-500">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
           <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">
-            DEPLOY THE INFRASTRUCTURE.
+            ELEVATE YOUR ATHLETIC WEAR.
           </h2>
           <p className="text-zinc-400 dark:text-zinc-500 font-light text-sm md:text-base max-w-md mx-auto leading-relaxed tracking-wide">
-            Access industrial sports engineering hidden inside a framework of extreme architectural restraint.
+            Explore activewear tailored with high-end fabric performance and premium aesthetic restraint.
           </p>
           <div className="pt-4">
             <Button 
@@ -176,7 +176,7 @@ export default function AboutPage() {
               className="bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-none h-14 px-16 uppercase text-xs font-black tracking-[0.3em] border border-black dark:border-white transition-transform active:scale-95"
               asChild
             >
-              <Link href="/shop">Deploy Equipment</Link>
+              <Link href="/shop">EXPLORE APPAREL</Link>
             </Button>
           </div>
         </div>

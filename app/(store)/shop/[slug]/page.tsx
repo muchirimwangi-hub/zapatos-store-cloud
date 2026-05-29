@@ -15,13 +15,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product) {
     return {
-      title: 'Product Not Found',
+      title: 'Product Unresolved',
     }
   }
 
   return {
-    title: `${product.name} | Zapatos`,
-    description: product.short_description || product.description || 'Premium Performance Gear',
+    title: `${product.name} | Zapatos Cave`,
+    description: product.short_description || product.description || 'Premium Performance Apparel',
     openGraph: {
       title: product.name,
       description: product.short_description || product.description || '',
@@ -55,7 +55,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound()
   }
 
-  // Fetch the corresponding variant configurations for this specific product
   const supabase = await createClient()
   const { data: variants } = await supabase
     .from('product_variants')
@@ -64,8 +63,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .order('sku', { ascending: true })
 
   return (
-    <main className="min-h-screen bg-[#FAF7F2] pt-24">
-      {/* Type assertion using 'as any' instantly clears the compiler red line */}
+    <main className="min-h-screen bg-white dark:bg-[#08080A] pt-12 transition-colors duration-500">
       <ProductDisplay product={product as any} variants={variants as any || []} />
     </main>
   )

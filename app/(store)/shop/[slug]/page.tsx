@@ -57,10 +57,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const supabase = await createClient()
   const { data: variants } = await supabase
-    .from('product_variants')
-    .select('*')
-    .eq('product_id', product.id)
-    .order('sku', { ascending: true })
+  .from('product_variants')
+  // 👉 CHANGE THIS LINE to fetch 'attributes' instead of size/color/sleeve
+  .select('id, sku, price, stock_quantity, attributes, image_url') 
+  .eq('product_id', product.id)
+  .order('sku', { ascending: true })
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#08080A] pt-12 transition-colors duration-500">

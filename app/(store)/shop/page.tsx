@@ -15,37 +15,46 @@ function ShopCatalogContent() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [filteredProducts, setFilteredProducts] = useState<any[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      const supabase = createClient()
-      
-      // FETCH WITH COMPACT FALLBACK LOOKUPS
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, product_variants(*)') // Left JOIN ensures we check variant presence
-        .order('created_at', { ascending: false })
+    const fetchProducts = async () => {
+      try {
+        const supabase = createClient()
+        
+        // Start building the query
+        let query = supabase
+          .from('products')
+          .select('*, product_variants(*)') // Left JOIN ensures we check variant presence
+          .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Database layout load error:', error)
+        // If a category is selected (e.g. "Men" or "Women"), add the filter to the query!
+        if (selectedCategory) {
+          query = query.eq('category', selectedCategory);
+        }
+
+        // Execute the query
+        const { data, error } = await query;
+
+        if (error) {
+          console.error('Database layout load error:', error)
+          setProducts([])
+          setFilteredProducts([])
+        } else {
+          // Safe validation: display items that aren't explicitly deactivated
+          const verifiedItems = (data || []).filter((product: any) => product.is_active !== false)
+          setProducts(verifiedItems)
+          setFilteredProducts(verifiedItems)
+        }
+      } catch (error) {
+        console.error('System inventory fetching failure:', error)
         setProducts([])
         setFilteredProducts([])
-      } else {
-        // Safe validation: display items that aren't explicitly deactivated
-        const verifiedItems = (data || []).filter(product => product.is_active !== false)
-        setProducts(verifiedItems)
-        setFilteredProducts(verifiedItems)
       }
-    } catch (error) {
-      console.error('System inventory fetching failure:', error)
-      setProducts([])
-      setFilteredProducts([])
     }
-  }
 
-  fetchProducts()
-}, [])
+    fetchProducts()
+  }, [selectedCategory])
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -112,13 +121,13 @@ function ShopCatalogContent() {
                 )}
               </div>
               <Button 
-  type="button"
-  variant="outline" 
-  className="h-11 border-zinc-200 dark:border-zinc-900 rounded-none px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white dark:bg-[#08080A]"
->
-  <SlidersHorizontal className="h-3.5 w-3.5 text-zinc-400" />
-  Filter
-</Button>
+                type="button"
+                variant="outline" 
+                className="h-11 border-zinc-200 dark:border-zinc-900 rounded-none px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white dark:bg-[#08080A]"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5 text-zinc-400" />
+                Filter
+              </Button>
             </div>
           </div>
         </div>
@@ -126,6 +135,32 @@ function ShopCatalogContent() {
 
       {/* CATALOG VIEWPORT ARRAY */}
       <section className="py-20 max-w-6xl mx-auto px-6 lg:px-12">
+        
+        {/* 👉 CATEGORY BUTTONS PLACED HERE 👈 */}
+        <div className="flex gap-4 justify-center mb-12 border-b border-zinc-100 dark:border-zinc-900 pb-8">
+          <Button 
+            variant={selectedCategory === null ? "default" : "outline"} 
+            onClick={() => setSelectedCategory(null)}
+            className="rounded-none uppercase tracking-widest text-xs font-bold px-8"
+          >
+            All
+          </Button>
+          <Button 
+            variant={selectedCategory === "Men" ? "default" : "outline"} 
+            onClick={() => setSelectedCategory("Men")}
+            className="rounded-none uppercase tracking-widest text-xs font-bold px-8"
+          >
+            Men
+          </Button>
+          <Button 
+            variant={selectedCategory === "Women" ? "default" : "outline"} 
+            onClick={() => setSelectedCategory("Women")}
+            className="rounded-none uppercase tracking-widest text-xs font-bold px-8"
+          >
+            Women
+          </Button>
+        </div>
+
         {filteredProducts.length === 0 ? (
           <div className="text-center py-24 border border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-[#0C0C10]/20">
             <h2 className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-white">No products located</h2>

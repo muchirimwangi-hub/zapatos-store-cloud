@@ -1,319 +1,214 @@
-"use client"
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2, Plus, UploadCloud, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Plus, Trash2, ArrowLeft, Image as ImageIcon, Video, Layers } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/client"
-
-interface ProductFormProps {
-  productId?: string
-}
-
-interface VariantInput {
-  id?: string
-  size: string
-  color: string
-  sleeve: string
-  stock_quantity: number
-}
-
-export function ProductForm({ productId }: ProductFormProps) {
-  const router = useRouter()
-  const [isSaving, setIsSaving] = useState(false)
+export function ProductForm({ productId, initialData }: { productId?: string, initialData?: any }) {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
-  // Parent metrics fields
-  const [name, setName] = useState("")
-  const [slug, setSlug] = useState("")
-  const [price, setPrice] = useState("")
-  const [shortDescription, setShortDescription] = useState("")
-  const [description, setDescription] = useState("")
+  // Basic Info
+  const [name, setName] = useState(initialData?.name || "");
+  const [category, setCategory] = useState(initialData?.category || "Men");
+  const [description, setDescription] = useState(initialData?.description || "");
   
-  // Media asset array arrays
-  const [mediaUrls, setMediaUrls] = useState<string[]>([""])
+  // Media Array (Holds URLs returned from Supabase Storage)
+  const [images, setImages] = useState<string[]>(initialData?.images || []);
   
-  // Multidimensional attributes matrix configuration state
-  const [variants, setVariants] = useState<VariantInput[]>([])
+  // Dynamic Option Categories (e.g., ["Size", "Color", "Material"])
+  const [optionKeys, setOptionKeys] = useState<string[]>(
+    initialData?.product_variants?.[0]?.attributes 
+      ? Object.keys(initialData.product_variants[0].attributes) 
+      : ["Size", "Color"]
+  );
 
-  useEffect(() => {
-    if (!productId) return
-    
-    async function loadData() {
-      const supabase = createClient()
-      
-      const { data: product } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", productId)
-        .single()
+  // Variants Matrix
+  const [variants, setVariants] = useState(initialData?.product_variants?.map((v: any) => ({
+    attributes: v.attributes || {},
+    stock_quantity: v.stock_quantity || 0,
+    price: v.price || 0,
+    image_url: v.image_url || ""
+  })) || []);
 
-      if (product) {
-        setName(product.name || "")
-        setSlug(product.slug || "")
-        setPrice(product.price?.toString() || "")
-        setShortDescription(product.short_description || "")
-        setDescription(product.description || "")
-        
-        // Populate media urls framework
-        if (product.images) {
-          const parsedImages = Array.isArray(product.images) 
-            ? product.images 
-            : [product.images]
-          setMediaUrls(parsedImages.length > 0 ? parsedImages : [""])
-        }
+  // --- 1. DIRECT IMAGE UPLOAD HANDLER ---
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setIsUploading(true);
+    const supabase = createClient();
+    const newImageUrls = [...images];
 
-        const { data: variantRecords } = await supabase
-          .from("product_variants")
-          .select("*")
-          .eq("product_id", productId)
+    for (const file of Array.from(e.target.files)) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
 
-        if (variantRecords && variantRecords.length > 0) {
-          setVariants(variantRecords.map(v => ({
-            id: v.id,
-            size: v.size || "M",
-            color: v.color || "Black",
-            sleeve: v.sleeve || "Short Sleeve",
-            stock_quantity: v.stock_quantity || 0
-          })))
-        }
+      const { error: uploadError } = await supabase.storage
+        .from('product-images') // YOUR SUPABASE BUCKET NAME
+        .upload(filePath, file);
+
+      if (!uploadError) {
+        const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+        newImageUrls.push(data.publicUrl);
       }
     }
-    loadData()
-  }, [productId])
+    setImages(newImageUrls);
+    setIsUploading(false);
+  };
 
-  // Media arrays manipulation handlers
-  const addMediaUrlField = () => setMediaUrls([...mediaUrls, ""])
-  const removeMediaUrlField = (index: number) => setMediaUrls(mediaUrls.filter((_, i) => i !== index))
-  const updateMediaUrl = (index: number, val: string) => {
-    const updated = [...mediaUrls]
-    updated[index] = val
-    setMediaUrls(updated)
-  }
+  // --- 2. VARIANT MATRIX HANDLERS ---
+  const addOptionKey = () => setOptionKeys([...optionKeys, `Option ${optionKeys.length + 1}`]);
+  const removeOptionKey = (index: number) => {
+    const newKeys = optionKeys.filter((_, i) => i !== index);
+    setOptionKeys(newKeys);
+    // Clean up variant attributes that no longer exist
+    const newVariants = variants.map((v: any) => {
+      const newAttrs = { ...v.attributes };
+      delete newAttrs[optionKeys[index]];
+      return { ...v, attributes: newAttrs };
+    });
+    setVariants(newVariants);
+  };
 
-  // Variant fields tracking controllers
-  const addVariantField = () => {
-    setVariants([...variants, { size: "M", color: "Black", sleeve: "Short Sleeve", stock_quantity: 0 }])
-  }
-  const removeVariantField = (index: number) => setVariants(variants.filter((_, i) => i !== index))
-  const updateVariant = (index: number, field: keyof VariantInput, value: any) => {
-    const updated = [...variants]
-    updated[index] = { ...updated[index], [field]: value } as any
-    setVariants(updated)
-  }
+  const updateVariantAttribute = (vIndex: number, key: string, value: string) => {
+    const newVariants = [...variants];
+    newVariants[vIndex].attributes = { ...newVariants[vIndex].attributes, [key]: value };
+    setVariants(newVariants);
+  };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (isSaving) return
-    setIsSaving(true)
+  // --- 3. SAVE HANDLER ---
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    const supabase = createClient();
+    const generatedSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const basePrice = variants.length > 0 ? parseFloat(variants[0].price) || 0 : 0;
 
-    try {
-      const supabase = createClient()
-      const generatedSlug = slug.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+    const { data: parent, error: pErr } = await supabase.from("products").upsert({
+      ...(productId ? { id: productId } : {}),
+      name, slug: generatedSlug, price: basePrice, category, description, images, is_active: true
+    }).select().single();
+
+    if (!pErr) {
+      await supabase.from("product_variants").delete().eq("product_id", parent.id);
       
-      // Clean empty lines from image upload array
-      const cleanedMediaJson = mediaUrls.filter(url => url.trim() !== "")
-
-      // 1. Transaction node checkpoint: Save parent apparel specifications
-      const { data: parentProduct, error: productError } = await supabase
-        .from("products")
-        .upsert({
-          ...(productId ? { id: productId } : {}),
-          name,
-          slug: generatedSlug,
-          price: parseFloat(price) || 0,
-          short_description: shortDescription,
-          description,
-          brand: "Zapatos Cave",
-          images: cleanedMediaJson, // JSON Array containing images and video tracks
-          is_active: true // Force fallback constraint to prevent frontend dropping
-        })
-        .select()
-        .single()
-
-      if (productError || !parentProduct) throw productError || new Error("Failed product save.")
-
-      // 2. Cascade cleaning node checkpoint: Wipe out old variation instances
-      await supabase
-        .from("product_variants")
-        .delete()
-        .eq("product_id", parentProduct.id)
-
-      // 3. Multidimensional distribution checkpoint: Save compound parameters matrix
       if (variants.length > 0) {
-        const formattedVariants = variants.map(v => {
-          // Compute distinct hardware SKU paths automatically based on configurations chosen
-          const skuCode = `${generatedSlug}-${v.color.toLowerCase()}-${v.sleeve.toLowerCase().replace(/\s+/g, "-")}-${v.size.toLowerCase()}`
-          
+        const formattedVariants = variants.map((v: any) => {
+          const attrString = Object.values(v.attributes).join("-");
+          const randomSuffix = Math.random().toString(36).substring(2, 6);
+          const skuCode = `${generatedSlug}-${attrString}-${randomSuffix}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
           return {
-            product_id: parentProduct.id,
+            product_id: parent.id,
             sku: skuCode,
-            size: v.size,
-            color: v.color,
-            sleeve: v.sleeve,
-            stock_quantity: Math.max(0, parseInt(v.stock_quantity as any) || 0),
-            price: parentProduct.price
-          }
-        })
-
-        const { error: variantError } = await supabase
-          .from("product_variants")
-          .insert(formattedVariants)
-
-        if (variantError) throw variantError
+            attributes: v.attributes, // Saves to JSONB
+            stock_quantity: parseInt(v.stock_quantity) || 0,
+            image_url: v.image_url || "",
+            price: parseFloat(v.price) || 0
+          };
+        });
+        await supabase.from("product_variants").insert(formattedVariants);
       }
-
-      router.push("/admin/products")
-      router.refresh()
-    } catch (err) {
-      console.error("Critical submission runtime block:", err)
-    } finally {
-      setIsSaving(false)
+      router.push("/admin/products");
+      router.refresh();
     }
-  }
+    setIsSaving(false);
+  };
 
   return (
-    <form onSubmit={handleFormSubmit} className="space-y-10 max-w-4xl mx-auto text-left pb-24">
-      <div className="flex items-center gap-4">
-        <Button type="button" variant="ghost" size="icon" className="rounded-none border border-zinc-200 dark:border-zinc-800" onClick={() => router.push("/admin/products")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <span className="text-[9px] font-mono tracking-widest text-zinc-400 block">// INVENTORY CORE ENGINE</span>
-          <h2 className="text-xl font-black uppercase tracking-tight text-zinc-950 dark:text-white mt-0.5">
-            Modify Apparel Specifications
-          </h2>
+    <form onSubmit={handleSave} className="space-y-8 p-8 max-w-5xl mx-auto border border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-[#08080A]">
+      
+      {/* SECTION 1: IDENTITY */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-zinc-900 dark:text-white">1. Identity</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Product Name" required />
+          <select className="border px-3 rounded-md" value={category} onChange={e => setCategory(e.target.value)}>
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+            <option value="Unisex">Unisex</option>
+          </select>
         </div>
+        <textarea className="w-full p-3 border rounded-md min-h-[100px]" value={description} onChange={e => setDescription(e.target.value)} placeholder="Description..." />
       </div>
 
-      {/* BLOCK 1: BASE DATA PARAMETERS */}
-      <div className="p-6 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-[#0C0C10] space-y-4 rounded-none shadow-sm">
-        <div className="space-y-1">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">Apparel Title</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Pista Premium Thermal Tracksuit" required className="rounded-none h-11" />
+      {/* SECTION 2: DIRECT MEDIA UPLOAD */}
+      <div className="space-y-4 p-4 border bg-zinc-50 dark:bg-[#0C0C10] rounded-md">
+        <h2 className="text-lg font-bold">2. Upload Media</h2>
+        <div className="flex items-center gap-4">
+          <Input type="file" multiple accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="max-w-xs cursor-pointer" />
+          {isUploading && <span className="text-xs text-zinc-500 animate-pulse">Uploading to Database...</span>}
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">URL Slug Parameter</label>
-            <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="pista-premium-thermal-tracksuit" className="rounded-none h-11 font-mono text-xs" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">Retail Unit Value (KSh)</label>
-            <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="6500" required className="rounded-none h-11 font-mono" />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">Short Summary Description</label>
-          <Input value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} placeholder="Premium double-knit insulated activewear set." className="rounded-none h-11" />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">Detailed Fabric Manifesto</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="w-full p-3 border border-zinc-200 dark:border-zinc-900 bg-white dark:bg-[#0C0C10] text-sm text-zinc-900 dark:text-white rounded-none focus:outline-none focus:border-zinc-400 transition-colors" placeholder="State insulation attributes, composition thresholds, and training lifecycle parameters..." />
-        </div>
-      </div>
-
-      {/* BLOCK 2: MEDIA LOGS MATRIX LAYER (JPEG/MP4/VIDEO URL PIPELINE) */}
-      <div className="p-6 border border-zinc-100 dark:border-zinc-900 bg-white dark:bg-[#0C0C10] space-y-4 rounded-none shadow-sm">
-        <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-3">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-zinc-400" />
-            <h3 className="text-xs font-black uppercase tracking-widest text-zinc-950 dark:text-white">Media Assets Matrix</h3>
-          </div>
-          <Button type="button" variant="outline" size="sm" onClick={addMediaUrlField} className="rounded-none text-[9px] font-mono tracking-wider h-8">
-            ADD MEDIA SOURCE
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          {mediaUrls.map((url, index) => (
-            <div key={index} className="flex gap-2 items-center">
-              <div className="relative flex-1">
-                <Input value={url} onChange={(e) => updateMediaUrl(index, e.target.value)} placeholder="Paste high-res image JPEG or video file URL trace string..." className="rounded-none pr-10 font-mono text-xs h-10" />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  {url.toLowerCase().endsWith(".mp4") || url.toLowerCase().includes("video") ? (
-                    <Video className="w-3.5 h-3.5 text-zinc-400" />
-                  ) : (
-                    <ImageIcon className="w-3.5 h-3.5 text-zinc-400" />
-                  )}
-                </div>
-              </div>
-              {mediaUrls.length > 1 && (
-                <Button type="button" variant="ghost" size="icon" onClick={() => removeMediaUrlField(index)} className="text-zinc-400 hover:text-red-500 rounded-none h-10 w-10 border border-zinc-100 dark:border-zinc-900">
-                  <Trash2 className="w-4 h-4 stroke-[1.5]" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] font-mono text-zinc-400 leading-relaxed uppercase tracking-wide pt-1">
-          Provide complete media URLs (e.g., Unsplash asset nodes or stored storage buckets) ending in standard format protocols like .jpg, .jpeg, or video streaming extensions (.mp4).
-        </p>
-      </div>
-
-      {/* BLOCK 3: EXPANDED MULTIDIMENSIONAL VARIATIONS MATRIX */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-3">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-zinc-400" />
-            <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Sizing &amp; Attribute Configuration Matrix</h3>
-          </div>
-          <Button type="button" variant="outline" size="sm" onClick={addVariantField} className="rounded-none border-zinc-200 dark:border-zinc-900 font-mono text-[10px] h-8">
-            <Plus className="w-3.5 h-3.5 mr-1" /> ADD CONFIGURATION VARIANT
-          </Button>
-        </div>
-
-        {variants.length === 0 ? (
-          <div className="border border-dashed border-zinc-200 dark:border-zinc-900 p-12 text-center text-xs font-mono uppercase tracking-wider text-zinc-400 bg-zinc-50/50 dark:bg-[#0C0C10]/10">
-            No active configuration variants assigned. Create variants below to unlock store stock.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {variants.map((v, index) => (
-              <div key={index} className="p-4 bg-zinc-50 dark:bg-[#0C0C10] border border-zinc-200 dark:border-zinc-900 rounded-none grid grid-cols-1 md:grid-cols-12 gap-4 items-center relative group">
-                
-                {/* ATTRIBUTES INTERFACE LOOPS */}
-                <div className="md:col-span-11 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono text-zinc-400 block uppercase">Size</span>
-                    <Input value={v.size} onChange={(e) => updateVariant(index, "size", e.target.value.toUpperCase())} placeholder="M" required className="h-9 rounded-none font-mono uppercase" />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono text-zinc-400 block uppercase">Color Way</span>
-                    <Input value={v.color} onChange={(e) => updateVariant(index, "color", e.target.value)} placeholder="Pista" required className="h-9 rounded-none text-xs font-bold tracking-wide uppercase" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono text-zinc-400 block uppercase">Sleeve Specs</span>
-                    <Input value={v.sleeve} onChange={(e) => updateVariant(index, "sleeve", e.target.value)} placeholder="Long Sleeve / Short" required className="h-9 rounded-none text-xs font-bold tracking-wide uppercase" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono text-zinc-400 block uppercase">Stock Units</span>
-                    <Input type="number" value={v.stock_quantity} onChange={(e) => updateVariant(index, "stock_quantity", parseInt(e.target.value) || 0)} placeholder="50" required className="h-9 rounded-none font-mono" />
-                  </div>
-                </div>
-
-                <div className="md:col-span-1 flex justify-end pt-4 md:pt-0">
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeVariantField(index)} className="text-zinc-400 hover:text-red-500 rounded-none h-9 w-9 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#08080A]">
-                    <Trash2 className="w-4 h-4 stroke-[1.5]" />
-                  </Button>
-                </div>
+        {/* Uploaded Images Gallery */}
+        {images.length > 0 && (
+          <div className="flex flex-wrap gap-4 mt-4">
+            {/* 👉 ADD .filter(Boolean) HERE 👈 */}
+            {images.filter(Boolean).map((img, i) => (
+              <div key={i} className="relative w-20 h-24 border rounded-md overflow-hidden group bg-zinc-100 dark:bg-zinc-900">
+                <img src={img} alt={`Upload ${i}`} className="w-full h-full object-cover" />
+                <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <X className="w-3 h-3" />
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* COMMIT ACTIONS ACTIONS DESK */}
-      <div className="pt-6 flex justify-end border-t border-zinc-100 dark:border-zinc-900">
-        <Button type="submit" disabled={isSaving} className="bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-none h-14 px-16 text-xs font-black uppercase tracking-[0.25em] transition-transform active:scale-97">
-          {isSaving ? "TRANSMITTING EQUIPMENT NODE..." : "COMMIT APPAREL RECORD"}
+      {/* SECTION 3: DYNAMIC VARIANT BUILDER */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">3. Variant Matrix</h2>
+          <Button type="button" variant="outline" size="sm" onClick={addOptionKey}><Plus className="w-4 h-4 mr-1"/> Add Attribute Column</Button>
+        </div>
+
+        {/* Dynamic Column Headers */}
+        <div className="flex gap-2 flex-wrap mb-4">
+          {optionKeys.map((key, i) => (
+            <div key={i} className="flex items-center border rounded-md overflow-hidden max-w-[150px]">
+              <Input className="border-0 h-8 text-xs font-bold bg-zinc-100" value={key} onChange={e => {
+                const newKeys = [...optionKeys]; newKeys[i] = e.target.value; setOptionKeys(newKeys);
+              }} />
+              <button type="button" onClick={() => removeOptionKey(i)} className="px-2 text-zinc-400 hover:text-red-500"><X className="w-3 h-3"/></button>
+            </div>
+          ))}
+        </div>
+
+        {/* Matrix Rows */}
+        {variants.map((v: any, i: number) => (
+          <div key={i} className="flex flex-wrap gap-2 border p-3 items-center bg-zinc-50 rounded-md">
+            {/* Dynamic Attribute Inputs */}
+            {optionKeys.map(key => (
+              <Input key={key} className="w-24 placeholder:text-zinc-300" placeholder={key} value={v.attributes[key] || ""} onChange={e => updateVariantAttribute(i, key, e.target.value)} />
+            ))}
+            
+            {/* Standard Metrics */}
+            <Input className="w-24" type="number" placeholder="Stock" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
+            <Input className="w-24" type="number" placeholder="Price" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
+            
+            {/* THE LUXURY DROPDOWN FOR UPLOADED IMAGES */}
+            <select className="flex-1 min-w-[150px] border px-2 rounded-md text-xs h-10" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
+              <option value="">No Variant Image</option>
+              {images.map((img, idx) => (
+                <option key={idx} value={img}>Uploaded Image {idx + 1}</option>
+              ))}
+            </select>
+
+            <Button type="button" variant="destructive" size="icon" onClick={() => setVariants(variants.filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
+          </div>
+        ))}
+        <Button type="button" variant="outline" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, image_url: '' }])}>
+          <Plus className="w-4 h-4 mr-2" /> Add Variant Row
         </Button>
       </div>
+
+      <Button type="submit" disabled={isSaving || isUploading} className="w-full h-12 uppercase tracking-widest font-bold">
+        {isSaving ? "Transmitting..." : "Commit Apparel Record"}
+      </Button>
     </form>
-  )
+  );
 }

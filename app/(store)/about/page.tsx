@@ -78,7 +78,7 @@ export default function AboutPage() {
               alt="Premium performance apparel training"
               fill
               priority
-              className="object-cover grayscale contrast-[1.2] brightness-[0.9] dark:brightness-[0.65] dark:contrast-[1.25] transition-transform duration-[4000ms] ease-out hover:scale-105"
+              className="object-cover grayscale contrast-[1.2] brightness-[0.9] dark:brightness-[0.65] dark:contrast-[1.25] transition-transform duration-[time:4000ms] ease-out hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 via-transparent to-transparent dark:from-[#0C0C10]" />
           </motion.div>

@@ -12,17 +12,34 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("")
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
+  const loadData = async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from("products")
+      .select("*, product_variants(*)")
+      .order("created_at", { ascending: false })
+    setProducts(data || [])
+  }
+
   useEffect(() => {
-    const loadData = async () => {
-      const supabase = createClient()
-      const { data } = await supabase
-        .from("products")
-        .select("*, product_variants(*)")
-        .order("created_at", { ascending: false })
-      setProducts(data || [])
-    }
     loadData()
   }, [])
+
+  // 👉 THIS HANDLES THE DELETION
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure? This will delete the product and all variants.")) return;
+    
+    const supabase = createClient();
+    
+    // 1. Delete variants first to avoid foreign key errors
+    await supabase.from("product_variants").delete().eq("product_id", id);
+    
+    // 2. Delete the product
+    await supabase.from("products").delete().eq("id", id);
+    
+    // 3. Refresh the list
+    setProducts(products.filter(p => p.id !== id));
+  };
 
   const filtered = products.filter(p => 
     p.name?.toLowerCase().includes(search.toLowerCase()) || 
@@ -62,11 +79,15 @@ export default function AdminProductsPage() {
                     </button>
                   </td>
                   <td className="p-4 font-bold">{product.name}</td>
-                  <td className="p-4">{product.product_variants?.reduce((acc: number, v: any) => acc + (v.stock_quantity || 0), 0)} Total</td>
+                  <td className="p-4">{product.product_variants?.reduce((acc: number, v: any) => acc + (parseInt(v.stock_quantity) || 0), 0)} Total</td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="icon" asChild>
                         <Link href={`/admin/products/edit/${product.id}`}><Edit className="w-4 h-4" /></Link>
+                      </Button>
+                      {/* 👉 THIS IS THE DELETE BUTTON */}
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => handleDelete(product.id)}>
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </td>
@@ -74,9 +95,9 @@ export default function AdminProductsPage() {
                 {expandedRows.has(product.id) && (
                   <tr>
                     <td colSpan={4} className="bg-gray-50 p-4">
-                      {product.product_variants.map((v: any) => (
+                      {product.product_variants?.map((v: any) => (
                         <div key={v.id} className="flex justify-between border-b py-2 text-sm">
-                          <span>{v.color} / {v.size} (SKU: {v.sku})</span>
+                          <span>{Object.values(v.attributes || {}).join(" / ")} (SKU: {v.sku})</span>
                           <span>{formatCurrency(v.price)} | {v.stock_quantity} in stock</span>
                         </div>
                       ))}

@@ -2,27 +2,22 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
 
-interface EditProductPageProps {
-  params: Promise<{ id: string }>
-}
-
-export default async function EditProductPage({ params }: EditProductPageProps) {
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
   
-  const { data: product, error } = await supabase
+  const { data: product } = await supabase
     .from("products")
     .select("*, product_variants(*)")
     .eq("id", id)
     .single();
 
-  if (error || !product) return notFound();
+  if (!product) return notFound();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#08080A] py-12 transition-colors duration-500">
-      <div className="max-w-4xl mx-auto p-8">
-        <ProductForm productId={id} />
-      </div>
+    <div className="max-w-4xl mx-auto p-8">
+      <h1 className="text-2xl font-bold mb-8">Edit: {product.name}</h1>
+      <ProductForm productId={id} initialData={product} />
     </div>
   );
 }

@@ -71,10 +71,10 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       >
         <Link href={`/shop/${product.slug}`} className="group block space-y-4">
           
-          {/* IMAGE WORKSPACE */}
           <div className="relative aspect-[3/4] overflow-hidden border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] rounded-none">
+            {/* The grayscale/brightness filters have been removed so your true colors show */}
             <div 
-              className="absolute inset-0 bg-cover bg-center grayscale contrast-[1.12] dark:brightness-[0.75] transition-transform duration-700 group-hover:scale-103"
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
               style={{ backgroundImage: `url('${primaryImage}')` }}
             />
             <div className="absolute inset-0 bg-zinc-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -96,7 +96,6 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             </div>
           </div>
 
-          {/* META DESCRIPTION LAYER */}
           <div className="space-y-1">
             <p className="text-[9px] font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
               {product.brand || "Zapatos Cave"}
@@ -111,11 +110,14 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               <span className="text-xs font-bold text-zinc-950 dark:text-white">
                 {formatCurrency(product.price)}
               </span>
-              {product.compare_at_price && product.compare_at_price > product.price && (
+              
+              {/* TYPESCRIPT & ZERO BUG FIX: Safely checks for value and returns null if false */}
+              {(product.compare_at_price || 0) > product.price ? (
                 <span className="text-[10px] text-zinc-400 dark:text-zinc-700 line-through font-mono">
                   {formatCurrency(product.compare_at_price)}
                 </span>
-              )}
+              ) : null}
+              
             </div>
           </div>
 

@@ -17,68 +17,63 @@ function ShopCatalogContent() {
   const [filteredProducts, setFilteredProducts] = useState<any[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  // FIX 3 Part A: We now fetch ALL products exactly ONCE on page load (much faster)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const supabase = createClient()
         
-        // Start building the query
-        let query = supabase
+        const { data, error } = await supabase
           .from('products')
-          .select('*, product_variants(*)') // Left JOIN ensures we check variant presence
+          .select('*, product_variants(*)') 
           .order('created_at', { ascending: false })
-
-        // If a category is selected (e.g. "Men" or "Women"), add the filter to the query!
-        if (selectedCategory) {
-          query = query.eq('category', selectedCategory);
-        }
-
-        // Execute the query
-        const { data, error } = await query;
 
         if (error) {
           console.error('Database layout load error:', error)
           setProducts([])
-          setFilteredProducts([])
         } else {
-          // Safe validation: display items that aren't explicitly deactivated
           const verifiedItems = (data || []).filter((product: any) => product.is_active !== false)
           setProducts(verifiedItems)
-          setFilteredProducts(verifiedItems)
         }
       } catch (error) {
         console.error('System inventory fetching failure:', error)
         setProducts([])
-        setFilteredProducts([])
       }
     }
 
     fetchProducts()
-  }, [selectedCategory])
+  }, []) // Removed selectedCategory from dependencies!
 
+  // FIX 3 Part B: Apply the smart Unisex filter locally
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredProducts(products)
-      return
+    let result = products;
+
+    // Smart Category Filter
+    if (selectedCategory) {
+      if (selectedCategory === "Men") {
+        result = result.filter(p => ['men', 'unisex'].includes(p.category?.toLowerCase()));
+      } else if (selectedCategory === "Women") {
+        result = result.filter(p => ['women', 'unisex'].includes(p.category?.toLowerCase()));
+      } else if (selectedCategory === "Unisex") {
+        result = result.filter(p => p.category?.toLowerCase() === 'unisex');
+      }
     }
 
-    const filtered = products.filter(product => {
-      const query = searchQuery.toLowerCase()
-      const name = product.name?.toLowerCase() || ''
-      const description = product.description?.toLowerCase() || ''
-      const category = product.category?.toLowerCase() || ''
-      
-      return name.includes(query) || 
-             description.includes(query) || 
-             category.includes(query)
-    })
+    // Search Box Filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(p => 
+        p.name?.toLowerCase().includes(query) || 
+        p.description?.toLowerCase().includes(query) || 
+        p.category?.toLowerCase().includes(query)
+      );
+    }
 
-    setFilteredProducts(filtered)
-  }, [searchQuery, products])
+    setFilteredProducts(result);
+  }, [searchQuery, selectedCategory, products])
 
   const clearSearch = () => {
     setSearchQuery('')
-    setFilteredProducts(products)
     setIsSearchOpen(false)
     const params = new URLSearchParams(searchParams.toString())
     params.delete('q')
@@ -88,7 +83,6 @@ function ShopCatalogContent() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#08080A] text-zinc-900 dark:text-zinc-100 transition-colors duration-500 pt-20">
       
-      {/* CATALOG FILTERS HEADER AREA */}
       <section className="py-16 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-[#0C0C10]/30 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6 lg:px-12 text-left space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -99,7 +93,6 @@ function ShopCatalogContent() {
               </h1>
             </div>
             
-            {/* COMPACT ACTIVEWEAR FILTERS AND SEARCH INJECTION BOX */}
             <div className="w-full md:w-auto flex items-center gap-4">
               <div className="relative flex-1 md:w-72">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
@@ -133,11 +126,10 @@ function ShopCatalogContent() {
         </div>
       </section>
 
-      {/* CATALOG VIEWPORT ARRAY */}
       <section className="py-20 max-w-6xl mx-auto px-6 lg:px-12">
         
-        {/* 👉 CATEGORY BUTTONS PLACED HERE 👈 */}
-        <div className="flex gap-4 justify-center mb-12 border-b border-zinc-100 dark:border-zinc-900 pb-8">
+        {/* FIX 3 Part C: Added the Unisex Button */}
+        <div className="flex gap-4 justify-center mb-12 border-b border-zinc-100 dark:border-zinc-900 pb-8 flex-wrap">
           <Button 
             variant={selectedCategory === null ? "default" : "outline"} 
             onClick={() => setSelectedCategory(null)}
@@ -158,6 +150,13 @@ function ShopCatalogContent() {
             className="rounded-none uppercase tracking-widest text-xs font-bold px-8"
           >
             Women
+          </Button>
+          <Button 
+            variant={selectedCategory === "Unisex" ? "default" : "outline"} 
+            onClick={() => setSelectedCategory("Unisex")}
+            className="rounded-none uppercase tracking-widest text-xs font-bold px-8"
+          >
+            Unisex
           </Button>
         </div>
 

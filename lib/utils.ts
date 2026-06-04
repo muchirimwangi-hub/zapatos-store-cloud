@@ -6,11 +6,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency: string = 'KES'): string {
-  return new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency,
-  }).format(amount)
+export function formatCurrency(amount: any): string {
+  // Coerce any strange database formats into a strict number, default to 0
+  const numericAmount = Number(amount) || 0;
+  
+  // Clean, integer-only Kenyan format
+  return `KSH ${Math.round(numericAmount).toLocaleString('en-US')}`;
 }
 
 export function generateOrderNumber(): string {

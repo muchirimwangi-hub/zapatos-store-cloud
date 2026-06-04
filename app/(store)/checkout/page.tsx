@@ -106,6 +106,55 @@ export default function CheckoutPage() {
     }
   }, [intaSendLoaded]);
 
+const handlePesapalCheckout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    
+    try {
+      // Generate a unique order ID
+      const orderId = `ZC-${Date.now()}`;
+
+      // Call our secure backend
+      const res = await fetch("/api/pesapal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: finalTotal,
+          email: email,
+          phone: phone,
+          first_name: firstName,
+          last_name: lastName,
+          order_id: orderId
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.redirect_url) {
+        // Decrement stock in DB before redirecting
+        const supabase = createClient();
+        for (const item of items) {
+          await supabase.rpc('decrement_stock', {
+            p_variant_id: (item as any).id,
+            p_quantity: (item as any).quantity
+          });
+        }
+        
+        clearCart();
+        
+        // Redirect the user to the secure Pesapal checkout page
+        window.location.href = data.redirect_url;
+      } else {
+        alert("Pesapal Gateway Error. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong connecting to Pesapal.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (!isMounted) return null;
 
   if (items.length === 0) {
@@ -255,6 +304,21 @@ export default function CheckoutPage() {
                   : isProcessing 
                     ? "Processing Logistics..." 
                     : "Complete Order"} 
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+<div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
+                <span className="flex-shrink-0 mx-4 text-zinc-400 text-[10px] uppercase tracking-widest">OR</span>
+                <div className="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
+              </div>
+
+              <button 
+                className="w-full h-14 bg-[#00A859] text-white uppercase tracking-[0.2em] text-xs font-black flex items-center justify-center gap-2 hover:bg-[#008c4a] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                disabled={!isFormValid || isProcessing}
+                onClick={handlePesapalCheckout}
+              >
+                {isProcessing ? "Connecting to Pesapal..." : "Pay with Pesapal"}
                 <ArrowRight className="w-4 h-4" />
               </button>
 

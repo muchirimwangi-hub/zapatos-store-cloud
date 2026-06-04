@@ -49,7 +49,7 @@ export default function CheckoutPage() {
         setIntaSendLoaded(true);
         clearInterval(checkScript);
       }
-    }, 500); // Checks every half-second
+    }, 500);
 
     return () => clearInterval(checkScript);
   }, []);
@@ -127,29 +127,11 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#08080A] text-zinc-900 dark:text-zinc-100 transition-colors duration-500 pt-24 pb-24">
       
-      {/* INTASEND SDK SCRIPT (Updated to afterInteractive and onReady) */}
       <Script 
         src="https://unpkg.com/intasend-inlinejs-sdk@3.0.4/build/intasend-inline.js" 
         strategy="afterInteractive" 
         onReady={() => setIntaSendLoaded(true)}
       />
-
-      {/* THE PROXY BUTTON (Hidden from user, but IntaSend attaches to this) */}
-      <button 
-        id="intasend-trigger"
-        className="intaSendPayButton hidden"
-        style={{ display: 'none' }}
-        data-amount={finalTotal}
-        data-currency="KES"
-        data-email={email}
-        data-phone_number={phone}
-        data-api_ref="zapatos_checkout"
-        data-first_name={firstName}
-        data-last_name={lastName}
-        data-country="KE"
-        data-mobile_tarrif="BUSINESS-PAYS" 
-        data-card_tarrif="BUSINESS-PAYS"
-      ></button>
 
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16">
         
@@ -253,14 +235,20 @@ export default function CheckoutPage() {
 
             <div className="pt-4 space-y-4">
               
-              {/* VISIBLE REACT BUTTON */}
+              {/* FIX: The proxy button was removed. IntaSend is now hooked directly to this native button */}
               <button 
-                className="w-full h-14 bg-black dark:bg-white text-white dark:text-black uppercase tracking-[0.2em] text-xs font-black flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                className="intaSendPayButton w-full h-14 bg-black dark:bg-white text-white dark:text-black uppercase tracking-[0.2em] text-xs font-black flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                data-amount={finalTotal}
+                data-currency="KES"
+                data-email={email}
+                data-phone_number={phone}
+                data-api_ref={`zapatos_checkout_${Date.now()}`}
+                data-first_name={firstName}
+                data-last_name={lastName}
+                data-country="KE"
+                data-mobile_tarrif="BUSINESS-PAYS" 
+                data-card_tarrif="BUSINESS-PAYS"
                 disabled={!isFormValid || isProcessing || !intaSendLoaded}
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('intasend-trigger')?.click();
-                }}
               >
                 {!intaSendLoaded 
                   ? "Initializing Gateway..." 
@@ -270,7 +258,6 @@ export default function CheckoutPage() {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              {/* OFFICIAL INTASEND TRUST BADGE */}
               <div className="flex flex-col items-center justify-center gap-3 pt-2">
                 <a href="https://intasend.com/security" target="_blank" rel="noopener noreferrer">
                   <img 
@@ -290,7 +277,6 @@ export default function CheckoutPage() {
                 </a>
               </div>
             
-
               <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-zinc-400 font-mono">
                 <ShieldCheck className="w-3 h-3" /> Secure IntaSend Processing
               </div>

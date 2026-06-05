@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/lib/store/cart-store"
+import { useRouter } from "next/navigation"
 
 const cleanImageUrl = (imgData: any): string => {
   if (!imgData) return "";
@@ -15,8 +16,9 @@ const cleanImageUrl = (imgData: any): string => {
 
 export default function ProductDisplay({ product, variants }: { product: any; variants: any[] }) {
   const [isAdding, setIsAdding] = useState(false)
-  const addItem = useCartStore((state) => state.addItem)
+  const { addItem, openCart } = useCartStore();
   const [mainImage, setMainImage] = useState(cleanImageUrl(product.images?.[0] || ""));
+const router = useRouter()
 
   // 1. DYNAMICALLY EXTRACT ALL OPTION CATEGORIES (e.g., Size, Color, Fit)
   const optionGroups = useMemo(() => {
@@ -70,10 +72,8 @@ export default function ProductDisplay({ product, variants }: { product: any; va
     setIsAdding(true);
     addItem(product, 1, selectedOptions);
     
-    // Global Event Trigger for Cart Drawer
-    window.dispatchEvent(new CustomEvent("zapatos-add-to-cart"));
-    
-    setTimeout(() => setIsAdding(false), 1000);
+    // Instantly redirect the user to the cart page!
+    router.push("/cart");
   };
 
   return (

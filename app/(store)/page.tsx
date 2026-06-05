@@ -123,7 +123,7 @@ export default function HomePage() {
               <Link href={category.href} className="block space-y-4">
                 <div className="relative aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800">
                   <div 
-                    className="absolute inset-0 bg-cover bg-center grayscale contrast-[1.18] brightness-[0.9] dark:brightness-[0.65] transition-transform duration-[4000ms] ease-out group-hover:scale-103"
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-[4000ms] ease-out group-hover:scale-105"
                     style={{ backgroundImage: `url('${category.image}')` }}
                   />
                   <div className="absolute top-4 right-4 bg-zinc-950 text-white font-mono text-[9px] px-2 py-0.5 tracking-widest border border-zinc-800">
@@ -186,7 +186,7 @@ export default function HomePage() {
             className="lg:col-span-6 relative aspect-square w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 overflow-hidden"
           >
             <div 
-              className="absolute inset-0 bg-cover bg-center grayscale contrast-[1.2] brightness-[0.8] dark:brightness-[0.6]"
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-[4000ms] hover:scale-105 ease-out"
               style={{
                 backgroundImage: `url('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2070&auto=format&fit=crop')`
               }}

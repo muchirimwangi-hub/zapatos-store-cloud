@@ -87,7 +87,7 @@ export default function CartPage() {
                       className="flex-shrink-0 w-24 h-28 border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 overflow-hidden hover:opacity-80 transition-opacity rounded-none"
                     >
                       <div
-                        className="w-full h-full bg-cover bg-center grayscale dark:brightness-[0.75]"
+                        className="w-full h-full bg-cover bg-center"
                         style={{ backgroundImage: `url('${getProductImageUrl(item.product)}')` }}
                       />
                     </Link>

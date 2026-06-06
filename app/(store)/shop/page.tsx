@@ -15,7 +15,16 @@ function ShopCatalogContent() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [filteredProducts, setFilteredProducts] = useState<any[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
+    const cat = searchParams.get('category');
+    return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : null;
+  });
+
+  // 2. Sync state if the user clicks a nav link while already on the shop page
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    setSelectedCategory(cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : null);
+  }, [searchParams]);
 
   // FIX 3 Part A: We now fetch ALL products exactly ONCE on page load (much faster)
   useEffect(() => {

@@ -2,16 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Compass, ShoppingBag, User, LayoutDashboard, Layers } from "lucide-react"
+import { Compass, ShoppingBag, User, LayoutDashboard, Layers, Activity } from "lucide-react"
 
 export function AppNavigation() {
   const pathname = usePathname()
 
   // Strict technical navigation pillars
   const desktopNavItems = [
-    { label: "New Drops", href: "/shop?filter=new" },
+    { label: "New Drops", href: "/shop" },
     { label: "Men", href: "/shop?category=men" },
     { label: "Women", href: "/shop?category=women" },
+    { label: "Blueprint", href: "/quiz" },
     { label: "About", href: "/about" },
   ]
 
@@ -19,8 +20,8 @@ export function AppNavigation() {
   const mobileNavItems = [
     { label: "Explore", href: "/shop", icon: Compass },
     { label: "Cart", href: "/cart", icon: ShoppingBag },
+    { label: "Blueprint", href: "/quiz", icon: Activity },
     { label: "Profile", href: "/profile", icon: User },
-    { label: "Vault", href: "/admin/products", icon: LayoutDashboard },
   ]
 
   return (

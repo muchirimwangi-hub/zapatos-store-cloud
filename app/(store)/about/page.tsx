@@ -57,13 +57,13 @@ export default function AboutPage() {
               transition={{ duration: 0.8, delay: 0.2, ease: easeQuint }}
               className="md:col-span-8 text-base md:text-lg text-zinc-600 dark:text-zinc-400 font-light leading-relaxed tracking-wide"
             >
-              Zapatos Cave is a premium athleisure brand designing high-performance compression wear, luxury tracksuits, and elite training apparel. We create sophisticated garments exclusively for individuals who manage their physical conditioning and lifestyle with absolute precision.
+              Zapatos Cave is a premium activewear brand engineering high-performance ONLI_FRESH compression wear, luxury Zapatos Essentials tracksuits, and elite training apparel. We create sophisticated garments exclusively for individuals who manage their physical conditioning and lifestyle with absolute precision.
             </motion.p>
           </div>
         </div>
       </section>
 
-      {/* 2. BRUTALIST MEDIA DISPLAY */}
+      {/* 2. BRUTALIST MEDIA DISPLAY - FILTER REMOVED */}
       <section className="py-20 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/60 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div 
@@ -78,7 +78,7 @@ export default function AboutPage() {
               alt="Premium performance apparel training"
               fill
               priority
-              className="object-cover grayscale contrast-[1.2] brightness-[0.9] dark:brightness-[0.65] dark:contrast-[1.25] transition-transform duration-[time:4000ms] ease-out hover:scale-105"
+              className="object-cover transition-transform duration-[4000ms] ease-out hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 via-transparent to-transparent dark:from-[#0C0C10]" />
           </motion.div>
@@ -101,13 +101,13 @@ export default function AboutPage() {
             <div className="space-y-4">
               <div className="h-[1px] w-8 bg-zinc-900 dark:bg-white" />
               <p>
-                We completely reject standard, mass-market decorative textiles. Every structural panel, double-knit fabric finish, and flatlock stitch line is mapped intentionally to enhance your body’s natural range of motion. Our apparel minimizes friction, handles high training stress, and stabilizes active muscles.
+                We completely reject standard, mass-market decorative textiles. Every structural panel, double-knit fabric finish, and ONLI_FRESH flatlock stitch line is mapped intentionally to enhance your body’s natural range of motion. Our apparel minimizes friction, handles high training stress, and stabilizes active muscles under heavy loads.
               </p>
             </div>
             <div className="space-y-4">
               <div className="h-[1px] w-8 bg-zinc-300 dark:bg-zinc-800" />
               <p>
-                Our collections are curated directly for the modern professional. For individuals who view physical consistency, sharp aesthetic presentation, and personal performance as one unified target.
+                Our collections are curated directly for the modern professional. From heavy studio sessions to everyday utility, our Essentials line is built for individuals who view physical consistency, sharp aesthetic presentation, and personal performance as one unified target.
               </p>
             </div>
           </div>
@@ -121,18 +121,18 @@ export default function AboutPage() {
             {[
               {
                 idx: "01 FABRIC",
-                title: "Premium Advanced Synthetics",
-                description: "Heavyweight nylon-spandex stretch blends engineered to manage moisture, dissipate heat, and retain their perfect shape over extensive active wear.",
+                title: "ONLI_FRESH Dri-Fit Tech",
+                description: "Heavyweight nylon-spandex stretch blends and moisture-wicking technology engineered to dissipate heat and retain their perfect shape over extensive active wear.",
               },
               {
                 idx: "02 FIT",
                 title: "Anatomical Panel Mapping",
-                description: "Garment panels tailored specifically along natural muscle trajectories, keeping posture aligned while offering entirely unrestrained mobility.",
+                description: "Compression and tracksuit panels tailored specifically along natural trajectories, keeping posture aligned while offering entirely unrestrained mobility for track and studio execution.",
               },
               {
                 idx: "03 STYLE",
-                title: "Minimalist Performance Standards",
-                description: "Completely stripped of unnecessary visual clutter. Crafted carefully to focus on structural strength, clean lines, and long-lasting fabric durability.",
+                title: "Zapatos Core Restraint",
+                description: "Completely stripped of unnecessary visual clutter. Crafted carefully to focus on structural strength, clean minimalist lines, and long-lasting fabric durability.",
               },
             ].map((value, index) => (
               <motion.div
@@ -176,7 +176,7 @@ export default function AboutPage() {
               className="bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-none h-14 px-16 uppercase text-xs font-black tracking-[0.3em] border border-black dark:border-white transition-transform active:scale-95"
               asChild
             >
-              <Link href="/shop">EXPLORE APPAREL</Link>
+              <Link href="/shop">EXPLORE ZAPATOS</Link>
             </Button>
           </div>
         </div>

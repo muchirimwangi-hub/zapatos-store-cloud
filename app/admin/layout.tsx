@@ -14,7 +14,8 @@ import {
   Menu, 
   X, 
   ChevronRight,
-  Upload 
+  Upload, 
+  BarChart
 } from "lucide-react"
 
 // Ensure these paths match your folder structure exactly
@@ -27,6 +28,7 @@ const adminNavItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/import", label: "Data Import", icon: Upload }, 
+  { href: "/admin/research", label: "Research Centre", icon: BarChart },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 

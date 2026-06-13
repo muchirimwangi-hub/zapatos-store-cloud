@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/utils"
 import { kenyanShippingRates } from "@/lib/utils/shippingRates" 
+import { sendDispatchNotification } from "@/app/actions/email"
 import {
   Sheet,
   SheetContent,
@@ -23,6 +24,7 @@ interface OrderRow {
   shipping_cost: number
   tax: number
   created_at: string
+  tracking_number?: string
   shipping_address: {
     first_name?: string
     last_name?: string
@@ -44,6 +46,7 @@ interface OrderItem {
 
 interface ProductVariantSelection {
   id: string
+  product_id: string
   product_name: string
   variant_name: string
   price: number
@@ -71,6 +74,8 @@ export default function AdminOrdersPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditingItems, setIsEditingItems] = useState(false)
+  const [isEditingTracking, setIsEditingTracking] = useState(false)
+  const [trackingInput, setTrackingInput] = useState("")
 
   const [allVariants, setAllVariants] = useState<ProductVariantSelection[]>([])
   const [knownCustomers, setKnownCustomers] = useState<any[]>([])
@@ -116,6 +121,7 @@ export default function AdminOrdersPage() {
     if (data) {
       const formatted = data.map((v: any) => ({
         id: v.id,
+        product_id: v.product_id,
         product_name: v.products?.name || "Unknown Product",
         variant_name: v.attributes ? Object.values(v.attributes).join(" / ") : "Standard",
         price: v.price,
@@ -171,9 +177,39 @@ export default function AdminOrdersPage() {
   }
 
   const updateStatus = async (id: string, newStatus: string) => {
+    // 1. Update the database
     await supabase.from("orders").update({ status: newStatus }).eq("id", id)
+    
+    // 2. Update the local UI state
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)))
     if (selectedOrder?.id === id) setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null)
+
+    // 3. FIRE THE EMAIL if the status is exactly "shipped"
+    if (newStatus === "shipped") {
+      const orderToEmail = orders.find(o => o.id === id);
+      if (orderToEmail && orderToEmail.email) {
+        
+        // Visual feedback so you know it's trying to send
+        console.log(`Attempting to dispatch email to ${orderToEmail.email}...`);
+        
+        await sendDispatchNotification(
+          orderToEmail.email,
+          orderToEmail.shipping_address?.first_name || "Client",
+          orderToEmail.id,
+          orderToEmail.tracking_number || "PENDING"
+        );
+      }
+    }
+  }
+
+  const handleSaveTracking = async () => {
+    if (!selectedOrder) return;
+    await supabase.from("orders").update({ tracking_number: trackingInput }).eq("id", selectedOrder.id);
+    
+    // Update local UI immediately
+    setSelectedOrder(prev => prev ? { ...prev, tracking_number: trackingInput } : null);
+    setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, tracking_number: trackingInput } : o));
+    setIsEditingTracking(false);
   }
 
   const handleReturnItem = async (item: OrderItem) => {
@@ -203,7 +239,7 @@ export default function AdminOrdersPage() {
 
     const { data, error } = await supabase
       .from("order_items")
-      .insert({ order_id: selectedOrder.id, product_variant_id: variantId, quantity: 1, price: target.price })
+      .insert({ order_id: selectedOrder.id, product_id: target.product_id, product_variant_id: variantId, quantity: 1, price: target.price })
       .select('*')
       .single()
 
@@ -253,13 +289,29 @@ export default function AdminOrdersPage() {
 
     const itemsPayload = newOrderItems.map(item => {
       const match = allVariants.find(v => v.id === item.variantId)
-      return { order_id: orderData.id, product_variant_id: item.variantId, quantity: item.quantity, price: match?.price || 0 }
+      return {
+         order_id: orderData.id,
+         product_id: match?.product_id,
+         product_variant_id: item.variantId, 
+         quantity: item.quantity, 
+         price: match?.price || 0
+       }
     })
     
     const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload)
     if (itemsErr) {
        console.error(itemsErr)
        return alert(`Line item construction failure. Check console.`)
+    }
+
+if (newOrderStatus === "shipped") {
+       console.log("Dispatching manual order email...");
+       await sendDispatchNotification(
+         newOrderEmail,
+         newOrderFirstName,
+         orderData.id,
+         "PENDING"
+       );
     }
 
     if (newOrderStatus !== "draft") {
@@ -385,6 +437,31 @@ export default function AdminOrdersPage() {
                   <div className="grid grid-cols-3">
                     <span className="text-xs font-mono uppercase text-zinc-400">Physical Drop</span>
                     <span className="col-span-2 text-xs text-zinc-600 leading-relaxed">{selectedOrder.shipping_address?.address || "N/A"}</span>
+                  </div>
+                  <div className="grid grid-cols-3 border-t border-zinc-100/80 pt-3 mt-3">
+                    <span className="text-xs font-mono uppercase text-zinc-400 mt-2">Tracking Code</span>
+                    <span className="col-span-2">
+                      {isEditingTracking ? (
+                        <div className="flex gap-2">
+                          <Input 
+                            value={trackingInput} 
+                            onChange={(e) => setTrackingInput(e.target.value)} 
+                            placeholder="Paste Waybill/Tracking..." 
+                            className="h-8 text-xs font-mono rounded-none border-zinc-300"
+                          />
+                          <Button size="sm" className="h-8 rounded-none text-[10px] uppercase font-bold" onClick={handleSaveTracking}>Save</Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs text-zinc-800 font-bold">
+                            {selectedOrder.tracking_number || "AWAITING DISPATCH"}
+                          </span>
+                          <Button variant="ghost" size="sm" className="h-6 text-[10px] uppercase text-zinc-400 hover:text-black" onClick={() => { setTrackingInput(selectedOrder.tracking_number || ""); setIsEditingTracking(true); }}>
+                            <Edit2 className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                        </div>
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>

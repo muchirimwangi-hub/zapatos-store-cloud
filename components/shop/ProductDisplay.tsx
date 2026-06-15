@@ -18,6 +18,7 @@ const SIZE_ORDER = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
 export default function ProductDisplay({ product, variants }: { product: any; variants: any[] }) {
   const [isAdding, setIsAdding] = useState(false)
+  const [activeImageIdx, setActiveImageIdx] = useState(0)
   const { addItem } = useCartStore();
   const router = useRouter()
 
@@ -98,23 +99,43 @@ export default function ProductDisplay({ product, variants }: { product: any; va
     // Note the "items-start" here. This is crucial for the sticky right column to work.
     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto px-6 py-12 text-zinc-900 dark:text-zinc-100 items-start">
       
-      {/* LEFT COLUMN: SCROLLABLE IMAGE GALLERY */}
-      <div className="flex flex-col gap-6 w-full">
-        {displayImages.length > 0 ? (
-          displayImages.map((img: string, idx: number) => (
-            <div key={idx} className="aspect-[3/4] bg-zinc-50 dark:bg-[#0C0C10] border border-zinc-100 dark:border-zinc-900 overflow-hidden relative">
-              <img src={img} alt={`${product.name} - View ${idx + 1}`} className="w-full h-full object-cover" />
-            </div>
-          ))
-        ) : (
-          <div className="aspect-[3/4] bg-zinc-50 dark:bg-[#0C0C10] border border-zinc-100 dark:border-zinc-900 w-full flex items-center justify-center text-[10px] uppercase tracking-widest text-zinc-400">
-            Loading Geometry
-          </div>
-        )}
+      {/* LEFT COLUMN: NIKE-STYLE THUMBNAIL GALLERY */}
+      {/* 1. MAGIC: We lock the height to your screen size (h-[calc(100vh-120px)]) and make it sticky */}
+      <div className="flex flex-col-reverse md:flex-row gap-4 w-full h-[60vh] md:h-[calc(100vh-120px)] md:sticky md:top-28">
+        
+        {/* 2. THE THUMBNAILS */}
+        {/* MAGIC: Added 'md:overflow-y-auto' so these scroll inside their own box, not down the page */}
+        <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-20 shrink-0 snap-x md:snap-y scrollbar-hide pb-2 md:pb-0 h-full">
+          {displayImages.map((img: string, idx: number) => (
+            <button 
+              key={idx} 
+              onClick={() => setActiveImageIdx(idx)}
+              // Made the thumbnails slightly shorter on desktop so more fit on screen at once
+              className={`shrink-0 snap-center w-16 md:w-full aspect-square md:aspect-[4/5] rounded-md overflow-hidden transition-all duration-200 border-2 ${
+                activeImageIdx === idx 
+                  ? 'border-black dark:border-white opacity-100' 
+                  : 'border-transparent opacity-50 hover:opacity-100'
+              }`}
+            >
+              <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+
+        {/* 3. THE MAIN ACTIVE IMAGE */}
+        {/* MAGIC: Removed aspect ratio and forced it to h-full so it respects the screen size */}
+        <div className="w-full h-full bg-zinc-50 dark:bg-[#0C0C10] rounded-lg overflow-hidden relative flex items-center justify-center p-4">
+          <img 
+            src={displayImages[activeImageIdx] || displayImages[0]} 
+            alt={product.name} 
+            className="w-full h-full object-contain transition-opacity duration-300" 
+          />
+        </div>
+
       </div>
 
       {/* RIGHT COLUMN: STICKY PRODUCT DETAILS */}
-      <div className="sticky top-28 space-y-10 h-fit pb-12">
+      <div className="sticky top-28 space-y-10 h-[calc(100vh-120px)] overflow-y-auto pb-12 pr-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         
         {/* 1. Title & Price */}
         <div className="space-y-2">

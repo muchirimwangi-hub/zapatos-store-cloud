@@ -19,19 +19,34 @@ export default function HomePage() {
         
         {/* High-Resolution Performance Media Backdrop (Parallax Optimized) */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          <motion.div 
-            className="absolute inset-0 bg-no-repeat bg-scroll sm:bg-fixed"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center',
-            }}
-            initial={{ scale: 1.08, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.55 }}
-            transition={{ duration: 1.8, ease: easeQuint }}
-          />
+          {/* Mobile Fallback Container (Prevents iOS fixed background zoom bug) */}
+          <div className="absolute inset-0 sm:hidden">
+            <motion.div 
+              className="absolute inset-0 bg-no-repeat bg-cover bg-top"
+              style={{
+                backgroundImage: `url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop')`,
+              }}
+              initial={{ scale: 1.08, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.65 }}
+              transition={{ duration: 1.8, ease: easeQuint }}
+            />
+          </div>
+
+          {/* Desktop Parallax Container */}
+          <div className="absolute inset-0 hidden sm:block">
+            <motion.div 
+              className="absolute inset-0 bg-no-repeat bg-fixed bg-cover bg-center"
+              style={{
+                backgroundImage: `url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop')`,
+              }}
+              initial={{ scale: 1.08, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.55 }}
+              transition={{ duration: 1.8, ease: easeQuint }}
+            />
+          </div>
+
           {/* Subtle Vignette Layer */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-zinc-950/40 to-white dark:to-[#08080A] transition-colors duration-500 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-zinc-950/50 to-white dark:to-[#08080A] transition-colors duration-500 z-10" />
         </div>
 
         {/* Hero Content Panel */}
@@ -142,6 +157,32 @@ export default function HomePage() {
               </Link>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+{/* 2.5. SYSTEM DIAGNOSTIC / QUIZ BANNER */}
+      <section className="relative py-24 bg-zinc-950 border-y border-zinc-900 overflow-hidden">
+        {/* Background Grid Texture */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:40px_40px]" />
+        
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-6">
+          <Activity className="mx-auto h-8 w-8 text-zinc-500 mb-4 stroke-[1.5]" />
+          <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white">
+            Find Your Blueprint.
+          </h2>
+          <p className="text-zinc-400 font-light max-w-md mx-auto text-sm leading-relaxed tracking-wide">
+            Take our tactical diagnostic test to match your training discipline with the exact Zapatos gear engineered for your environment.
+          </p>
+          <div className="pt-6">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-zinc-700 text-white hover:bg-white hover:text-black rounded-none h-14 px-12 uppercase text-xs font-black tracking-widest transition-transform active:scale-95" 
+              asChild
+            >
+              <Link href="/quiz">Initiate Diagnostic</Link>
+            </Button>
+          </div>
         </div>
       </section>
 

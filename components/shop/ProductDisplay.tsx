@@ -100,18 +100,17 @@ export default function ProductDisplay({ product, variants }: { product: any; va
     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto px-6 py-12 text-zinc-900 dark:text-zinc-100 items-start">
       
       {/* LEFT COLUMN: NIKE-STYLE THUMBNAIL GALLERY */}
-      {/* 1. MAGIC: We lock the height to your screen size (h-[calc(100vh-120px)]) and make it sticky */}
-      <div className="flex flex-col-reverse md:flex-row gap-4 w-full h-[60vh] md:h-[calc(100vh-120px)] md:sticky md:top-28">
+      {/* Mobile: Flows naturally | Desktop: Locked height and sticky */}
+      <div className="flex flex-col-reverse md:flex-row gap-4 w-full md:h-[calc(100vh-120px)] md:sticky md:top-28">
         
         {/* 2. THE THUMBNAILS */}
-        {/* MAGIC: Added 'md:overflow-y-auto' so these scroll inside their own box, not down the page */}
-        <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-20 shrink-0 snap-x md:snap-y scrollbar-hide pb-2 md:pb-0 h-full">
+        {/* Mobile: Horizontal scroll | Desktop: Vertical scroll inside its box */}
+        <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-20 shrink-0 snap-x md:snap-y scrollbar-hide pb-2 md:pb-0 md:h-full">
           {displayImages.map((img: string, idx: number) => (
             <button 
               key={idx} 
               onClick={() => setActiveImageIdx(idx)}
-              // Made the thumbnails slightly shorter on desktop so more fit on screen at once
-              className={`shrink-0 snap-center w-16 md:w-full aspect-square md:aspect-[4/5] rounded-md overflow-hidden transition-all duration-200 border-2 ${
+              className={`shrink-0 snap-center w-20 md:w-full aspect-[4/5] rounded-md overflow-hidden transition-all duration-200 border-2 ${
                 activeImageIdx === idx 
                   ? 'border-black dark:border-white opacity-100' 
                   : 'border-transparent opacity-50 hover:opacity-100'
@@ -123,12 +122,13 @@ export default function ProductDisplay({ product, variants }: { product: any; va
         </div>
 
         {/* 3. THE MAIN ACTIVE IMAGE */}
-        {/* MAGIC: Removed aspect ratio and forced it to h-full so it respects the screen size */}
-        <div className="w-full h-full bg-zinc-50 dark:bg-[#0C0C10] rounded-lg overflow-hidden relative flex items-center justify-center p-4">
+        {/* Mobile: Forced 4/5 Aspect Ratio | Desktop: Fills remaining height */}
+        <div className="w-full aspect-[4/5] md:aspect-auto md:h-full md:flex-1 bg-zinc-50 dark:bg-[#0C0C10] rounded-lg overflow-hidden relative flex items-center justify-center md:p-4">
           <img 
             src={displayImages[activeImageIdx] || displayImages[0]} 
             alt={product.name} 
-            className="w-full h-full object-contain transition-opacity duration-300" 
+            // Mobile: 'object-cover' fills the box seamlessly. Desktop: 'object-contain' protects the image from cropping.
+            className="w-full h-full object-cover md:object-contain transition-opacity duration-300" 
           />
         </div>
 

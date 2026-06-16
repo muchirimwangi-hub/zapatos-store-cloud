@@ -71,27 +71,27 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       >
         <Link href={`/shop/${product.slug}`} className="group block space-y-4">
           
-          <div className="relative aspect-[3/4] overflow-hidden border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] rounded-none">
-            {/* The grayscale/brightness filters have been removed so your true colors show */}
+          <div className="relative aspect-[4/5] sm:aspect-[3/4] overflow-hidden border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] rounded-none group-hover:border-zinc-400 dark:group-hover:border-zinc-700 transition-colors">
             <div 
               className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
               style={{ backgroundImage: `url('${primaryImage}')` }}
             />
-            <div className="absolute inset-0 bg-zinc-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-black/5 sm:bg-zinc-950/10 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
             {product.is_featured && (
-              <div className="absolute top-4 left-4 bg-zinc-950 dark:bg-white text-white dark:text-black text-[9px] uppercase font-mono tracking-widest px-2.5 py-1 border border-zinc-800 dark:border-zinc-200">
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-zinc-950 dark:bg-white text-white dark:text-black text-[9px] uppercase font-mono tracking-widest px-2.5 py-1 z-10">
                 Featured
               </div>
             )}
 
-            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Mobile: Always visible button | Desktop: Show on hover */}
+            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-0 sm:translate-y-2 group-hover:translate-y-0 z-20">
               <Button
                 size="icon"
-                className="rounded-none bg-zinc-950 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-xl w-10 h-10 border border-zinc-800"
+                className="rounded-none bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-lg w-10 h-10 sm:w-11 sm:h-11 border border-transparent dark:border-transparent active:scale-95 transition-transform"
                 onClick={handleAddToCart}
               >
-                <ShoppingBag className="h-4 w-4 stroke-[1.8]" />
+                <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 stroke-[1.5]" />
               </Button>
             </div>
           </div>

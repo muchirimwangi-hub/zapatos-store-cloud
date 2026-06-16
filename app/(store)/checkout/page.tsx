@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Script from "next/script"
 import { createClient } from "@/lib/supabase/client"
-import { kenyanShippingRates } from "@/lib/utils/shippingRates" 
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -17,6 +16,10 @@ export default function CheckoutPage() {
   const [isMounted, setIsMounted] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [intaSendLoaded, setIntaSendLoaded] = useState(false) 
+
+  // HEADLESS SHIPPING DATA STATE
+  const [shippingRates, setShippingRates] = useState<any[]>([])
+  const [loadingRates, setLoadingRates] = useState(true)
 
   // LOGISTICS FORM STATE
   const [email, setEmail] = useState("")
@@ -28,9 +31,11 @@ export default function CheckoutPage() {
 
   // FINANCIALS
   const subtotal = getTotal();
-  const selectedShipping = kenyanShippingRates.find((r: any) => r.id === shippingId);
-  const shippingCost = selectedShipping ? selectedShipping.price : 0;
+  const selectedShipping = shippingRates.find((r: any) => r.id === shippingId);
+  const shippingCost = selectedShipping ? Number(selectedShipping.price) : 0;
   const finalTotal = subtotal + shippingCost;
+
+  const [sessionId, setSessionId] = useState("")
 
   // STATE REF FOR INTASEND CALLBACKS
   const stateRef = useRef({ items, clearCart, router });
@@ -41,6 +46,26 @@ export default function CheckoutPage() {
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // FETCH HEADLESS RATES FROM SUPABASE
+  useEffect(() => {
+    async function fetchRates() {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("shipping_rates")
+        .select("*")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+
+      if (error) {
+        console.error("Error pulling dynamic logistics configuration:", error);
+      } else if (data) {
+        setShippingRates(data);
+      }
+      setLoadingRates(false);
+    }
+    fetchRates();
+  }, []);
 
   // FALLBACK CHECKER: Actively poll the window to see if IntaSend loaded successfully
   useEffect(() => {
@@ -53,6 +78,41 @@ export default function CheckoutPage() {
 
     return () => clearInterval(checkScript);
   }, []);
+
+// 1. Assign a unique tracking ID to this specific browser session
+  useEffect(() => {
+    let sid = sessionStorage.getItem("zc_checkout_session");
+    if (!sid) {
+      sid = crypto.randomUUID(); // Native browser UUID generator
+      sessionStorage.setItem("zc_checkout_session", sid);
+    }
+    setSessionId(sid);
+  }, []);
+
+  // 2. The Silent Sync (Debounced to protect database limits)
+  useEffect(() => {
+    if (!sessionId || items.length === 0) return;
+
+    const syncTimeout = setTimeout(async () => {
+      const supabase = createClient();
+      
+      const { error } = await supabase.from("abandoned_carts").upsert({
+        session_id: sessionId,
+        email: email || null,
+        phone: phone || null,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        items: items,
+        total_value: finalTotal,
+        status: "abandoned",
+        last_active: new Date().toISOString()
+      }, { onConflict: 'session_id' });
+
+      if (error) console.error("Ghost cart sync failed:", error.message);
+    }, 1500); // Waits 1.5s after they stop typing to sync
+
+    return () => clearTimeout(syncTimeout);
+  }, [sessionId, items, email, phone, firstName, lastName, finalTotal]);
 
   // INIT INTASEND ONCE THE SCRIPT LOADS
   useEffect(() => {
@@ -96,9 +156,19 @@ export default function CheckoutPage() {
           }
         });
 
-        intasend.on("FAILED", (results: any) => {
+        intasend.on("FAILED", async (results: any) => {
           console.error("Payment Failed:", results);
           alert("Transaction failed or was cancelled. Please try again.");
+          
+          // Log the hard failure to the shadow table
+          const sid = sessionStorage.getItem("zc_checkout_session");
+          if (sid) {
+            const supabase = createClient();
+            await supabase
+              .from("abandoned_carts")
+              .update({ status: 'payment_failed' })
+              .eq("session_id", sid);
+          }
         });
       } catch (error) {
         console.error("IntaSend Initialization Error:", error);
@@ -106,15 +176,13 @@ export default function CheckoutPage() {
     }
   }, [intaSendLoaded]);
 
-const handlePesapalCheckout = async (e: React.MouseEvent) => {
+  const handlePesapalCheckout = async (e: React.MouseEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     
     try {
-      // Generate a unique order ID
       const orderId = `ZC-${Date.now()}`;
 
-      // Call our secure backend
       const res = await fetch("/api/pesapal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -131,7 +199,6 @@ const handlePesapalCheckout = async (e: React.MouseEvent) => {
       const data = await res.json();
 
       if (data.redirect_url) {
-        // Decrement stock in DB before redirecting
         const supabase = createClient();
         for (const item of items) {
           await supabase.rpc('decrement_stock', {
@@ -141,15 +208,19 @@ const handlePesapalCheckout = async (e: React.MouseEvent) => {
         }
         
         clearCart();
-        
-        // Redirect the user to the secure Pesapal checkout page
         window.location.href = data.redirect_url;
       } else {
         alert("Pesapal Gateway Error. Please try again.");
+        // Log gateway failure
+        const supabase = createClient();
+        await supabase.from("abandoned_carts").update({ status: 'payment_failed' }).eq("session_id", sessionId);
       }
     } catch (err) {
       console.error(err);
       alert("Something went wrong connecting to Pesapal.");
+      // Log network failure
+      const supabase = createClient();
+      await supabase.from("abandoned_carts").update({ status: 'payment_failed' }).eq("session_id", sessionId);
     } finally {
       setIsProcessing(false);
     }
@@ -171,7 +242,7 @@ const handlePesapalCheckout = async (e: React.MouseEvent) => {
     )
   }
 
-  const isFormValid = email && phone && firstName && lastName && address && shippingId;
+  const isFormValid = email && phone && firstName && lastName && address && shippingId && !loadingRates;
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#08080A] text-zinc-900 dark:text-zinc-100 transition-colors duration-500 pt-24 pb-24">
@@ -224,12 +295,15 @@ const handlePesapalCheckout = async (e: React.MouseEvent) => {
                   className="w-full h-12 px-3 border border-zinc-200 dark:border-zinc-800 bg-transparent text-sm rounded-none focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600"
                   value={shippingId}
                   onChange={e => setShippingId(e.target.value)}
+                  disabled={loadingRates}
                   required
                 >
-                  <option value="" disabled>Select Delivery Destination...</option>
-                  {kenyanShippingRates.map((rate: any) => (
+                  <option value="" disabled>
+                    {loadingRates ? "Syncing dynamic transit configurations..." : "Select Delivery Destination..."}
+                  </option>
+                  {shippingRates.map((rate: any) => (
                     <option key={rate.id} value={rate.id}>
-                      {rate.name} — Ksh {rate.price} ({rate.eta})
+                      {rate.name} — Ksh {Number(rate.price).toLocaleString()} ({rate.eta})
                     </option>
                   ))}
                 </select>
@@ -284,7 +358,6 @@ const handlePesapalCheckout = async (e: React.MouseEvent) => {
 
             <div className="pt-4 space-y-4">
               
-              {/* FIX: The proxy button was removed. IntaSend is now hooked directly to this native button */}
               <button 
                 className="intaSendPayButton w-full h-14 bg-black dark:bg-white text-white dark:text-black uppercase tracking-[0.2em] text-xs font-black flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
                 data-amount={finalTotal}
@@ -307,7 +380,7 @@ const handlePesapalCheckout = async (e: React.MouseEvent) => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-<div className="relative flex items-center py-2">
+              <div className="relative flex items-center py-2">
                 <div className="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
                 <span className="flex-shrink-0 mx-4 text-zinc-400 text-[10px] uppercase tracking-widest">OR</span>
                 <div className="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>

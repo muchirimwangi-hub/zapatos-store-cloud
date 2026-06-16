@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/utils"
-import { kenyanShippingRates } from "@/lib/utils/shippingRates" 
 import { sendDispatchNotification } from "@/app/actions/email"
 import {
   Sheet,
@@ -78,6 +77,7 @@ export default function AdminOrdersPage() {
   const [trackingInput, setTrackingInput] = useState("")
 
   const [allVariants, setAllVariants] = useState<ProductVariantSelection[]>([])
+  const [shippingRates, setShippingRates] = useState<any[]>([])
   const [knownCustomers, setKnownCustomers] = useState<any[]>([])
 
   const [variantSearchQuery, setVariantSearchQuery] = useState("")
@@ -131,9 +131,17 @@ export default function AdminOrdersPage() {
     }
   }
 
+  // Add this new function to pull the headless logistics
+  const loadShippingRates = async () => {
+    const { data } = await supabase.from("shipping_rates").select("*").order("name", { ascending: true })
+    if (data) setShippingRates(data)
+  }
+
+  // Update the useEffect to run it
   useEffect(() => {
     loadOrders()
     loadCatalog()
+    loadShippingRates() // We added this line
   }, [])
 
   const handleCustomerSelect = (email: string) => {
@@ -635,7 +643,7 @@ if (newOrderStatus === "shipped") {
                 {shippingSearchQuery && (
                   <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 absolute w-full top-[44px]">
                     <div className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 text-red-600 font-mono font-bold" onClick={() => { setNewOrderShippingCost(0); setShippingSearchQuery(""); }}>Clear / No Surcharge (Ksh 0)</div>
-                    {kenyanShippingRates.filter(r => r.name.toLowerCase().includes(shippingSearchQuery.toLowerCase())).map(rate => (
+                    {shippingRates.filter(r => r.name.toLowerCase().includes(shippingSearchQuery.toLowerCase())).map(rate => (
                         <div key={rate.id} className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 last:border-0" onClick={() => { setNewOrderShippingCost(rate.price); setShippingSearchQuery(""); }}>
                           <span className="font-bold">{rate.name}</span> — {formatCurrency(rate.price)}
                         </div>

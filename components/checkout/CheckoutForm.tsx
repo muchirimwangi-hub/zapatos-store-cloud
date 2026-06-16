@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { kenyanShippingRates } from "@/lib/utils/shippingRates"
 import { createClient } from "@/lib/supabase/client"
 import { useCartStore } from "@/lib/store/cart-store"
 
@@ -14,8 +13,9 @@ export default function CheckoutForm({ cartItems }: { cartItems: any[] }) {
   const [email, setEmail] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
   
-  // 2. Localized Shipping Route Coordinates
-  const [selectedLocationId, setSelectedLocationId] = useState(kenyanShippingRates[0].id)
+  // 2. Headless Shipping Route Coordinates
+  const [shippingRates, setShippingRates] = useState<any[]>([])
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("")
   const [streetAddress, setStreetAddress] = useState("")
   const [buildingName, setBuildingName] = useState("")
   const [houseOfficeNumber, setHouseOfficeNumber] = useState("")
@@ -28,7 +28,19 @@ export default function CheckoutForm({ cartItems }: { cartItems: any[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [intasendLoaded, setIntasendLoaded] = useState(false)
 
-  // FIXED: Injects the verified official live CDN script source correctly
+  // FETCH LIVE RATES FROM SUPABASE
+  useEffect(() => {
+    async function fetchRates() {
+      const { data } = await supabase.from("shipping_rates").select("*").eq("is_active", true).order("name", { ascending: true })
+      if (data && data.length > 0) {
+        setShippingRates(data)
+        setSelectedLocationId(data[0].id) // Auto-select the first available option
+      }
+    }
+    fetchRates()
+  }, [])
+
+  // Injects the verified official live CDN script source correctly
   useEffect(() => {
     if (typeof window !== "undefined" && !(window as any).IntaSend) {
       const script = document.createElement("script")
@@ -69,16 +81,19 @@ export default function CheckoutForm({ cartItems }: { cartItems: any[] }) {
   }, [normalizedItems])
 
   const activeShippingLocation = useMemo(() => {
-    return kenyanShippingRates.find(loc => loc.id === selectedLocationId) || kenyanShippingRates[0]
-  }, [selectedLocationId])
+    return shippingRates.find(loc => loc.id === selectedLocationId)
+  }, [selectedLocationId, shippingRates])
 
   const shippingCost = useMemo(() => {
     if (!activeShippingLocation) return 0
-    if (totalWeightKg > activeShippingLocation.maxWeightKg) {
-      const extraWeight = totalWeightKg - activeShippingLocation.maxWeightKg
-      return activeShippingLocation.price + Math.ceil(extraWeight) * 50 
+    const basePrice = Number(activeShippingLocation.price)
+    const maxWeight = Number(activeShippingLocation.max_weight_kg)
+    
+    if (totalWeightKg > maxWeight) {
+      const extraWeight = totalWeightKg - maxWeight
+      return basePrice + Math.ceil(extraWeight) * 50 
     }
-    return activeShippingLocation.price
+    return basePrice
   }, [activeShippingLocation, totalWeightKg])
 
   const totalCost = subtotal + shippingCost
@@ -109,7 +124,7 @@ export default function CheckoutForm({ cartItems }: { cartItems: any[] }) {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             phone: phoneNumber.trim(),
-            town_route: activeShippingLocation.name,
+            town_route: activeShippingLocation?.name || "Unknown",
             street: streetAddress.trim(),
             building: buildingName.trim(),
             unit_no: houseOfficeNumber.trim()
@@ -140,7 +155,6 @@ export default function CheckoutForm({ cartItems }: { cartItems: any[] }) {
 
       // Step C: Initialize the IntaSend Live Checkout overlay modal container
       const intasendInstance = new (window as any).IntaSend({
-        // FIXED: Now reads dynamically and securely from your local environment setup
         publicAPIKey: process.env.NEXT_PUBLIC_INTASEND_PUB_KEY,
         live: true
       })
@@ -221,9 +235,9 @@ export default function CheckoutForm({ cartItems }: { cartItems: any[] }) {
                 onChange={e => setSelectedLocationId(e.target.value)}
                 className="w-full border border-black/10 h-12 px-4 text-xs bg-white rounded-none focus:border-black outline-none appearance-none font-sans"
               >
-                {kenyanShippingRates.map((loc) => (
+                {shippingRates.map((loc) => (
                   <option key={loc.id} value={loc.id}>
-                    {loc.name} — Ksh {loc.price.toLocaleString()} ({loc.eta})
+                    {loc.name} — Ksh {Number(loc.price).toLocaleString()} ({loc.eta})
                   </option>
                 ))}
               </select>

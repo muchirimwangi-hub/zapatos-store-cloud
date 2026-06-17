@@ -14,35 +14,50 @@ export async function sendDispatchNotification(
   trackingNumber: string
 ) {
   try {
-    // 1. Fetch the exact order details and line items from Supabase
     const supabase = await createClient();
-    const { data: orderData } = await supabase
+
+    // 1. Fetch the Order Header securely
+    const { data: orderData, error: orderErr } = await supabase
       .from("orders")
-      .select(`
-        total_amount,
-        shipping_cost,
-        order_items (
-          quantity,
-          price,
-          products ( name ),
-          product_variants ( attributes )
-        )
-      `)
+      .select("total_amount, shipping_cost")
       .eq("id", orderId)
       .single();
 
-    // 2. Format the items so the email template can read them easily
-    const formattedItems = orderData?.order_items?.map((item: any) => ({
-      name: item.products?.name || "Premium Apparel",
-      variant: item.product_variants?.attributes ? Object.values(item.product_variants.attributes).join(" / ") : "Standard",
-      quantity: item.quantity,
-      price: item.price
-    })) || [];
+    if (orderErr) throw new Error("Order fetch failed");
+
+    // 2. Fetch the Raw Items (No complex joins that break)
+    const { data: itemsData } = await supabase
+      .from("order_items")
+      .select("quantity, price, product_variant_id, product_id")
+      .eq("order_id", orderId);
+
+    // 3. Manually map the Product Names and Variants (Bulletproof)
+    const formattedItems = await Promise.all((itemsData || []).map(async (item) => {
+      
+      const { data: variantData } = await supabase
+        .from("product_variants")
+        .select("attributes")
+        .eq("id", item.product_variant_id)
+        .single();
+
+      const { data: productData } = await supabase
+        .from("products")
+        .select("name")
+        .eq("id", item.product_id)
+        .single();
+
+      return {
+        name: productData?.name || "Premium Apparel",
+        variant: variantData?.attributes ? Object.values(variantData.attributes).join(" / ") : "Standard",
+        quantity: item.quantity,
+        price: item.price
+      };
+    }));
 
     const totalAmount = orderData?.total_amount || 0;
     const shippingCost = orderData?.shipping_cost || 0;
 
-    // 3. Send the email with the new payload
+    // 4. Dispatch the exact payload to Resend
     const { data, error } = await resend.emails.send({
       from: "Zapatos HQ <orders@zapatoscave.com>",
       to: [customerEmail],
@@ -65,7 +80,7 @@ export async function sendDispatchNotification(
 
     return { success: true, data };
   } catch (error) {
-    console.error("Failed to send email:", error);
+    console.error("Failed to execute email pipeline:", error);
     return { success: false, error };
   }
 }

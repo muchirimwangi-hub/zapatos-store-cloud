@@ -192,20 +192,26 @@ export default function AdminOrdersPage() {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)))
     if (selectedOrder?.id === id) setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null)
 
-    // 3. FIRE THE EMAIL if the status is exactly "shipped"
-    if (newStatus === "shipped") {
+    // 3. FIRE THE EMAIL for "shipped" or "completed"
+    if (newStatus === "shipped" || newStatus === "completed") {
       const orderToEmail = orders.find(o => o.id === id);
+      
       if (orderToEmail && orderToEmail.email) {
+        console.log(`Intercepting Order ${id} to dispatch ${newStatus} email to ${orderToEmail.email}...`);
         
-        // Visual feedback so you know it's trying to send
-        console.log(`Attempting to dispatch email to ${orderToEmail.email}...`);
-        
-        await sendDispatchNotification(
+        // Wait for the backend to fetch the items and fire the email
+        const result = await sendDispatchNotification(
           orderToEmail.email,
           orderToEmail.shipping_address?.first_name || "Client",
           orderToEmail.id,
           orderToEmail.tracking_number || "PENDING"
         );
+
+        if (result.success) {
+          console.log("Dispatch Email transmitted successfully with full manifest.");
+        } else {
+          console.error("Failed to transmit Dispatch Email:", result.error);
+        }
       }
     }
   }

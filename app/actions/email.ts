@@ -25,29 +25,40 @@ export async function sendDispatchNotification(
 
     if (orderErr) throw new Error("Order fetch failed");
 
-    // 2. Fetch the Raw Items (No complex joins that break)
+    // 2. Fetch the Raw Items
     const { data: itemsData } = await supabase
       .from("order_items")
       .select("quantity, price, product_variant_id, product_id")
       .eq("order_id", orderId);
 
-    // 3. Manually map the Product Names and Variants (Bulletproof)
+    // 3. Trace the exact Product Names and Variants
     const formattedItems = await Promise.all((itemsData || []).map(async (item) => {
       
+      // Fetch variant to get attributes AND the true product_id
       const { data: variantData } = await supabase
         .from("product_variants")
-        .select("attributes")
+        .select("attributes, product_id")
         .eq("id", item.product_variant_id)
         .single();
 
-      const { data: productData } = await supabase
-        .from("products")
-        .select("name")
-        .eq("id", item.product_id)
-        .single();
+      // Figure out which product_id to use (check the item first, then fallback to the variant's parent)
+      const targetProductId = item.product_id || variantData?.product_id;
+      let exactProductName = "Premium Apparel"; // Absolute last resort fallback
+
+      if (targetProductId) {
+        const { data: productData } = await supabase
+          .from("products")
+          .select("name")
+          .eq("id", targetProductId)
+          .single();
+          
+        if (productData?.name) {
+          exactProductName = productData.name;
+        }
+      }
 
       return {
-        name: productData?.name || "Premium Apparel",
+        name: exactProductName,
         variant: variantData?.attributes ? Object.values(variantData.attributes).join(" / ") : "Standard",
         quantity: item.quantity,
         price: item.price

@@ -27,18 +27,19 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
       : ["Size", "Color"]
   );
 
-  // Variants Matrix
+  // Variants Matrix (NOW INCLUDES WEIGHT)
   const [variants, setVariants] = useState(initialData?.product_variants?.map((v: any) => ({
     attributes: v.attributes || {},
     stock_quantity: v.stock_quantity || 0,
     price: v.price || 0,
+    weight_kg: v.weight_kg || 0, // NEW
     image_url: v.image_url || ""
   })) || []);
 
-  // 👉 NEW: The state for the Viewing Dropdown Filter
+  // The state for the Viewing Dropdown Filter
   const [variantFilter, setVariantFilter] = useState("");
 
-  // Gets all unique attribute values (e.g., S, M, L, Black, White) across all variants
+  // Gets all unique attribute values
   const uniqueAttributeValues = Array.from(
     new Set(
       variants.flatMap((v: any) => Object.values(v.attributes).map((val: any) => String(val).trim()))
@@ -114,7 +115,8 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
             attributes: v.attributes, 
             stock_quantity: parseInt(v.stock_quantity) || 0,
             image_url: v.image_url || "",
-            price: parseFloat(v.price) || 0
+            price: parseFloat(v.price) || 0,
+            weight_kg: parseFloat(v.weight_kg) || 0 // NEW: Save to DB
           };
         });
         await supabase.from("product_variants").insert(formattedVariants);
@@ -193,7 +195,6 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
           ))}
         </div>
 
-        {/* 👉 THE VIEWING FILTER DROPDOWN */}
         {variants.length > 0 && uniqueAttributeValues.length > 0 && (
           <div className="flex items-center gap-3 bg-zinc-50 p-2 border border-zinc-200 mb-4">
             <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 pl-2">Filter View:</span>
@@ -213,7 +214,6 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
         <div className="space-y-2">
           {variants.map((v: any, i: number) => {
             
-            // THE FILTER LOGIC: Hides rows that don't match your selection, without changing the array
             if (variantFilter) {
               const rowValues = Object.values(v.attributes).map(val => String(val).trim());
               if (!rowValues.includes(variantFilter)) return null;
@@ -232,10 +232,13 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
                   />
                 ))}
                 
-                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Stock" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
-                <Input className="w-24 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Price" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
+                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Stock" title="Stock Quantity" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
+                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Price" title="Price (KES)" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
                 
-                <select className="flex-1 min-w-[150px] border px-2 rounded-none text-xs h-9 bg-white" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
+                {/* NEW: Weight Input */}
+                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white border-blue-200" type="number" placeholder="Wt (kg)" title="Weight (kg)" value={v.weight_kg} onChange={e => { const nv = [...variants]; nv[i].weight_kg = e.target.value; setVariants(nv); }} />
+                
+                <select className="flex-1 min-w-[130px] border px-2 rounded-none text-xs h-9 bg-white" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
                   <option value="">No Variant Image</option>
                   {images.map((img, idx) => (
                     <option key={idx} value={img}>Uploaded Image {idx + 1}</option>
@@ -248,7 +251,7 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
           })}
         </div>
         
-        <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, image_url: '' }])}>
+        <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, weight_kg: 0, image_url: '' }])}>
           <Plus className="w-4 h-4 mr-2" /> Append Variant Row
         </Button>
       </div>

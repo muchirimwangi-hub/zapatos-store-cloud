@@ -28,14 +28,37 @@ export default function CheckoutPage() {
   const [lastName, setLastName] = useState("")
   const [address, setAddress] = useState("")
   const [shippingId, setShippingId] = useState("")
+  
+  // 👉 FIX: Added the missing state declaration here to remove all the red lines
+  const [sessionId, setSessionId] = useState<string>("")
 
-  // FINANCIALS
+  // FINANCIALS & DYNAMIC WEIGHT CALCULATION
   const subtotal = getTotal();
   const selectedShipping = shippingRates.find((r: any) => r.id === shippingId);
-  const shippingCost = selectedShipping ? Number(selectedShipping.price) : 0;
-  const finalTotal = subtotal + shippingCost;
+  
+  // 1. Calculate the total weight of the cart securely
+  const totalCartWeight = items.reduce((total: number, item: any) => {
+    // Looks for weight_kg depending on how your cart stores the variant
+    const weight = Number(item.weight_kg || item.variant?.weight_kg || item.attributes?.weight_kg || 0);
+    return total + (weight * item.quantity);
+  }, 0);
 
-  const [sessionId, setSessionId] = useState("")
+  // 2. Run the dynamic logistics math
+  let shippingCost = 0;
+  if (selectedShipping) {
+    shippingCost = Number(selectedShipping.price); // Apply base rate
+    
+    const weightLimit = Number(selectedShipping.base_weight_limit || 0);
+    const overageRate = Number(selectedShipping.overage_price_per_kg || 0);
+
+    // If the route has a limit, an overage fee, AND the cart exceeds the limit
+    if (weightLimit > 0 && overageRate > 0 && totalCartWeight > weightLimit) {
+      const extraKgs = Math.ceil(totalCartWeight - weightLimit); // Round up to nearest whole kg
+      shippingCost += (extraKgs * overageRate);
+    }
+  }
+
+  const finalTotal = subtotal + shippingCost;
 
   // STATE REF FOR INTASEND CALLBACKS
   const stateRef = useRef({ items, clearCart, router });
@@ -79,14 +102,21 @@ export default function CheckoutPage() {
     return () => clearInterval(checkScript);
   }, []);
 
-// 1. Assign a unique tracking ID to this specific browser session
+  // 1. Assign a unique tracking ID to this specific browser session
   useEffect(() => {
-    let sid = sessionStorage.getItem("zc_checkout_session");
-    if (!sid) {
-      sid = crypto.randomUUID(); // Native browser UUID generator
-      sessionStorage.setItem("zc_checkout_session", sid);
+    // 👉 FIX: Wrapped in window check to prevent Next.js SSR crashes
+    if (typeof window !== "undefined") {
+      let sid = window.sessionStorage.getItem("zc_checkout_session");
+      if (!sid) {
+        // Safe fallback if crypto is blocked on localhost
+        sid = typeof crypto !== "undefined" && crypto.randomUUID 
+          ? crypto.randomUUID() 
+          : `zc_${Math.random().toString(36).substring(2, 15)}`;
+        
+        window.sessionStorage.setItem("zc_checkout_session", sid);
+      }
+      setSessionId(sid);
     }
-    setSessionId(sid);
   }, []);
 
   // 2. The Silent Sync (Debounced to protect database limits)

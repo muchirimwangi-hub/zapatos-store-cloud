@@ -33,27 +33,34 @@ export default function CheckoutPage() {
   const [sessionId, setSessionId] = useState<string>("")
 
   // FINANCIALS & DYNAMIC WEIGHT CALCULATION
-  const subtotal = getTotal();
-  const selectedShipping = shippingRates.find((r: any) => r.id === shippingId);
+  const subtotal = Number(getTotal()) || 0;
+  const selectedShipping = shippingRates.find((r: any) => String(r.id) === String(shippingId));
   
-  // 1. Calculate the total weight of the cart securely
+  // 1. Calculate the total weight securely (Anti-NaN Protection)
   const totalCartWeight = items.reduce((total: number, item: any) => {
-    // Looks for weight_kg depending on how your cart stores the variant
-    const weight = Number(item.weight_kg || item.variant?.weight_kg || item.attributes?.weight_kg || 0);
-    return total + (weight * item.quantity);
+    const rawWeight = item.weight_kg ?? item.variant?.weight_kg ?? item.attributes?.weight_kg;
+    const weight = isNaN(Number(rawWeight)) ? 0 : Number(rawWeight);
+    const qty = isNaN(Number(item.quantity)) ? 1 : Number(item.quantity);
+    return total + (weight * qty);
   }, 0);
 
-  // 2. Run the dynamic logistics math
+  // 2. Run the dynamic logistics math (Anti-NaN Protection)
   let shippingCost = 0;
   if (selectedShipping) {
-    shippingCost = Number(selectedShipping.price); // Apply base rate
+    // Safely parse base price
+    const base = Number(selectedShipping.price);
+    shippingCost = isNaN(base) ? 0 : base;
     
-    const weightLimit = Number(selectedShipping.base_weight_limit || 0);
-    const overageRate = Number(selectedShipping.overage_price_per_kg || 0);
+    // Safely parse weight rules
+    const limit = Number(selectedShipping.base_weight_limit);
+    const weightLimit = isNaN(limit) ? 0 : limit;
+    
+    const overage = Number(selectedShipping.overage_price_per_kg);
+    const overageRate = isNaN(overage) ? 0 : overage;
 
-    // If the route has a limit, an overage fee, AND the cart exceeds the limit
+    // Only apply overage if the rules exist and cart is heavy
     if (weightLimit > 0 && overageRate > 0 && totalCartWeight > weightLimit) {
-      const extraKgs = Math.ceil(totalCartWeight - weightLimit); // Round up to nearest whole kg
+      const extraKgs = Math.ceil(totalCartWeight - weightLimit); 
       shippingCost += (extraKgs * overageRate);
     }
   }
@@ -134,6 +141,7 @@ export default function CheckoutPage() {
         last_name: lastName || null,
         items: items,
         total_value: finalTotal,
+        shipping_region: selectedShipping ? selectedShipping.name : null,
         status: "abandoned",
         last_active: new Date().toISOString()
       }, { onConflict: 'session_id' });

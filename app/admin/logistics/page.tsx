@@ -42,18 +42,25 @@ export default function AdminLogisticsPage() {
   async function handleCreate() {
     if (!newName || newPrice < 0) return alert("Name and base price are required.");
     
-    const { data, error } = await supabase.from("shipping_rates").insert([{
-      name: newName,
-      price: newPrice,
-      eta: newEta || "TBD",
-      base_weight_limit: newLimit,
-      overage_price_per_kg: newOverage,
+   const payload = {
+      name: String(newName),
+      price: Number(newPrice) || 0,
+      eta: String(newEta || "TBD"),
+      base_weight_limit: Number(newLimit) || 0,
+      overage_price_per_kg: Number(newOverage) || 0,
+      max_weight_kg: 0, // 👉 THE FIX: Sending a default value to satisfy the database
       is_active: true
-    }]).select().single()
+    };
+
+    console.log("Sending payload to Supabase:", payload);
+
+    const { data, error } = await supabase.from("shipping_rates").insert([payload]).select().single()
 
     if (error) {
-      alert("Failed to create rate. Check database connection.");
-    } else if (data) {
+        // console.dir forces the browser to print the actual object properties, not {}
+        console.dir(error); 
+        alert(`Database Rejected the Save.\nCode: ${error.code}\nMessage: ${error.message}\nHint: ${error.hint}`);
+      } else if (data) {
       setRates([...rates, data].sort((a, b) => a.name.localeCompare(b.name)));
       setIsCreating(false);
       setNewName(""); setNewPrice(0); setNewEta(""); setNewLimit(0); setNewOverage(0);

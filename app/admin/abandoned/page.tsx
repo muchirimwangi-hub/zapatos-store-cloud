@@ -102,60 +102,116 @@ export default function AbandonedCartsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-sm">
-                {carts.map((cart, idx) => (
-                  <motion.tr 
-                    key={cart.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.01 }}
-                    className="hover:bg-zinc-50/40 vertical-align-top align-top"
-                  >
-                    {/* Customer Profiling */}
-                    <td className="px-6 py-4 max-w-xs">
-                      <div className="font-semibold text-zinc-900 uppercase tracking-tight">
-                        {cart.first_name || cart.last_name ? `${cart.first_name || ''} ${cart.last_name || ''}` : "Anonymous Session"}
-                      </div>
-                      <div className="space-y-1 mt-1.5 font-mono text-xs text-zinc-500">
-                        {cart.email && <div className="flex items-center gap-1.5"><Mail className="h-3 w-3 flex-shrink-0 text-zinc-400" /> {cart.email}</div>}
-                        {cart.phone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 flex-shrink-0 text-zinc-400" /> {cart.phone}</div>}
-                        <div className="text-[10px] text-zinc-400 pt-1">Active: {new Date(cart.last_active).toLocaleString()}</div>
-                      </div>
-                    </td>
+                {carts.map((cart, idx) => {
+                  // Safely parse items
+                  const parsedItems = Array.isArray(cart.items) 
+                    ? cart.items 
+                    : (typeof cart.items === 'string' ? JSON.parse(cart.items) : []);
 
-                    {/* Status Vector */}
-                    <td className="px-6 py-4">
-                      <span className={`inline-block px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded-none ${statusBadges[cart.status]}`}>
-                        {cart.status === 'payment_failed' ? '🚨 PAYMENT REJECTED' : '💤 TAB ABANDONED'}
-                      </span>
-                    </td>
+                  // Safely calculate math to eliminate NaN errors
+                  const rawItemsTotal = parsedItems.reduce((sum: number, it: any) => {
+                    const price = Number(it.price || it.product?.price || it.variant?.price || 0);
+                    const qty = Number(it.quantity || 1);
+                    return sum + (price * qty);
+                  }, 0);
+                  
+                  const cartTotal = isNaN(Number(cart.total_value)) ? 0 : Number(cart.total_value);
+                  const calculatedShipping = cartTotal - rawItemsTotal;
 
-                    {/* Array Breakout */}
-                    <td className="px-6 py-4 max-w-md">
-                      <div className="space-y-2">
-                        {cart.items?.map((item: any, i: number) => (
-                          <div key={i} className="text-xs bg-zinc-50 border border-zinc-100 p-2 flex justify-between items-start">
-                            <div>
-                              <span className="font-bold uppercase text-zinc-800">{item.name || "Unknown Item"}</span>
-                              {item.selectedAttributes && (
-                                <span className="block text-[10px] text-zinc-400 uppercase font-mono mt-0.5">
-                                  {Object.values(item.selectedAttributes).join(" / ")}
+                  return (
+                    <motion.tr 
+                      key={cart.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.01 }}
+                      className="hover:bg-zinc-50/40 vertical-align-top align-top"
+                    >
+                      {/* Customer Profiling */}
+                      <td className="px-6 py-4 max-w-xs">
+                        <div className="font-semibold text-zinc-900 uppercase tracking-tight">
+                          {cart.first_name || cart.last_name ? `${cart.first_name || ''} ${cart.last_name || ''}` : "Anonymous Session"}
+                        </div>
+                        <div className="space-y-1 mt-1.5 font-mono text-xs text-zinc-500">
+                          {cart.email && <div className="flex items-center gap-1.5"><Mail className="h-3 w-3 flex-shrink-0 text-zinc-400" /> {cart.email}</div>}
+                          {cart.phone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 flex-shrink-0 text-zinc-400" /> {cart.phone}</div>}
+                          <div className="text-[10px] text-zinc-400 pt-1">Active: {new Date(cart.last_active).toLocaleString()}</div>
+                        </div>
+                      </td>
+
+                      {/* Status Vector */}
+                      <td className="px-6 py-4">
+                        <span className={`inline-block px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded-none ${statusBadges[cart.status] || statusBadges.abandoned}`}>
+                          {cart.status === 'payment_failed' ? '🚨 PAYMENT REJECTED' : '💤 TAB ABANDONED'}
+                        </span>
+                      </td>
+
+                      {/* Array Breakout & Developer X-Ray */}
+                      <td className="px-6 py-4 max-w-md">
+                        <div className="space-y-2">
+                          {parsedItems.map((item: any, i: number) => {
+                            const itemName = item.product?.name || item.name || item.title || item.variant?.product?.name || "Unknown Apparel Item";
+                            
+                            // Find the attributes and parse them if they are stored as a string
+                            let rawAttrs = item.selectedOptions || item.attributes || item.selectedAttributes || item.variant?.attributes || item.options || null;
+                            if (typeof rawAttrs === 'string') {
+                              try { rawAttrs = JSON.parse(rawAttrs) } catch(e) {}
+                            }
+
+                            let attributeValues = "";
+                            if (rawAttrs && typeof rawAttrs === 'object') {
+                              attributeValues = Object.values(rawAttrs)
+                                .filter(val => typeof val === 'string' || typeof val === 'number')
+                                .join(" / ");
+                            }
+
+                            return (
+                              <div key={i} className="text-xs bg-zinc-50 border border-zinc-100 p-2 flex justify-between items-start">
+                                <div className="w-full pr-2">
+                                  <span className="font-bold uppercase text-zinc-800">{itemName}</span>
+                                  
+                                  {attributeValues ? (
+                                    <span className="block text-[10px] text-zinc-500 font-bold uppercase font-mono mt-0.5">
+                                      {attributeValues}
+                                    </span>
+                                  ) : (
+                                    /* 🛠 THE X-RAY: If we still can't find them, reveal the raw data! */
+                                    <details className="mt-1 cursor-pointer group">
+                                      <summary className="text-[9px] text-blue-500 group-hover:text-blue-700 uppercase font-mono tracking-widest outline-none">
+                                        [🔍 Inspect Cart Data]
+                                      </summary>
+                                      <pre className="mt-1 text-[8px] bg-zinc-900 text-green-400 p-2 overflow-x-auto rounded-none max-w-[200px]">
+                                        {JSON.stringify(item, null, 2)}
+                                      </pre>
+                                    </details>
+                                  )}
+                                </div>
+                                <span className="font-mono text-[11px] text-zinc-500 font-semibold bg-white border border-zinc-200 px-1.5 py-0.5 whitespace-nowrap h-fit">
+                                  QTY: {item.quantity || 1}
                                 </span>
-                              )}
-                            </div>
-                            <span className="font-mono text-[11px] text-zinc-500 font-semibold bg-white border border-zinc-200 px-1.5 py-0.5">
-                              QTY: {item.quantity || 1}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </td>
 
-                    {/* Item Total */}
-                    <td className="px-6 py-4 text-right font-mono font-bold text-zinc-900 text-sm">
-                      {formatCurrency(cart.total_value)}
-                    </td>
-                  </motion.tr>
-                ))}
+                      {/* Item Total & Shipping Breakdown */}
+                      <td className="px-6 py-4 text-right">
+                        <div className="font-mono font-bold text-zinc-900 text-sm">
+                          {formatCurrency(cartTotal)}
+                        </div>
+                        <div className="mt-1 flex flex-col gap-0.5 items-end text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                          <span>Items: {formatCurrency(rawItemsTotal)}</span>
+                          <span>Shipping: {calculatedShipping > 0 ? formatCurrency(calculatedShipping) : "Pending/Zero"}</span>
+                          
+                          {/* Ready to display the Region name once we save it! */}
+                          {(cart as any).shipping_region && (
+                            <span className="text-blue-600 font-bold">Route: {(cart as any).shipping_region}</span>
+                          )}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

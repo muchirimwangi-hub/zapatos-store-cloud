@@ -24,6 +24,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.zapatoscave.com"), 
   title: "Zapatos Cave | Technical Apparel System",
   description: "High-performance sportswear and architectural activewear engineered for the modern professional athlete.",
   keywords: ["technical activewear", "sportswear", "compression gear", "minimalist gym wear", "Zapatos Cave"],

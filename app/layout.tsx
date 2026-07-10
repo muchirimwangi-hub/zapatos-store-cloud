@@ -24,16 +24,30 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.zapatoscave.com"), 
+  metadataBase: new URL("https://www.zapatoscave.com"),
   title: "Zapatos Cave | Technical Apparel System",
   description: "High-performance sportswear and architectural activewear engineered for the modern professional athlete.",
   keywords: ["technical activewear", "sportswear", "compression gear", "minimalist gym wear", "Zapatos Cave"],
+  
+  icons: {
+    icon: "/icon.jpeg",
+  },
+  
   openGraph: {
     type: "website",
     url: "https://zapatoscave.com",
     title: "Zapatos Cave | Technical Apparel System",
     description: "High-performance sportswear and architectural activewear engineered for the modern professional athlete.",
     siteName: "Zapatos Cave",
+    
+    images: [
+      {
+        url: "/opengraph-image.jpeg", 
+        width: 1200,
+        height: 630,
+        alt: "Zapatos Cave Official Logo",
+      },
+    ],
   },
 }
 

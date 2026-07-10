@@ -18,6 +18,8 @@ export default function AdminProductsPage() {
       .from("products")
       .select("*, product_variants(*)")
       .order("created_at", { ascending: false })
+        console.log("SUPABASE PRODUCTS DUMP:", data);
+
     setProducts(data || [])
   }
 
@@ -57,10 +59,42 @@ export default function AdminProductsPage() {
     setProducts(products.filter(p => p.id !== id));
   };
 
-  const filtered = products.filter(p => 
-    p.name?.toLowerCase().includes(search.toLowerCase()) || 
-    p.product_variants?.some((v: any) => v.sku?.toLowerCase().includes(search.toLowerCase()))
-  );
+// 👉 NEW: Clean Multi-Word & Attribute Scanner
+  const filtered = products.filter(p => {
+    if (!search.trim()) return true;
+
+    // Split the search into lowercase terms: "tshirt champagne" -> ["tshirt", "champagne"]
+    const searchTerms = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+    // Collect EVERY piece of text associated with this product into one giant array of strings
+    const allProductText: string[] = [
+      p.name || "",
+      p.category || "",
+      p.description || "",
+      ...(p.product_variants || []).flatMap((v: any) => [
+        v.sku || "",
+        ...(v.attributes ? Object.values(v.attributes).map(val => String(val)) : []),
+        // Fallback: stringify the variant just in case Supabase nested it differently
+        JSON.stringify(v)
+      ])
+    ];
+
+    // Combine it into one master lowercase string, removing punctuation/hyphens so "T-shirt" matches "tshirt"
+    const masterString = allProductText
+      .join(" ")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ""); // removes hyphens, symbols, but keeps letters/numbers
+
+    // Guarantee that EVERY word typed appears somewhere in that master string
+    return searchTerms.every(term => {
+      const cleanTerm = term.replace(/[^a-z0-9]/g, "");
+      
+      // Allow singular/plural flexibility (if searching "tshirt", match "tshirts")
+      return masterString.includes(cleanTerm) || 
+             masterString.includes(`${cleanTerm}s`) || 
+             (cleanTerm.endsWith('s') && masterString.includes(cleanTerm.slice(0, -1)));
+    });
+  });
 
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
@@ -141,7 +175,19 @@ export default function AdminProductsPage() {
                                 <span className="ml-2 font-mono text-[10px] text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">{v.sku}</span>
                               </span>
                               <span className="font-mono text-zinc-600">
-                                {formatCurrency(v.price)} <span className="mx-2 text-zinc-300">|</span> <span className={v.stock_quantity > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>{v.stock_quantity} IN STOCK</span>
+                                {/* 👉 NEW: Discount Engine Display */}
+                                {Number(product.compare_at_price || v.compare_at_price || 0) > 0 && (
+                                  <span className="line-through text-red-400 mr-2 text-[10px]">
+                                    {formatCurrency(Number(product.compare_at_price || v.compare_at_price))}
+                                  </span>
+                                )}
+                                <span className={Number(product.compare_at_price || v.compare_at_price || 0) > 0 ? "text-green-600 font-bold" : ""}>
+                                  {formatCurrency(v.price)}
+                                </span> 
+                                <span className="mx-2 text-zinc-300">|</span> 
+                                <span className={v.stock_quantity > 0 ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
+                                  {v.stock_quantity} IN STOCK
+                                </span>
                               </span>
                             </div>
                           ))}

@@ -32,6 +32,7 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
     attributes: v.attributes || {},
     stock_quantity: v.stock_quantity || 0,
     price: v.price || 0,
+    compare_at_price: v.compare_at_price || 0,
     weight_kg: v.weight_kg || 0, // NEW
     image_url: v.image_url || ""
   })) || []);
@@ -116,6 +117,7 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
             stock_quantity: parseInt(v.stock_quantity) || 0,
             image_url: v.image_url || "",
             price: parseFloat(v.price) || 0,
+            compare_at_price: parseFloat(v.compare_at_price) || 0,
             weight_kg: parseFloat(v.weight_kg) || 0 // NEW: Save to DB
           };
         });
@@ -232,11 +234,17 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
                   />
                 ))}
                 
-                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Stock" title="Stock Quantity" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
-                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Price" title="Price (KES)" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
+                {/* 1. Adjusted Qty Width */}
+                <Input className="w-16 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Qty" title="Stock Quantity" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
                 
-                {/* NEW: Weight Input */}
-                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white border-blue-200" type="number" placeholder="Wt (kg)" title="Weight (kg)" value={v.weight_kg} onChange={e => { const nv = [...variants]; nv[i].weight_kg = e.target.value; setVariants(nv); }} />
+                {/* 2. 👉 NEW: Original Price (Red Strikethrough Box) */}
+                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-zinc-50 border-red-200 text-red-500 placeholder:text-red-300" type="number" placeholder="Orig. KES" title="Original Price (Leave 0 for no discount)" value={v.compare_at_price || ""} onChange={e => { const nv = [...variants]; nv[i].compare_at_price = e.target.value; setVariants(nv); }} />
+                
+                {/* 3. Sale Price (Green Box) */}
+                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white font-bold text-green-700" type="number" placeholder="Sale KES" title="Active Sale Price" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
+                
+                {/* 4. Adjusted Weight Width */}
+                <Input className="w-16 rounded-none h-9 text-xs font-mono bg-white border-blue-200" type="number" placeholder="Wt(kg)" title="Weight (kg)" value={v.weight_kg} onChange={e => { const nv = [...variants]; nv[i].weight_kg = e.target.value; setVariants(nv); }} />
                 
                 <select className="flex-1 min-w-[130px] border px-2 rounded-none text-xs h-9 bg-white" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
                   <option value="">No Variant Image</option>
@@ -251,7 +259,8 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
           })}
         </div>
         
-        <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, weight_kg: 0, image_url: '' }])}>
+        {/* 👉 UPDATED: Now includes compare_at_price: 0 in the empty state */}
+        <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, compare_at_price: 0, weight_kg: 0, image_url: '' }])}>
           <Plus className="w-4 h-4 mr-2" /> Append Variant Row
         </Button>
       </div>

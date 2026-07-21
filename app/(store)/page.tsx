@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Activity, Cpu, ShieldAlert } from "lucide-react"
@@ -8,18 +9,77 @@ import Link from "next/link"
 export default function HomePage() {
   const easeQuint = [0.16, 1, 0.3, 1]
 
+  // 1. ATMOSPHERIC WEATHER STATE
+  const [weather, setWeather] = useState<{
+    theme: "default" | "sunny" | "rainy" | "cloudy"
+    temp: number | null
+    label: string
+  }>({
+    theme: "default",
+    temp: null,
+    label: "DETECTING LOCAL ATMOSPHERE...",
+  })
+
+  // 2. SILENT IP & WEATHER FETCH (No Browser Popups)
+  useEffect(() => {
+    async function fetchLocalAtmosphere() {
+      try {
+        const ipRes = await fetch("https://ipapi.co/json/")
+        const { latitude, longitude, city } = await ipRes.json()
+
+        if (!latitude || !longitude) return
+
+        const meteoRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+        )
+        const data = await meteoRes.json()
+        const code = data.current_weather.weathercode
+        const temp = Math.round(data.current_weather.temperature)
+
+        let theme: "default" | "sunny" | "rainy" | "cloudy" = "default"
+        let label = `OPTIMAL // ${city ? city.toUpperCase() : "LOCAL"}`
+
+        // WMO Weather Code Mapping
+        if (code === 0 || code === 1) {
+          theme = "sunny"
+          label = `CLEAR SKY // ${city ? city.toUpperCase() : "LOCAL"}`
+        } else if ((code >= 51 && code <= 82) || code >= 95) {
+          theme = "rainy"
+          label = `PRECIPITATION // ${city ? city.toUpperCase() : "LOCAL"}`
+        } else if ((code >= 2 && code <= 3) || (code >= 45 && code <= 48)) {
+          theme = "cloudy"
+          label = `OVERCAST // ${city ? city.toUpperCase() : "LOCAL"}`
+        }
+
+        setWeather({ theme, temp, label })
+      } catch (error) {
+        setWeather({ theme: "default", temp: null, label: "ATMOSPHERE: STANDARD" })
+      }
+    }
+
+    fetchLocalAtmosphere()
+  }, [])
+
+  // 3. DYNAMIC GRADIENT MAPPING FOR HERO VIGNETTE
+  const atmosphericOverlays: Record<string, string> = {
+    default: "from-black/60 via-zinc-950/50 to-white dark:to-[#08080A]",
+    sunny: "from-amber-950/40 via-zinc-950/60 to-white dark:to-[#08080A]",
+    rainy: "from-slate-900/80 via-blue-950/50 to-white dark:to-[#08080A]",
+    cloudy: "from-zinc-900/80 via-zinc-950/70 to-white dark:to-[#08080A]",
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#08080A] text-zinc-900 dark:text-zinc-100 font-sans antialiased transition-colors duration-500 selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
       
       {/* MINIMALIST GEOMETRIC BACKGROUND OVERLAY */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px] z-20" />
 
-      {/* 1. HERO BLOCK WITH PARALLAX BACKDROP */}
+      {/* 1. HERO BLOCK WITH PARALLAX & WEATHER BACKDROP */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden border-b border-zinc-100 dark:border-zinc-900/80 bg-black attachment-fixed">
         
-        {/* High-Resolution Performance Media Backdrop (Parallax Optimized) */}
+        {/* High-Resolution Performance Media Backdrop */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          {/* Mobile Fallback Container (Prevents iOS fixed background zoom bug) */}
+          {/* Mobile Fallback Container */}
           <div className="absolute inset-0 sm:hidden">
             <motion.div 
               className="absolute inset-0 bg-no-repeat bg-cover bg-top"
@@ -45,8 +105,87 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Subtle Vignette Layer */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-zinc-950/50 to-white dark:to-[#08080A] transition-colors duration-500 z-10" />
+          {/* DYNAMIC ATMOSPHERIC VIGNETTE LAYER */}
+          <div className={`absolute inset-0 bg-gradient-to-b ${atmosphericOverlays[weather.theme]} transition-all duration-1000 z-10`} />
+
+          {/* ⚡ CINEMATIC WEATHER ENGINE ⚡ */}
+          <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+            
+            {/* 🌧️ RAIN EFFECT (30 high-speed vertical streaks) */}
+            {weather.theme === "rainy" && (
+              <>
+                {[...Array(30)].map((_, i) => {
+                  const leftPos = (i * 13 + 7) % 100
+                  const delay = (i * 0.17) % 1.2
+                  const duration = 0.5 + ((i * 0.09) % 0.4)
+                  return (
+                    <motion.div
+                      key={`rain-${i}`}
+                      className="absolute top-0 w-[1px] bg-gradient-to-b from-transparent via-white/40 to-white/80"
+                      style={{
+                        left: `${leftPos}%`,
+                        height: `${35 + ((i * 11) % 45)}px`,
+                      }}
+                      initial={{ y: "-100px", opacity: 0 }}
+                      animate={{ y: "100vh", opacity: [0, 1, 1, 0] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: duration,
+                        delay: delay,
+                        ease: "linear",
+                      }}
+                    />
+                  )
+                })}
+              </>
+            )}
+
+            {/* ☀️ SUNNY EFFECT (Golden Hour Optical Light Leak & Solar Flare) */}
+            {weather.theme === "sunny" && (
+              <>
+                {/* Primary Top-Right Solar Flare (Dawn Training Glare) */}
+                <motion.div 
+                  className="absolute -top-[25%] -right-[15%] w-[65vw] h-[65vw] max-w-[800px] max-h-[800px] rounded-full bg-gradient-to-br from-amber-500/25 via-orange-500/10 to-transparent blur-[120px]"
+                  animate={{ 
+                    scale: [1, 1.15, 1],
+                    opacity: [0.35, 0.65, 0.35]
+                  }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                />
+                {/* Secondary Warm Floor Reflection / Bounce Light */}
+                <motion.div 
+                  className="absolute -bottom-[20%] left-[10%] w-[50vw] h-[400px] rounded-full bg-gradient-to-tr from-amber-700/15 via-yellow-600/5 to-transparent blur-[100px]"
+                  animate={{ opacity: [0.15, 0.4, 0.15] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                />
+              </>
+            )}
+
+            {/* ☁️ CLOUDY EFFECT (Drifting Alpine Mist & Studio Fog Bands) */}
+            {weather.theme === "cloudy" && (
+              <>
+                {/* Primary Alpine Mist Band Drifting Left to Right */}
+                <motion.div 
+                  className="absolute top-[25%] -left-[30%] w-[80vw] h-[350px] rounded-full bg-gradient-to-r from-transparent via-zinc-300/15 to-transparent blur-[100px]"
+                  animate={{ 
+                    x: ["0vw", "60vw", "0vw"],
+                    opacity: [0.2, 0.5, 0.2]
+                  }}
+                  transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+                />
+                {/* Secondary Heavy Fog Band Drifting Right to Left */}
+                <motion.div 
+                  className="absolute bottom-[15%] -right-[30%] w-[90vw] h-[450px] rounded-full bg-gradient-to-l from-transparent via-slate-200/10 to-transparent blur-[130px]"
+                  animate={{ 
+                    x: ["0vw", "-60vw", "0vw"],
+                    opacity: [0.15, 0.45, 0.15]
+                  }}
+                  transition={{ duration: 28, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+                />
+              </>
+            )}
+
+          </div>
         </div>
 
         {/* Hero Content Panel */}
@@ -57,7 +196,15 @@ export default function HomePage() {
             transition={{ duration: 1, ease: easeQuint }}
             className="space-y-6"
           >
-            <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-white/90 dark:text-zinc-400 font-bold">
+            {/* TACTICAL ATMOSPHERE INDICATOR */}
+            <div className="inline-flex items-center justify-center gap-2 px-3 py-1 bg-white/5 border border-white/10 backdrop-blur-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-zinc-300">
+                {weather.label} {weather.temp !== null && `[ ${weather.temp}°C ]`}
+              </p>
+            </div>
+
+            <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-white/90 dark:text-zinc-400 font-bold block">
               PREMIUM TRAINING SYSTEMS
             </p>
             <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white uppercase leading-[0.85]">
@@ -160,9 +307,8 @@ export default function HomePage() {
         </div>
       </section>
 
-{/* 2.5. SYSTEM DIAGNOSTIC / QUIZ BANNER */}
+      {/* 2.5. SYSTEM DIAGNOSTIC / QUIZ BANNER */}
       <section className="relative py-24 bg-zinc-950 border-y border-zinc-900 overflow-hidden">
-        {/* Background Grid Texture */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:40px_40px]" />
         
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-6">

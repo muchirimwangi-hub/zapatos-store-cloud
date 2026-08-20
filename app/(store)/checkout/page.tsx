@@ -127,6 +127,7 @@ export default function CheckoutPage() {
   }, []);
 
   // 2. The Silent Sync (Debounced to protect database limits)
+  // 2. The Silent Sync (Debounced to protect database limits)
   useEffect(() => {
     if (!sessionId || items.length === 0) return;
 
@@ -146,11 +147,34 @@ export default function CheckoutPage() {
         last_active: new Date().toISOString()
       }, { onConflict: 'session_id' });
 
-      if (error) console.error("Ghost cart sync failed:", error.message);
+      if (error) {
+        console.error("Ghost cart sync failed:", error.message);
+        return; // Stop execution if database sync fails
+      }
+
+      // 👉 NEW: Send InitiateCheckout to Meta CAPI only if contact info exists
+      if (email || phone) {
+        try {
+          await fetch('/api/meta-capi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderReference: sessionId,
+              email: email,
+              phone: phone,
+              totalAmount: finalTotal,
+              eventName: 'InitiateCheckout'
+            })
+          });
+        } catch (capiErr) {
+          console.error("Failed to sync InitiateCheckout to Meta:", capiErr);
+        }
+      }
+
     }, 1500); // Waits 1.5s after they stop typing to sync
 
     return () => clearTimeout(syncTimeout);
-  }, [sessionId, items, email, phone, firstName, lastName, finalTotal]);
+  }, [sessionId, items, email, phone, firstName, lastName, finalTotal, selectedShipping]);
 
   // INIT INTASEND ONCE THE SCRIPT LOADS
   useEffect(() => {

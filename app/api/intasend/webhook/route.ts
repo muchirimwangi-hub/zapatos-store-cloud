@@ -127,6 +127,26 @@ export async function POST(request: NextRequest) {
       
       // 👉 HERE: You can invoke your email/WhatsApp dispatch helper function!
       // await sendOrderConfirmationEmail(matchedCart.email, orderNumber, items, amount);
+// 8.5 Send Server-Side Purchase Event to Meta CAPI
+      try {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.zapatoscave.com'
+        
+        await fetch(`${siteUrl}/api/meta-capi`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderReference: orderNumber,
+            email: matchedCart.email || email,
+            phone: matchedCart.phone || phone,
+            totalAmount: amount,
+            eventName: 'Purchase'
+          })
+        })
+        console.log(`[IntaSend Webhook] Meta CAPI Purchase event triggered for ${orderNumber}`)
+      } catch (capiError: any) {
+        // Log CAPI error without failing the IntaSend response
+        console.error('[IntaSend Webhook] Meta CAPI Trigger Error:', capiError.message)
+      }
 
       return NextResponse.json({ success: true, order_number: orderNumber })
     }

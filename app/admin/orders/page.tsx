@@ -89,7 +89,9 @@ export default function AdminOrdersPage() {
   const [newOrderPhone, setNewOrderPhone] = useState("")
   const [newOrderAddress, setNewOrderAddress] = useState("")
   const [newOrderShippingCost, setNewOrderShippingCost] = useState(0)
-  const [newOrderItems, setNewOrderItems] = useState<{ variantId: string; quantity: number }[]>([])
+  
+  // Added discount property to track line-item deductions
+  const [newOrderItems, setNewOrderItems] = useState<{ variantId: string; quantity: number; discount?: number }[]>([])
   const [newOrderStatus, setNewOrderStatus] = useState("reserved") 
 
   const supabase = createClient()
@@ -131,17 +133,15 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // Add this new function to pull the headless logistics
   const loadShippingRates = async () => {
     const { data } = await supabase.from("shipping_rates").select("*").order("name", { ascending: true })
     if (data) setShippingRates(data)
   }
 
-  // Update the useEffect to run it
   useEffect(() => {
     loadOrders()
     loadCatalog()
-    loadShippingRates() // We added this line
+    loadShippingRates() 
   }, [])
 
   const handleCustomerSelect = (email: string) => {
@@ -152,7 +152,6 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // WILDCARD BYPASS: Ignores schema cache entirely
   const handleViewDetails = async (order: OrderRow) => {
     setSelectedOrder(order); setIsDetailOpen(true); setIsEditingItems(false); setSelectedOrderItems([])
     
@@ -185,21 +184,17 @@ export default function AdminOrdersPage() {
   }
 
   const updateStatus = async (id: string, newStatus: string) => {
-    // 1. Update the database
     await supabase.from("orders").update({ status: newStatus }).eq("id", id)
     
-    // 2. Update the local UI state
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)))
     if (selectedOrder?.id === id) setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null)
 
-    // 3. FIRE THE EMAIL for "shipped" or "completed"
     if (newStatus === "shipped" || newStatus === "completed") {
       const orderToEmail = orders.find(o => o.id === id);
       
       if (orderToEmail && orderToEmail.email) {
         console.log(`Intercepting Order ${id} to dispatch ${newStatus} email to ${orderToEmail.email}...`);
         
-        // Wait for the backend to fetch the items and fire the email
         const result = await sendDispatchNotification(
           orderToEmail.email,
           orderToEmail.shipping_address?.first_name || "Client",
@@ -220,7 +215,6 @@ export default function AdminOrdersPage() {
     if (!selectedOrder) return;
     await supabase.from("orders").update({ tracking_number: trackingInput }).eq("id", selectedOrder.id);
     
-    // Update local UI immediately
     setSelectedOrder(prev => prev ? { ...prev, tracking_number: trackingInput } : null);
     setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, tracking_number: trackingInput } : o));
     setIsEditingTracking(false);
@@ -283,9 +277,11 @@ export default function AdminOrdersPage() {
     e.preventDefault()
     if (newOrderItems.length === 0) return alert("Add at least one item.")
 
+    // Recalculated subtotal taking discounts into account
     const calculatedSubtotal = newOrderItems.reduce((acc, item) => {
       const match = allVariants.find(v => v.id === item.variantId)
-      return acc + (match ? match.price * item.quantity : 0)
+      const lineTotal = (match ? match.price * item.quantity : 0) - (item.discount || 0)
+      return acc + Math.max(0, lineTotal)
     }, 0)
     const totalWithShipping = calculatedSubtotal + Number(newOrderShippingCost)
 
@@ -303,12 +299,18 @@ export default function AdminOrdersPage() {
 
     const itemsPayload = newOrderItems.map(item => {
       const match = allVariants.find(v => v.id === item.variantId)
+      const basePrice = match?.price || 0
+      
+      // Calculate the effective unit price after the total line discount is applied
+      const totalLinePrice = Math.max(0, (basePrice * item.quantity) - (item.discount || 0))
+      const effectiveUnitPrice = item.quantity > 0 ? totalLinePrice / item.quantity : 0
+
       return {
          order_id: orderData.id,
          product_id: match?.product_id,
          product_variant_id: item.variantId, 
          quantity: item.quantity, 
-         price: match?.price || 0
+         price: effectiveUnitPrice
        }
     })
     
@@ -318,7 +320,7 @@ export default function AdminOrdersPage() {
        return alert(`Line item construction failure. Check console.`)
     }
 
-if (newOrderStatus === "shipped") {
+    if (newOrderStatus === "shipped") {
        console.log("Dispatching manual order email...");
        await sendDispatchNotification(
          newOrderEmail,
@@ -345,10 +347,13 @@ if (newOrderStatus === "shipped") {
     return (o.id || "").toLowerCase().includes(s) || (o.status || "").toLowerCase().includes(s) || (o.email || "").toLowerCase().includes(s)
   })
 
+  // Dynamic UI Subtotal recalculation
   const newOrderSubtotal = newOrderItems.reduce((acc, item) => {
     const match = allVariants.find(v => v.id === item.variantId)
-    return acc + (match ? match.price * item.quantity : 0)
+    const lineTotal = (match ? match.price * item.quantity : 0) - (item.discount || 0)
+    return acc + Math.max(0, lineTotal)
   }, 0)
+  
   const newOrderFinalTotal = newOrderSubtotal + newOrderShippingCost
 
   return (
@@ -592,8 +597,11 @@ if (newOrderStatus === "shipped") {
                           if (v.stock_quantity < 1) return;
                           const exists = newOrderItems.find(i => i.variantId === v.id)
                           if (exists && exists.quantity >= v.stock_quantity) return alert("Cannot exceed available stock.")
+                          
+                          // Initialize discount field to 0 when adding an item
                           if (exists) setNewOrderItems(prev => prev.map(i => i.variantId === v.id ? { ...i, quantity: i.quantity + 1 } : i))
-                          else setNewOrderItems(prev => [...prev, { variantId: v.id, quantity: 1 }])
+                          else setNewOrderItems(prev => [...prev, { variantId: v.id, quantity: 1, discount: 0 }])
+                          
                           setVariantSearchQuery("") 
                         }}
                       >
@@ -612,25 +620,63 @@ if (newOrderStatus === "shipped") {
                 <div className="border border-zinc-100 divide-y divide-zinc-100 max-h-40 overflow-y-auto mt-2">
                   {newOrderItems.map((item, index) => {
                     const matchedVariant = allVariants.find(v => v.id === item.variantId)
+                    // Calculate the new line total subtracting the flat discount for this line
+                    const lineTotal = ((matchedVariant?.price || 0) * item.quantity) - (item.discount || 0)
+                    
                     return (
                       <div key={index} className="p-3 text-xs flex items-center justify-between bg-zinc-50/50">
-                        <div>
+                        <div className="flex-1 pr-2">
                           <div className="font-bold text-zinc-900 uppercase">{matchedVariant?.product_name}</div>
                           <div className="text-zinc-400 uppercase text-[10px] mt-0.5">{matchedVariant?.variant_name}</div>
+                          {/* Unit price display added below the variant name */}
+                          <div className="text-zinc-500 font-mono mt-1 text-[10px]">
+                            Unit Price: {formatCurrency(matchedVariant?.price || 0)}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <input 
-                            type="number" min="1" max={matchedVariant?.stock_quantity || 1}
-                            className="w-12 text-center h-7 border border-zinc-200 font-mono text-xs" 
-                            value={item.quantity} 
-                            onChange={(e) => {
-                              const max = matchedVariant?.stock_quantity || 1
-                              let val = parseInt(e.target.value) || 1
-                              if (val > max) val = max
-                              setNewOrderItems(prev => prev.map(i => i.variantId === item.variantId ? { ...i, quantity: Math.max(1, val) } : i))
-                            }} 
-                          />
-                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-red-500" onClick={() => setNewOrderItems(prev => prev.filter(i => i.variantId !== item.variantId))}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          {/* Quantity Input */}
+                          <div className="flex flex-col items-center">
+                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Qty</span>
+                            <input 
+                              type="number" min="1" max={matchedVariant?.stock_quantity || 1}
+                              className="w-10 sm:w-12 text-center h-7 border border-zinc-200 font-mono text-xs" 
+                              value={item.quantity} 
+                              onChange={(e) => {
+                                const max = matchedVariant?.stock_quantity || 1
+                                let val = parseInt(e.target.value) || 1
+                                if (val > max) val = max
+                                setNewOrderItems(prev => prev.map(i => i.variantId === item.variantId ? { ...i, quantity: Math.max(1, val) } : i))
+                              }} 
+                            />
+                          </div>
+                          
+                          {/* Discount Input */}
+                          <div className="flex flex-col items-center">
+                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Discount</span>
+                            <input 
+                              type="number" min="0" 
+                              placeholder="0"
+                              className="w-14 sm:w-16 text-center h-7 border border-zinc-200 font-mono text-xs" 
+                              value={item.discount || ""} 
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0
+                                setNewOrderItems(prev => prev.map(i => i.variantId === item.variantId ? { ...i, discount: Math.max(0, val) } : i))
+                              }} 
+                            />
+                          </div>
+
+                          {/* Line Total */}
+                          <div className="flex flex-col items-end min-w-[60px]">
+                             <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Total</span>
+                             <span className="font-bold font-mono">
+                               {formatCurrency(lineTotal > 0 ? lineTotal : 0)}
+                             </span>
+                          </div>
+
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-red-500 shrink-0 ml-1" onClick={() => setNewOrderItems(prev => prev.filter(i => i.variantId !== item.variantId))}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                     )
@@ -644,11 +690,11 @@ if (newOrderStatus === "shipped") {
               <div className="space-y-1 relative">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                  <Input placeholder={newOrderShippingCost > 0 ? `Selected: Ksh ${newOrderShippingCost}` : "Search destination..."} value={shippingSearchQuery} onChange={e => setShippingSearchQuery(e.target.value)} className="pl-9 rounded-none h-11 text-xs border-zinc-200" />
+                  <Input placeholder={newOrderShippingCost > 0 ? `Selected: KSH ${newOrderShippingCost}` : "Search destination..."} value={shippingSearchQuery} onChange={e => setShippingSearchQuery(e.target.value)} className="pl-9 rounded-none h-11 text-xs border-zinc-200" />
                 </div>
                 {shippingSearchQuery && (
                   <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 absolute w-full top-[44px]">
-                    <div className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 text-red-600 font-mono font-bold" onClick={() => { setNewOrderShippingCost(0); setShippingSearchQuery(""); }}>Clear / No Surcharge (Ksh 0)</div>
+                    <div className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 text-red-600 font-mono font-bold" onClick={() => { setNewOrderShippingCost(0); setShippingSearchQuery(""); }}>Clear / No Surcharge (KSH 0)</div>
                     {shippingRates.filter(r => r.name.toLowerCase().includes(shippingSearchQuery.toLowerCase())).map(rate => (
                         <div key={rate.id} className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 last:border-0" onClick={() => { setNewOrderShippingCost(rate.price); setShippingSearchQuery(""); }}>
                           <span className="font-bold">{rate.name}</span> — {formatCurrency(rate.price)}

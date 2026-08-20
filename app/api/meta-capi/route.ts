@@ -42,7 +42,6 @@ export async function POST(req: Request) {
           },
         },
       ],
-      test_event_code: 'TEST56805'
     };
 
     // Execute server-to-server POST request to Meta

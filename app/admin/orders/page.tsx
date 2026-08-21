@@ -525,7 +525,16 @@ export default function AdminOrdersPage() {
                     </div>
                     {variantSearchQuery && (
                       <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 relative">
-                        {allVariants.filter(v => v.product_name.toLowerCase().includes(variantSearchQuery.toLowerCase())).map(v => (
+                        {allVariants.filter(v => {
+  // 1. Split the search query into individual words (e.g., ["zapatos", "3xl"])
+  const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
+  
+  // 2. Combine the product name and variant name into one searchable string
+  const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
+  
+  // 3. Ensure every word the user typed exists somewhere in that combined string
+  return searchTerms.every(term => searchableText.includes(term));
+}).map(v => (
                           <div key={v.id} className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 flex justify-between items-center"
                             onClick={() => {
                               handleAddLineItemToExisting(v.id); setVariantSearchQuery("");
@@ -591,7 +600,16 @@ export default function AdminOrdersPage() {
                 </div>
                 {variantSearchQuery && (
                   <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 relative">
-                    {allVariants.filter(v => v.product_name.toLowerCase().includes(variantSearchQuery.toLowerCase())).map(v => (
+                    {allVariants.filter(v => {
+  // 1. Split the search query into individual words (e.g., ["zapatos", "3xl"])
+  const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
+  
+  // 2. Combine the product name and variant name into one searchable string
+  const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
+  
+  // 3. Ensure every word the user typed exists somewhere in that combined string
+  return searchTerms.every(term => searchableText.includes(term));
+}).map(v => (
                       <div key={v.id} className={`px-3 py-2 text-xs border-b border-zinc-100 flex justify-between items-center ${v.stock_quantity > 0 ? "cursor-pointer hover:bg-zinc-100" : "opacity-50 cursor-not-allowed bg-zinc-50"}`}
                         onClick={() => {
                           if (v.stock_quantity < 1) return;

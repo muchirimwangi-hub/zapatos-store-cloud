@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import { ProductCard } from '@/components/products/product-card'
 import { createClient } from '@/lib/supabase/client'
 import { X, Search, SlidersHorizontal } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 
 function ShopCatalogContent() {
   const searchParams = useSearchParams()
@@ -15,6 +16,53 @@ function ShopCatalogContent() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [filteredProducts, setFilteredProducts] = useState<any[]>([])
+  // --- NEW ATTRIBUTE FILTER STATE ---
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string[]>>({})
+
+  // Extract all unique attributes (Sizes, Colors, etc.) from the fetched inventory
+  const availableAttributes = useMemo(() => {
+    const attrs: Record<string, Set<string>> = {}
+    products.forEach(p => {
+      p.product_variants?.forEach((v: any) => {
+        if (v.attributes) {
+          Object.entries(v.attributes).forEach(([key, val]) => {
+            if (!attrs[key]) attrs[key] = new Set()
+            attrs[key].add(val as string)
+          })
+        }
+      })
+    })
+    return attrs
+  }, [products])
+
+  const toggleAttribute = (key: string, value: string) => {
+    setSelectedAttributes(prev => {
+      const current = prev[key] || []
+      const updated = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value]
+
+      if (updated.length === 0) {
+        const newState = { ...prev }
+        delete newState[key]
+        return newState
+      }
+      return { ...prev, [key]: updated }
+    })
+  }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setSearchQuery(val)
+    
+    // Update the URL silently as they type
+    const params = new URLSearchParams(searchParams.toString())
+    if (val.trim()) {
+      params.set('q', val)
+    } else {
+      params.delete('q')
+    }
+    window.history.replaceState(null, '', `?${params.toString()}`)
+  }
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
     const cat = searchParams.get('category');
     return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : null;
@@ -53,11 +101,11 @@ function ShopCatalogContent() {
     fetchProducts()
   }, []) // Removed selectedCategory from dependencies!
 
-  // FIX 3 Part B: Apply the smart Unisex filter locally
+  // FIX 3 Part B: Apply Category, Search, AND Attribute filters
   useEffect(() => {
     let result = products;
 
-    // Smart Category Filter
+    // 1. Smart Category Filter
     if (selectedCategory) {
       if (selectedCategory === "Men") {
         result = result.filter(p => ['men', 'unisex'].includes(p.category?.toLowerCase()));
@@ -68,7 +116,7 @@ function ShopCatalogContent() {
       }
     }
 
-    // Search Box Filter
+    // 2. Search Box Filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(p => 
@@ -78,8 +126,22 @@ function ShopCatalogContent() {
       );
     }
 
+    // 3. Attribute Filter (Sizes, Colors, etc.)
+    if (Object.keys(selectedAttributes).length > 0) {
+      result = result.filter(p => {
+        // A product must satisfy ALL active filter categories (e.g., must be 'Blue' AND 'XL')
+        return Object.entries(selectedAttributes).every(([attrKey, selectedValues]) => {
+          if (selectedValues.length === 0) return true;
+          // Check if the product has at least one variant matching the selected attribute value
+          return p.product_variants?.some((v: any) =>
+            v.attributes && selectedValues.includes(v.attributes[attrKey])
+          );
+        });
+      });
+    }
+
     setFilteredProducts(result);
-  }, [searchQuery, selectedCategory, products])
+  }, [searchQuery, selectedCategory, products, selectedAttributes])
 
   const clearSearch = () => {
     setSearchQuery('')
@@ -106,13 +168,13 @@ function ShopCatalogContent() {
               <div className="relative flex-1 md:w-72">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
                 <Input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchOpen(true)}
-                  className="pl-10 pr-10 h-11 bg-white dark:bg-[#08080A] border-zinc-200 dark:border-zinc-900 text-xs uppercase tracking-wider rounded-none font-medium focus-visible:ring-zinc-400"
-                />
+  type="text"
+  placeholder="Search products..."
+  value={searchQuery}
+  onChange={handleSearchChange}
+  onFocus={() => setIsSearchOpen(true)}
+  className="pl-10 pr-10 h-11 bg-white dark:bg-[#08080A] border-zinc-200 dark:border-zinc-900 text-xs uppercase tracking-wider rounded-none font-medium focus-visible:ring-zinc-400"
+/>
                 {searchQuery && (
                   <button
                     onClick={clearSearch}
@@ -122,14 +184,71 @@ function ShopCatalogContent() {
                   </button>
                 )}
               </div>
-              <Button 
-                type="button"
-                variant="outline" 
-                className="h-11 border-zinc-200 dark:border-zinc-900 rounded-none px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white dark:bg-[#08080A]"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5 text-zinc-400" />
-                Filter
-              </Button>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    className="h-11 border-zinc-200 dark:border-zinc-900 rounded-none px-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white dark:bg-[#08080A] relative"
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5 text-zinc-400" />
+                    Filter
+                    {Object.keys(selectedAttributes).length > 0 && (
+                      <span className="absolute -top-2 -right-2 h-4 w-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-full flex items-center justify-center text-[9px] font-bold">
+                        {Object.values(selectedAttributes).flat().length}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="bg-white dark:bg-[#08080A] border-zinc-200 dark:border-zinc-900 rounded-none overflow-y-auto w-full sm:max-w-md p-8">
+                  <SheetHeader className="mb-8 border-b border-zinc-100 dark:border-zinc-900 pb-6">
+                    <div className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">Refine Search</div>
+                    <SheetTitle className="text-2xl font-black uppercase tracking-tight text-zinc-900 dark:text-white">Filter Parameters</SheetTitle>
+                  </SheetHeader>
+                  
+                  <div className="space-y-8">
+                    {Object.keys(availableAttributes).length === 0 ? (
+                      <p className="text-xs font-mono text-zinc-400 uppercase">No attributes available.</p>
+                    ) : (
+                      Object.entries(availableAttributes).map(([key, valuesSet]) => (
+                        <div key={key} className="space-y-3">
+                          <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-900 dark:text-white">{key}</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {Array.from(valuesSet).map(val => {
+                              const isSelected = selectedAttributes[key]?.includes(val);
+                              return (
+                                <button
+                                  key={val}
+                                  onClick={() => toggleAttribute(key, val)}
+                                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border rounded-none transition-all ${
+                                    isSelected 
+                                      ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900' 
+                                      : 'bg-transparent text-zinc-600 border-zinc-200 hover:border-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-white'
+                                  }`}
+                                >
+                                  {val}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+
+                    {Object.keys(selectedAttributes).length > 0 && (
+                      <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900">
+                        <Button 
+                          onClick={() => setSelectedAttributes({})} 
+                          variant="outline" 
+                          className="w-full h-12 rounded-none uppercase text-xs tracking-widest font-bold border-zinc-200 dark:border-zinc-800"
+                        >
+                          Clear All Filters
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+export const revalidate = 60;
 import { getProductBySlug } from '@/lib/supabase/products'
 import { createStaticClient } from '@/lib/supabase/static'
 import { createClient } from '@/lib/supabase/server'

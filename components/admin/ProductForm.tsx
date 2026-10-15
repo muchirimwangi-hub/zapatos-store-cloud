@@ -40,6 +40,11 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
   // The state for the Viewing Dropdown Filter
   const [variantFilter, setVariantFilter] = useState("");
 
+  // 👉 NEW: Helper to detect if a file URL is a video
+  const isVideo = (url: string) => {
+    return /\.(mp4|webm|ogg|mov)$/i.test(url);
+  };
+
   // Gets all unique attribute values
   const uniqueAttributeValues = Array.from(
     new Set(
@@ -52,6 +57,9 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
     setIsUploading(true);
     const supabase = createClient();
     const newImageUrls = [...images];
+
+    // 👉 NEW: 10MB limit (in bytes)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     for (const file of Array.from(e.target.files)) {
       const fileExt = file.name.split('.').pop();
@@ -160,17 +168,41 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
       {/* SECTION 2: DIRECT MEDIA UPLOAD */}
       <div className="space-y-4 p-4 border border-zinc-200 bg-zinc-50 dark:bg-[#0C0C10] rounded-none">
         <h2 className="text-lg font-bold">2. Upload Media</h2>
+        <p className="text-xs text-zinc-500 font-mono -mt-2">Supports Images & Short Videos (Max 10MB per file)</p>
+        
         <div className="flex items-center gap-4">
-          <Input type="file" multiple accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="max-w-xs cursor-pointer rounded-none bg-white" />
+          {/* 👉 UPDATED: Accept images and standard web videos */}
+          <Input 
+            type="file" 
+            multiple 
+            accept="image/*, video/mp4, video/quicktime, video/webm" 
+            onChange={handleImageUpload} 
+            disabled={isUploading} 
+            className="max-w-xs cursor-pointer rounded-none bg-white" 
+          />
           {isUploading && <span className="text-xs font-mono text-zinc-500 animate-pulse">Uploading to Database...</span>}
         </div>
         
         {images.length > 0 && (
           <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-zinc-200">
             {images.filter(Boolean).map((img, i) => (
-              <div key={i} className="relative w-20 h-24 border border-zinc-200 rounded-none overflow-hidden group bg-white shadow-sm">
-                <img src={img} alt={`Upload ${i}`} className="w-full h-full object-cover" />
-                <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-none p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div key={i} className="relative w-20 h-24 border border-zinc-200 rounded-none overflow-hidden group bg-black shadow-sm">
+                
+                {/* 👉 UPDATED: Render video tag or img tag based on file type */}
+                {isVideo(img) ? (
+                  <video 
+                    src={img} 
+                    className="w-full h-full object-cover opacity-90" 
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline 
+                  />
+                ) : (
+                  <img src={img} alt={`Upload ${i}`} className="w-full h-full object-cover" />
+                )}
+
+                <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-none p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <X className="w-3 h-3" />
                 </button>
               </div>
@@ -247,11 +279,11 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
                 <Input className="w-16 rounded-none h-9 text-xs font-mono bg-white border-blue-200" type="number" placeholder="Wt(kg)" title="Weight (kg)" value={v.weight_kg} onChange={e => { const nv = [...variants]; nv[i].weight_kg = e.target.value; setVariants(nv); }} />
                 
                 <select className="flex-1 min-w-[130px] border px-2 rounded-none text-xs h-9 bg-white" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
-                  <option value="">No Variant Image</option>
-                  {images.map((img, idx) => (
-                    <option key={idx} value={img}>Uploaded Image {idx + 1}</option>
-                  ))}
-                </select>
+  <option value="">No Variant Media</option>
+  {images.map((img, idx) => (
+    <option key={idx} value={img}>Media {idx + 1} {isVideo(img) ? '(Video)' : '(Image)'}</option>
+  ))}
+</select>
 
                 <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-none" onClick={() => setVariants(variants.filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
               </div>

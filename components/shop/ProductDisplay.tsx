@@ -15,6 +15,11 @@ const cleanImageUrl = (imgData: any): string => {
   return "";
 };
 
+// 👉 NEW: Helper to detect video URLs
+const isVideo = (url: string) => {
+  return typeof url === 'string' && /\.(mp4|webm|ogg|mov)$/i.test(url);
+};
+
 const SIZE_ORDER = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
 export default function ProductDisplay({ product, variants }: { product: any; variants: any[] }) {
@@ -108,36 +113,57 @@ export default function ProductDisplay({ product, variants }: { product: any; va
             <button 
               key={idx} 
               onClick={() => setActiveImageIdx(idx)}
-              // 👈 Added 'relative' class here so the Image component knows how to size itself
               className={`relative shrink-0 snap-center w-20 md:w-full aspect-[4/5] rounded-md overflow-hidden transition-all duration-200 border-2 ${
                 activeImageIdx === idx 
                   ? 'border-black dark:border-white opacity-100' 
                   : 'border-transparent opacity-50 hover:opacity-100'
               }`}
             >
-              {/* 👈 Replaced <img> with Next.js <Image> */}
-              <Image 
-                src={img} 
-                alt={`Thumbnail ${idx + 1}`} 
-                fill
-                sizes="(max-width: 768px) 80px, 100px"
-                className="object-cover" 
-              />
+              {/* 👉 UPDATED: Check if video or image */}
+              {isVideo(img) ? (
+                <video 
+                  src={img} 
+                  className="w-full h-full object-cover" 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline 
+                />
+              ) : (
+                <Image 
+                  src={img} 
+                  alt={`Thumbnail ${idx + 1}`} 
+                  fill
+                  sizes="(max-width: 768px) 80px, 100px"
+                  className="object-cover" 
+                />
+              )}
             </button>
           ))}
         </div>
 
         {/* 3. THE MAIN ACTIVE IMAGE */}
         <div className="w-full aspect-[4/5] md:aspect-auto md:h-full md:flex-1 bg-zinc-50 dark:bg-[#0C0C10] rounded-lg overflow-hidden relative flex items-center justify-center md:p-4">
-          {/* 👈 Replaced <img> with Next.js <Image> */}
-          <Image 
-            src={displayImages[activeImageIdx] || displayImages[0]} 
-            alt={product.name} 
-            fill
-            priority={true} // Tells Next.js to load this immediately for better performance
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover md:object-contain transition-opacity duration-300" 
-          />
+          {/* 👉 UPDATED: Check if active media is video or image */}
+          {isVideo(displayImages[activeImageIdx] || displayImages[0]) ? (
+            <video 
+              src={displayImages[activeImageIdx] || displayImages[0]} 
+              className="w-full h-full object-cover md:object-contain transition-opacity duration-300" 
+              autoPlay 
+              muted 
+              loop 
+              playsInline 
+            />
+          ) : (
+            <Image 
+              src={displayImages[activeImageIdx] || displayImages[0]} 
+              alt={product.name} 
+              fill
+              priority={true}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover md:object-contain transition-opacity duration-300" 
+            />
+          )}
         </div>
 
       </div>

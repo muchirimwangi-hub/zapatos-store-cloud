@@ -68,6 +68,9 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
+  // 👉 NEW: State to track if the current user is an employee
+  const [isEmployee, setIsEmployee] = useState(false)
+
   const [selectedOrder, setSelectedOrder] = useState<OrderRow | null>(null)
   const [selectedOrderItems, setSelectedOrderItems] = useState<OrderItem[]>([])
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -90,7 +93,6 @@ export default function AdminOrdersPage() {
   const [newOrderAddress, setNewOrderAddress] = useState("")
   const [newOrderShippingCost, setNewOrderShippingCost] = useState(0)
   
-  // Added discount property to track line-item deductions
   const [newOrderItems, setNewOrderItems] = useState<{ variantId: string; quantity: number; discount?: number }[]>([])
   const [newOrderStatus, setNewOrderStatus] = useState("reserved") 
 
@@ -139,6 +141,19 @@ export default function AdminOrdersPage() {
   }
 
   useEffect(() => {
+    const checkUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      // 👉 UPDATED: Auto-detects employees based on domain, excluding the master admin
+      const isDomainEmployee = user?.email?.endsWith('@zapatoscave.com') && user?.email !== 'admin@zapatoscave.com'
+      const isMetadataEmployee = user?.user_metadata?.role === "employee"
+      
+      if (isDomainEmployee || isMetadataEmployee) {
+        setIsEmployee(true)
+      }
+    }
+    
+    checkUserRole()
     loadOrders()
     loadCatalog()
     loadShippingRates() 
@@ -162,8 +177,6 @@ export default function AdminOrdersPage() {
 
     if (error) {
       alert(`SUPABASE ERROR:\n${error.message || JSON.stringify(error)}`)
-    } else if (data && data.length === 0) {
-      alert(`DEBUG ALARM 🚨\n\nThe app successfully asked Supabase for items belonging to Order:\n${order.id}\n\nSupabase responded with: 0 items.\n\nSince your screenshot proves they exist in the database, RLS is blocking the read. Run the SQL to disable it.`)
     }
 
     if (data) {
@@ -277,7 +290,14 @@ export default function AdminOrdersPage() {
     e.preventDefault()
     if (newOrderItems.length === 0) return alert("Add at least one item.")
 
-    // Recalculated subtotal taking discounts into account
+    // 👉 NEW: Backend Failsafe to guarantee employees cannot bypass the 200 discount limit
+    if (isEmployee) {
+      const exceedsLimit = newOrderItems.some(item => (item.discount || 0) > 200)
+      if (exceedsLimit) {
+        return alert("Security Protocol: Employees cannot authorize discounts greater than 200 KSH per item.")
+      }
+    }
+
     const calculatedSubtotal = newOrderItems.reduce((acc, item) => {
       const match = allVariants.find(v => v.id === item.variantId)
       const lineTotal = (match ? match.price * item.quantity : 0) - (item.discount || 0)
@@ -301,7 +321,6 @@ export default function AdminOrdersPage() {
       const match = allVariants.find(v => v.id === item.variantId)
       const basePrice = match?.price || 0
       
-      // Calculate the effective unit price after the total line discount is applied
       const totalLinePrice = Math.max(0, (basePrice * item.quantity) - (item.discount || 0))
       const effectiveUnitPrice = item.quantity > 0 ? totalLinePrice / item.quantity : 0
 
@@ -347,7 +366,6 @@ export default function AdminOrdersPage() {
     return (o.id || "").toLowerCase().includes(s) || (o.status || "").toLowerCase().includes(s) || (o.email || "").toLowerCase().includes(s)
   })
 
-  // Dynamic UI Subtotal recalculation
   const newOrderSubtotal = newOrderItems.reduce((acc, item) => {
     const match = allVariants.find(v => v.id === item.variantId)
     const lineTotal = (match ? match.price * item.quantity : 0) - (item.discount || 0)
@@ -526,15 +544,10 @@ export default function AdminOrdersPage() {
                     {variantSearchQuery && (
                       <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 relative">
                         {allVariants.filter(v => {
-  // 1. Split the search query into individual words (e.g., ["zapatos", "3xl"])
-  const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
-  
-  // 2. Combine the product name and variant name into one searchable string
-  const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
-  
-  // 3. Ensure every word the user typed exists somewhere in that combined string
-  return searchTerms.every(term => searchableText.includes(term));
-}).map(v => (
+                          const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
+                          const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
+                          return searchTerms.every(term => searchableText.includes(term));
+                        }).map(v => (
                           <div key={v.id} className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 flex justify-between items-center"
                             onClick={() => {
                               handleAddLineItemToExisting(v.id); setVariantSearchQuery("");
@@ -601,22 +614,16 @@ export default function AdminOrdersPage() {
                 {variantSearchQuery && (
                   <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 relative">
                     {allVariants.filter(v => {
-  // 1. Split the search query into individual words (e.g., ["zapatos", "3xl"])
-  const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
-  
-  // 2. Combine the product name and variant name into one searchable string
-  const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
-  
-  // 3. Ensure every word the user typed exists somewhere in that combined string
-  return searchTerms.every(term => searchableText.includes(term));
-}).map(v => (
+                      const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
+                      const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
+                      return searchTerms.every(term => searchableText.includes(term));
+                    }).map(v => (
                       <div key={v.id} className={`px-3 py-2 text-xs border-b border-zinc-100 flex justify-between items-center ${v.stock_quantity > 0 ? "cursor-pointer hover:bg-zinc-100" : "opacity-50 cursor-not-allowed bg-zinc-50"}`}
                         onClick={() => {
                           if (v.stock_quantity < 1) return;
                           const exists = newOrderItems.find(i => i.variantId === v.id)
                           if (exists && exists.quantity >= v.stock_quantity) return alert("Cannot exceed available stock.")
                           
-                          // Initialize discount field to 0 when adding an item
                           if (exists) setNewOrderItems(prev => prev.map(i => i.variantId === v.id ? { ...i, quantity: i.quantity + 1 } : i))
                           else setNewOrderItems(prev => [...prev, { variantId: v.id, quantity: 1, discount: 0 }])
                           
@@ -638,7 +645,6 @@ export default function AdminOrdersPage() {
                 <div className="border border-zinc-100 divide-y divide-zinc-100 max-h-40 overflow-y-auto mt-2">
                   {newOrderItems.map((item, index) => {
                     const matchedVariant = allVariants.find(v => v.id === item.variantId)
-                    // Calculate the new line total subtracting the flat discount for this line
                     const lineTotal = ((matchedVariant?.price || 0) * item.quantity) - (item.discount || 0)
                     
                     return (
@@ -646,7 +652,6 @@ export default function AdminOrdersPage() {
                         <div className="flex-1 pr-2">
                           <div className="font-bold text-zinc-900 uppercase">{matchedVariant?.product_name}</div>
                           <div className="text-zinc-400 uppercase text-[10px] mt-0.5">{matchedVariant?.variant_name}</div>
-                          {/* Unit price display added below the variant name */}
                           <div className="text-zinc-500 font-mono mt-1 text-[10px]">
                             Unit Price: {formatCurrency(matchedVariant?.price || 0)}
                           </div>
@@ -669,16 +674,18 @@ export default function AdminOrdersPage() {
                             />
                           </div>
                           
-                          {/* Discount Input */}
+                          {/* 👉 NEW: Locked Down Discount Input */}
                           <div className="flex flex-col items-center">
-                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Discount</span>
+                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Discount {isEmployee && <span className="text-orange-500">(Max 200)</span>}</span>
                             <input 
-                              type="number" min="0" 
+                              type="number" min="0" max={isEmployee ? 200 : undefined}
                               placeholder="0"
                               className="w-14 sm:w-16 text-center h-7 border border-zinc-200 font-mono text-xs" 
-                              value={item.discount || ""} 
+                              value={item.discount === 0 ? "" : item.discount} 
                               onChange={(e) => {
-                                const val = parseFloat(e.target.value) || 0
+                                let val = parseFloat(e.target.value) || 0
+                                // Clamps the input to 200 if they are an employee
+                                if (isEmployee && val > 200) val = 200;
                                 setNewOrderItems(prev => prev.map(i => i.variantId === item.variantId ? { ...i, discount: Math.max(0, val) } : i))
                               }} 
                             />

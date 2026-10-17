@@ -1,51 +1,52 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus, X } from "lucide-react";
+import { Trash2, Plus, X, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
-export function ProductForm({ productId, initialData }: { productId?: string, initialData?: any }) {
+// 👉 FIX: Added isEmployee to the TypeScript definitions to clear the red line
+export function ProductForm({ 
+  productId, 
+  initialData, 
+  isEmployee = false 
+}: { 
+  productId?: string, 
+  initialData?: any, 
+  isEmployee?: boolean 
+}) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
-  // Basic Info
   const [name, setName] = useState(initialData?.name || "");
   const [category, setCategory] = useState(initialData?.category || "Men");
   const [description, setDescription] = useState(initialData?.description || "");
   const [isActive, setIsActive] = useState<boolean>(initialData?.is_active ?? true);
-  
-  // Media Array
   const [images, setImages] = useState<string[]>(initialData?.images || []);
   
-  // Dynamic Option Categories (e.g., ["Size", "Color"])
   const [optionKeys, setOptionKeys] = useState<string[]>(
     initialData?.product_variants?.[0]?.attributes 
       ? Object.keys(initialData.product_variants[0].attributes) 
       : ["Size", "Color"]
   );
 
-  // Variants Matrix (NOW INCLUDES WEIGHT)
   const [variants, setVariants] = useState(initialData?.product_variants?.map((v: any) => ({
     attributes: v.attributes || {},
     stock_quantity: v.stock_quantity || 0,
     price: v.price || 0,
     compare_at_price: v.compare_at_price || 0,
-    weight_kg: v.weight_kg || 0, // NEW
+    weight_kg: v.weight_kg || 0,
     image_url: v.image_url || ""
   })) || []);
 
-  // The state for the Viewing Dropdown Filter
   const [variantFilter, setVariantFilter] = useState("");
 
-  // 👉 NEW: Helper to detect if a file URL is a video
   const isVideo = (url: string) => {
     return /\.(mp4|webm|ogg|mov)$/i.test(url);
   };
 
-  // Gets all unique attribute values
   const uniqueAttributeValues = Array.from(
     new Set(
       variants.flatMap((v: any) => Object.values(v.attributes).map((val: any) => String(val).trim()))
@@ -57,18 +58,18 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
     setIsUploading(true);
     const supabase = createClient();
     const newImageUrls = [...images];
-
-    // 👉 NEW: 10MB limit (in bytes)
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     for (const file of Array.from(e.target.files)) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`File "${file.name}" is too large. Max 10MB.`);
+        continue;
+      }
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
       const filePath = `products/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
 
       if (!uploadError) {
         const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
@@ -99,6 +100,7 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEmployee) return; // Failsafe against backend saves
     setIsSaving(true);
     const supabase = createClient();
     const generatedSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -126,7 +128,7 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
             image_url: v.image_url || "",
             price: parseFloat(v.price) || 0,
             compare_at_price: parseFloat(v.compare_at_price) || 0,
-            weight_kg: parseFloat(v.weight_kg) || 0 // NEW: Save to DB
+            weight_kg: parseFloat(v.weight_kg) || 0
           };
         });
         await supabase.from("product_variants").insert(formattedVariants);
@@ -140,12 +142,21 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
   return (
     <form onSubmit={handleSave} className="space-y-8 p-8 max-w-5xl mx-auto border border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-[#08080A]">
 
+      {/* 👉 NEW: Employee Warning Banner */}
+      {isEmployee && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 flex items-center gap-3 text-sm font-bold tracking-widest uppercase rounded-none">
+          <Lock className="w-5 h-5" />
+          Read-Only Mode: You are viewing this record as an employee. Modifications are disabled.
+        </div>
+      )}
+
       {/* SECTION 1: IDENTITY */}
       <div className="space-y-4">
         <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">1. Identity</h2>
           <select 
-            className={`border px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-none outline-none ${isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-zinc-100 text-zinc-500 border-zinc-200'}`} 
+            disabled={isEmployee}
+            className={`border px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-none outline-none ${isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-zinc-100 text-zinc-500 border-zinc-200'} ${isEmployee ? 'opacity-60 cursor-not-allowed' : ''}`} 
             value={isActive ? "true" : "false"} 
             onChange={e => setIsActive(e.target.value === "true")}
           >
@@ -155,59 +166,53 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
         </div>
         
         <div className="grid grid-cols-2 gap-4">
-          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Product Name" className="rounded-none h-11" required />
-          <select className="border px-3 rounded-none h-11 bg-transparent" value={category} onChange={e => setCategory(e.target.value)}>
+          <Input disabled={isEmployee} value={name} onChange={e => setName(e.target.value)} placeholder="Product Name" className="rounded-none h-11 disabled:opacity-60" required />
+          <select disabled={isEmployee} className="border px-3 rounded-none h-11 bg-transparent disabled:opacity-60 disabled:cursor-not-allowed" value={category} onChange={e => setCategory(e.target.value)}>
             <option value="Men">Men</option>
             <option value="Women">Women</option>
             <option value="Unisex">Unisex</option>
           </select>
         </div>
-        <textarea className="w-full p-3 border rounded-none min-h-[100px] bg-transparent outline-none" value={description} onChange={e => setDescription(e.target.value)} placeholder="Description..." />
+        <textarea disabled={isEmployee} className="w-full p-3 border rounded-none min-h-[100px] bg-transparent outline-none disabled:opacity-60 disabled:bg-zinc-50" value={description} onChange={e => setDescription(e.target.value)} placeholder="Description..." />
       </div>
 
       {/* SECTION 2: DIRECT MEDIA UPLOAD */}
       <div className="space-y-4 p-4 border border-zinc-200 bg-zinc-50 dark:bg-[#0C0C10] rounded-none">
         <h2 className="text-lg font-bold">2. Upload Media</h2>
-        <p className="text-xs text-zinc-500 font-mono -mt-2">Supports Images & Short Videos (Max 10MB per file)</p>
         
-        <div className="flex items-center gap-4">
-          {/* 👉 UPDATED: Accept images and standard web videos */}
-          <Input 
-            type="file" 
-            multiple 
-            accept="image/*, video/mp4, video/quicktime, video/webm" 
-            onChange={handleImageUpload} 
-            disabled={isUploading} 
-            className="max-w-xs cursor-pointer rounded-none bg-white" 
-          />
-          {isUploading && <span className="text-xs font-mono text-zinc-500 animate-pulse">Uploading to Database...</span>}
-        </div>
+        {/* 👉 Hides upload button for employees */}
+        {!isEmployee && (
+          <>
+            <p className="text-xs text-zinc-500 font-mono -mt-2">Supports Images & Short Videos (Max 10MB per file)</p>
+            <div className="flex items-center gap-4">
+              <Input type="file" multiple accept="image/*, video/mp4, video/quicktime, video/webm" onChange={handleImageUpload} disabled={isUploading} className="max-w-xs cursor-pointer rounded-none bg-white" />
+              {isUploading && <span className="text-xs font-mono text-zinc-500 animate-pulse">Uploading to Database...</span>}
+            </div>
+          </>
+        )}
         
-        {images.length > 0 && (
+        {images.length > 0 ? (
           <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-zinc-200">
             {images.filter(Boolean).map((img, i) => (
               <div key={i} className="relative w-20 h-24 border border-zinc-200 rounded-none overflow-hidden group bg-black shadow-sm">
                 
-                {/* 👉 UPDATED: Render video tag or img tag based on file type */}
                 {isVideo(img) ? (
-                  <video 
-                    src={img} 
-                    className="w-full h-full object-cover opacity-90" 
-                    autoPlay 
-                    muted 
-                    loop 
-                    playsInline 
-                  />
+                  <video src={img} className="w-full h-full object-cover opacity-90" autoPlay muted loop playsInline />
                 ) : (
                   <img src={img} alt={`Upload ${i}`} className="w-full h-full object-cover" />
                 )}
 
-                <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-none p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                  <X className="w-3 h-3" />
-                </button>
+                {/* 👉 Hides delete button for employees */}
+                {!isEmployee && (
+                  <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-none p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
+        ) : (
+          isEmployee && <p className="text-sm font-mono text-zinc-400">No media attached to this product.</p>
         )}
       </div>
 
@@ -215,16 +220,20 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
           <h2 className="text-lg font-bold">3. Variant Matrix</h2>
-          <Button type="button" variant="outline" size="sm" onClick={addOptionKey} className="rounded-none h-8 text-[10px] uppercase font-bold tracking-widest"><Plus className="w-3.5 h-3.5 mr-1"/> Add Attribute Column</Button>
+          {!isEmployee && (
+            <Button type="button" variant="outline" size="sm" onClick={addOptionKey} className="rounded-none h-8 text-[10px] uppercase font-bold tracking-widest"><Plus className="w-3.5 h-3.5 mr-1"/> Add Attribute Column</Button>
+          )}
         </div>
 
         <div className="flex gap-2 flex-wrap mb-4">
           {optionKeys.map((key, i) => (
-            <div key={i} className="flex items-center border rounded-none overflow-hidden max-w-[150px] shadow-sm">
-              <Input className="border-0 h-8 text-xs font-bold uppercase tracking-wider bg-zinc-100 rounded-none" value={key} onChange={e => {
+            <div key={i} className={`flex items-center border rounded-none overflow-hidden max-w-[150px] shadow-sm ${isEmployee ? 'opacity-70' : ''}`}>
+              <Input disabled={isEmployee} className="border-0 h-8 text-xs font-bold uppercase tracking-wider bg-zinc-100 rounded-none disabled:cursor-not-allowed" value={key} onChange={e => {
                 const newKeys = [...optionKeys]; newKeys[i] = e.target.value; setOptionKeys(newKeys);
               }} />
-              <button type="button" onClick={() => removeOptionKey(i)} className="px-2 h-8 bg-zinc-100 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"><X className="w-3 h-3"/></button>
+              {!isEmployee && (
+                <button type="button" onClick={() => removeOptionKey(i)} className="px-2 h-8 bg-zinc-100 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"><X className="w-3 h-3"/></button>
+              )}
             </div>
           ))}
         </div>
@@ -232,11 +241,7 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
         {variants.length > 0 && uniqueAttributeValues.length > 0 && (
           <div className="flex items-center gap-3 bg-zinc-50 p-2 border border-zinc-200 mb-4">
             <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 pl-2">Filter View:</span>
-            <select 
-              className="h-8 px-2 border border-zinc-200 text-xs font-bold bg-white rounded-none outline-none focus:border-black cursor-pointer"
-              value={variantFilter}
-              onChange={(e) => setVariantFilter(e.target.value)}
-            >
+            <select className="h-8 px-2 border border-zinc-200 text-xs font-bold bg-white rounded-none outline-none focus:border-black cursor-pointer" value={variantFilter} onChange={(e) => setVariantFilter(e.target.value)}>
               <option value="">Show All Variants</option>
               {uniqueAttributeValues.map((val: string) => (
                 <option key={val} value={val}>Only show: {val}</option>
@@ -247,59 +252,55 @@ export function ProductForm({ productId, initialData }: { productId?: string, in
 
         <div className="space-y-2">
           {variants.map((v: any, i: number) => {
-            
             if (variantFilter) {
               const rowValues = Object.values(v.attributes).map(val => String(val).trim());
               if (!rowValues.includes(variantFilter)) return null;
             }
 
             return (
-              <div key={i} className="flex flex-wrap gap-2 border border-zinc-200 p-2 pl-3 items-center bg-zinc-50 rounded-none group hover:border-zinc-400 transition-colors">
+              <div key={i} className={`flex flex-wrap gap-2 border border-zinc-200 p-2 pl-3 items-center bg-zinc-50 rounded-none ${isEmployee ? 'opacity-80' : 'group hover:border-zinc-400 transition-colors'}`}>
                 
                 {optionKeys.map(key => (
-                  <Input 
-                    key={key} 
-                    className="w-24 placeholder:text-zinc-300 rounded-none h-9 text-xs bg-white" 
-                    placeholder={key} 
-                    value={v.attributes[key] || ""} 
-                    onChange={e => updateVariantAttribute(i, key, e.target.value)} 
-                  />
+                  <Input disabled={isEmployee} key={key} className="w-24 placeholder:text-zinc-300 rounded-none h-9 text-xs bg-white disabled:cursor-not-allowed" placeholder={key} value={v.attributes[key] || ""} onChange={e => updateVariantAttribute(i, key, e.target.value)} />
                 ))}
                 
-                {/* 1. Adjusted Qty Width */}
-                <Input className="w-16 rounded-none h-9 text-xs font-mono bg-white" type="number" placeholder="Qty" title="Stock Quantity" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
+                <Input disabled={isEmployee} className="w-16 rounded-none h-9 text-xs font-mono bg-white disabled:cursor-not-allowed" type="number" placeholder="Qty" title="Stock Quantity" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
                 
-                {/* 2. 👉 NEW: Original Price (Red Strikethrough Box) */}
-                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-zinc-50 border-red-200 text-red-500 placeholder:text-red-300" type="number" placeholder="Orig. KES" title="Original Price (Leave 0 for no discount)" value={v.compare_at_price || ""} onChange={e => { const nv = [...variants]; nv[i].compare_at_price = e.target.value; setVariants(nv); }} />
+                <Input disabled={isEmployee} className="w-20 rounded-none h-9 text-xs font-mono bg-zinc-50 border-red-200 text-red-500 placeholder:text-red-300 disabled:cursor-not-allowed" type="number" placeholder="Orig. KES" title="Original Price (Leave 0 for no discount)" value={v.compare_at_price || ""} onChange={e => { const nv = [...variants]; nv[i].compare_at_price = e.target.value; setVariants(nv); }} />
                 
-                {/* 3. Sale Price (Green Box) */}
-                <Input className="w-20 rounded-none h-9 text-xs font-mono bg-white font-bold text-green-700" type="number" placeholder="Sale KES" title="Active Sale Price" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
+                <Input disabled={isEmployee} className="w-20 rounded-none h-9 text-xs font-mono bg-white font-bold text-green-700 disabled:cursor-not-allowed" type="number" placeholder="Sale KES" title="Active Sale Price" value={v.price} onChange={e => { const nv = [...variants]; nv[i].price = e.target.value; setVariants(nv); }} />
                 
-                {/* 4. Adjusted Weight Width */}
-                <Input className="w-16 rounded-none h-9 text-xs font-mono bg-white border-blue-200" type="number" placeholder="Wt(kg)" title="Weight (kg)" value={v.weight_kg} onChange={e => { const nv = [...variants]; nv[i].weight_kg = e.target.value; setVariants(nv); }} />
+                <Input disabled={isEmployee} className="w-16 rounded-none h-9 text-xs font-mono bg-white border-blue-200 disabled:cursor-not-allowed" type="number" placeholder="Wt(kg)" title="Weight (kg)" value={v.weight_kg} onChange={e => { const nv = [...variants]; nv[i].weight_kg = e.target.value; setVariants(nv); }} />
                 
-                <select className="flex-1 min-w-[130px] border px-2 rounded-none text-xs h-9 bg-white" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
-  <option value="">No Variant Media</option>
-  {images.map((img, idx) => (
-    <option key={idx} value={img}>Media {idx + 1} {isVideo(img) ? '(Video)' : '(Image)'}</option>
-  ))}
-</select>
+                <select disabled={isEmployee} className="flex-1 min-w-[130px] border px-2 rounded-none text-xs h-9 bg-white disabled:cursor-not-allowed disabled:opacity-60" value={v.image_url} onChange={e => { const nv = [...variants]; nv[i].image_url = e.target.value; setVariants(nv); }}>
+                  <option value="">No Variant Media</option>
+                  {images.map((img, idx) => (
+                    <option key={idx} value={img}>Media {idx + 1} {isVideo(img) ? '(Video)' : '(Image)'}</option>
+                  ))}
+                </select>
 
-                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-none" onClick={() => setVariants(variants.filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
+                {/* 👉 Hides variant trash can for employees */}
+                {!isEmployee && (
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-none" onClick={() => setVariants(variants.filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
+                )}
               </div>
             );
           })}
         </div>
         
-        {/* 👉 UPDATED: Now includes compare_at_price: 0 in the empty state */}
-        <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, compare_at_price: 0, weight_kg: 0, image_url: '' }])}>
-          <Plus className="w-4 h-4 mr-2" /> Append Variant Row
-        </Button>
+        {!isEmployee && (
+          <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, compare_at_price: 0, weight_kg: 0, image_url: '' }])}>
+            <Plus className="w-4 h-4 mr-2" /> Append Variant Row
+          </Button>
+        )}
       </div>
 
-      <Button type="submit" disabled={isSaving || isUploading} className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-none uppercase tracking-[0.2em] font-black">
-        {isSaving ? "Transmitting to Database..." : "Commit Apparel Record"}
-      </Button>
+      {/* 👉 Hides the entire save button for employees */}
+      {!isEmployee && (
+        <Button type="submit" disabled={isSaving || isUploading} className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-none uppercase tracking-[0.2em] font-black">
+          {isSaving ? "Transmitting to Database..." : "Commit Apparel Record"}
+        </Button>
+      )}
     </form>
   );
 }

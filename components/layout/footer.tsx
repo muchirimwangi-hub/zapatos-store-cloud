@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Instagram } from "lucide-react"
+import { Instagram, Phone, MessageCircle } from "lucide-react"
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -69,6 +69,12 @@ export default function Footer() {
                   Shipping &amp; Returns
                 </Link>
               </li>
+              {/* New Size Guide Link */}
+              <li>
+                <Link href="/size-guide" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Size Guide
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -95,16 +101,66 @@ export default function Footer() {
 
         {/* 3. LOWER STATUS BAR */}
         <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 text-center space-y-4">
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-3">
+            
+            {/* X (Twitter) */}
             <a
-              href="https://www.instagram.com/zapatoscave"
+              href="https://x.com/zapatoscaveske"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
-              aria-label="Instagram Link"
+              aria-label="X"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
+                <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+              </svg>
+            </a>
+
+            {/* Instagram */}
+            <a
+              href="https://www.instagram.com/zapatoscave/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
+              aria-label="Instagram"
             >
               <Instagram className="h-4 w-4 stroke-[1.5]" />
             </a>
+
+            {/* TikTok */}
+            <a
+              href="https://www.tiktok.com/@zapatoscaveske"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
+              aria-label="TikTok"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a3 3 0 0 1-3-3v7a6 6 0 1 1-6-6v3a3 3 0 0 0 3 3Z" />
+              </svg>
+            </a>
+
+            {/* WhatsApp */}
+            <a
+              href="https://wa.me/254720383601"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
+              aria-label="WhatsApp"
+            >
+              <MessageCircle className="h-4 w-4 stroke-[1.5]" />
+            </a>
+
+            {/* Phone Call */}
+            <a
+              href="tel:+254720383601"
+              className="p-2 border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
+              aria-label="Call Us"
+            >
+              <Phone className="h-4 w-4 stroke-[1.5]" />
+            </a>
+
           </div>
           <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
             © {currentYear} Zapatos Cave. All rights reserved.

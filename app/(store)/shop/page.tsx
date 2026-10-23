@@ -113,6 +113,12 @@ function ShopCatalogContent() {
         result = result.filter(p => ['women', 'unisex'].includes(p.category?.toLowerCase()));
       } else if (selectedCategory === "Unisex") {
         result = result.filter(p => p.category?.toLowerCase() === 'unisex');
+      } else if (selectedCategory === "Compression") {
+        // Catches any product with "compression" in its name
+        result = result.filter(p => p.name?.toLowerCase().includes('compression'));
+      } else if (selectedCategory === "Tracksuits") {
+        // Catches both "tracksuit" and "tracksuits" in the name
+        result = result.filter(p => p.name?.toLowerCase().includes('tracksuit'));
       }
     }
 

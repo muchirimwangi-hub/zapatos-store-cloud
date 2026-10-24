@@ -75,6 +75,11 @@ export default function Footer() {
                   Size Guide
                 </Link>
               </li>
+              <li>
+                <Link href="/faq" className="text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
 

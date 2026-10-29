@@ -17,7 +17,8 @@ import {
   Upload, 
   BarChart,
   Truck,
-  Trash2
+  Trash2,
+  Shield
 } from "lucide-react"
 
 // Ensure these paths match your folder structure exactly
@@ -33,6 +34,7 @@ const adminNavItems = [
   { href: "/admin/logistics", label: "Logistics", icon: Truck },
   { href: "/admin/import", label: "Data Import", icon: Upload }, 
   { href: "/admin/research", label: "Research Centre", icon: BarChart },
+  { href: "/admin/team", label: "Team Protocol", icon: Shield },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 

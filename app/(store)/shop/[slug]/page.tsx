@@ -24,6 +24,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   let ogImage = 'https://www.zapatoscave.com/icon.jpeg' 
   if (Array.isArray(product.images) && product.images.length > 0) {
     ogImage = typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url
+    
+    // 👉 IN-HOUSE COMPRESSION: Tell Supabase to compress it on the fly for WhatsApp
+    if (ogImage.includes('/object/public/')) {
+      ogImage = ogImage.replace('/object/public/', '/render/image/public/') + '?width=800&height=800&quality=70&resize=contain'
+    }
   }
 
   const description = product.short_description || product.description || 'Premium Performance Apparel'

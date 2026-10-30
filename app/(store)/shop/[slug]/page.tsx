@@ -16,19 +16,41 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product) {
     return {
-      title: 'Product Unresolved',
+      title: 'Product Unresolved | Zapatos Cave',
     }
   }
 
+  // 1. Safely extract the first image URL, with a fallback just in case
+  let ogImage = 'https://www.zapatoscave.com/icon.jpeg' 
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    ogImage = typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url
+  }
+
+  const description = product.short_description || product.description || 'Premium Performance Apparel'
+
   return {
     title: `${product.name} | Zapatos Cave`,
-    description: product.short_description || product.description || 'Premium Performance Apparel',
+    description: description,
     openGraph: {
       title: product.name,
-      description: product.short_description || product.description || '',
-      images: Array.isArray(product.images) && product.images.length > 0
-        ? [typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url]
-        : [],
+      description: description,
+      url: `https://www.zapatoscave.com/shop/${slug}`,
+      siteName: 'Zapatos Cave',
+      type: 'website',
+      images: [
+        {
+          url: ogImage,
+          width: 800,   // WhatsApp strongly prefers dimensions to be explicitly stated
+          height: 800,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image', // Forces the big, full-width image preview
+      title: product.name,
+      description: description,
+      images: [ogImage],
     },
   }
 }

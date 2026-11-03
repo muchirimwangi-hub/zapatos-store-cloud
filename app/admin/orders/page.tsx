@@ -170,49 +170,30 @@ export default function AdminOrdersPage() {
   const handleViewDetails = async (order: OrderRow) => {
     setSelectedOrder(order); setIsDetailOpen(true); setIsEditingItems(false); setSelectedOrderItems([])
     
-    // 👉 THE FIX: Fetch line items WITH direct foreign-key joins to product_variants and products
     const { data, error } = await supabase
       .from("order_items")
-      .select(`
-        id,
-        order_id,
-        product_variant_id,
-        quantity,
-        price,
-        product_variants (
-          attributes,
-          products ( name )
-        )
-      `) 
+      .select(`*`) 
       .eq("order_id", order.id)
 
     if (error) {
       alert(`SUPABASE ERROR:\n${error.message || JSON.stringify(error)}`)
+      return
     }
 
     if (data) {
       const formatted = data.map((item: any) => {
-        // Fallback to in-memory allVariants if the database variant was hard-deleted
+        // We still check the catalog just in case it's an old order before the snapshot update
         const catalogMatch = allVariants.find(v => v.id === item.product_variant_id)
         
-        const dbProductName = item.product_variants?.products?.name
-        const dbVariantLabel = item.product_variants?.attributes 
-          ? Object.values(item.product_variants.attributes).join(" / ") 
-          : null
-
         return {
           id: item.id,
           order_id: item.order_id,
           product_variant_id: item.product_variant_id,
           quantity: item.quantity,
           price: item.price,
-          // Safely prefers the DB name, falls back to memory, then falls back to Unknown
-          products: { name: dbProductName || catalogMatch?.product_name || "Unknown Product" },
-          product_variants: { 
-            attributes: { 
-              label: dbVariantLabel || catalogMatch?.variant_name || "Standard" 
-            } 
-          }
+          // 👉 THE FIX: Read the saved snapshot name first.
+          products: { name: item.product_name || catalogMatch?.product_name || "UNAVAILABLE GHOST ITEM" },
+          product_variants: { attributes: { label: item.variant_name || catalogMatch?.variant_name || "Standard" } }
         }
       })
       setSelectedOrderItems(formatted)
@@ -352,7 +333,9 @@ export default function AdminOrdersPage() {
          product_id: match?.product_id,
          product_variant_id: item.variantId, 
          quantity: item.quantity, 
-         price: effectiveUnitPrice
+         price: effectiveUnitPrice,
+         product_name: match?.product_name || "Manual Item",
+         variant_name: match?.variant_name || "Standard"
        }
     })
     

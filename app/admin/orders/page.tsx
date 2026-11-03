@@ -170,9 +170,20 @@ export default function AdminOrdersPage() {
   const handleViewDetails = async (order: OrderRow) => {
     setSelectedOrder(order); setIsDetailOpen(true); setIsEditingItems(false); setSelectedOrderItems([])
     
+    // 👉 THE FIX: Fetch line items WITH direct foreign-key joins to product_variants and products
     const { data, error } = await supabase
       .from("order_items")
-      .select(`*`) 
+      .select(`
+        id,
+        order_id,
+        product_variant_id,
+        quantity,
+        price,
+        product_variants (
+          attributes,
+          products ( name )
+        )
+      `) 
       .eq("order_id", order.id)
 
     if (error) {
@@ -181,15 +192,27 @@ export default function AdminOrdersPage() {
 
     if (data) {
       const formatted = data.map((item: any) => {
+        // Fallback to in-memory allVariants if the database variant was hard-deleted
         const catalogMatch = allVariants.find(v => v.id === item.product_variant_id)
+        
+        const dbProductName = item.product_variants?.products?.name
+        const dbVariantLabel = item.product_variants?.attributes 
+          ? Object.values(item.product_variants.attributes).join(" / ") 
+          : null
+
         return {
           id: item.id,
           order_id: item.order_id,
           product_variant_id: item.product_variant_id,
           quantity: item.quantity,
           price: item.price,
-          products: { name: catalogMatch?.product_name || "Unknown Product" },
-          product_variants: { attributes: catalogMatch ? { label: catalogMatch.variant_name } : undefined }
+          // Safely prefers the DB name, falls back to memory, then falls back to Unknown
+          products: { name: dbProductName || catalogMatch?.product_name || "Unknown Product" },
+          product_variants: { 
+            attributes: { 
+              label: dbVariantLabel || catalogMatch?.variant_name || "Standard" 
+            } 
+          }
         }
       })
       setSelectedOrderItems(formatted)

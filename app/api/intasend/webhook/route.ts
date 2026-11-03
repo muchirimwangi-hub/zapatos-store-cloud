@@ -95,14 +95,23 @@ export async function POST(request: NextRequest) {
         : (typeof matchedCart.items === 'string' ? JSON.parse(matchedCart.items) : [])
 
       if (newOrder && items.length > 0) {
-        const orderItems = items.map((item: any) => ({
-          order_id: newOrder.id,
-          product_id: item.product?.id || item.id,
-          product_name: item.product?.name || item.name || 'Unknown Apparel',
-          quantity: Number(item.quantity || 1),
-          unit_price: Number(item.product?.price || item.price || 0),
-          total_price: Number(item.product?.price || item.price || 0) * Number(item.quantity || 1)
-        }))
+       const orderItems = items.map((item: any) => {
+          // Safely extract the size/color label from the cart item
+          const variantData = item.attributes || item.variant || item.options;
+          const variantLabel = variantData ? Object.values(variantData).join(" / ") : "Standard";
+
+          return {
+            order_id: newOrder.id,
+            product_id: item.product?.id || item.product_id,
+            product_variant_id: item.id || item.variant_id, // Link the specific variant
+            quantity: Number(item.quantity || 1),
+            price: Number(item.product?.price || item.price || 0), // Use 'price' to match your schema
+            
+            // 👉 THE SNAPSHOT LOCK: Permanently burns the names into the receipt
+            product_name: item.product?.name || item.name || 'Unknown Apparel',
+            variant_name: variantLabel
+          }
+        })
 
         await supabase.from('order_items').insert(orderItems)
 

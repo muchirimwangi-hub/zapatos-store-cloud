@@ -84,16 +84,34 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const supabase = await createClient()
+
+  // 1. Fetch current product's variants
   const { data: variants } = await supabase
-  .from('product_variants')
-  // 👉 CHANGE THIS LINE to fetch 'attributes' instead of size/color/sleeve
-  .select('id, sku, price, stock_quantity, attributes, image_url') 
-  .eq('product_id', product.id)
-  .order('sku', { ascending: true })
+    .from('product_variants')
+    .select('*')
+    .eq('product_id', product.id)
+    .order('sku', { ascending: true })
+
+  // 2. Fetch ALL product variants in the database so we can instantly resolve parent stock locally!
+  const { data: allVariants } = await supabase
+    .from('product_variants')
+    .select('id, stock_quantity')
+
+  // 3. Map the parent stock directly onto the variants in memory
+  const enrichedVariants = (variants || []).map((v: any) => {
+    if (v.bundle_parent_id && allVariants) {
+      const parentMatch = allVariants.find((pv: any) => pv.id === v.bundle_parent_id);
+      return {
+        ...v,
+        parent: parentMatch ? [parentMatch] : []
+      };
+    }
+    return v;
+  });
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#08080A] pt-12 transition-colors duration-500">
-      <ProductDisplay product={product as any} variants={variants as any || []} />
+      <ProductDisplay product={product as any} variants={enrichedVariants as any} />
     </main>
   )
 }

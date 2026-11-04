@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import Image from "next/image" // 👈 Added Next.js Image import
+import Image from "next/image" 
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/lib/store/cart-store"
 import { useRouter } from "next/navigation"
@@ -15,7 +15,6 @@ const cleanImageUrl = (imgData: any): string => {
   return "";
 };
 
-// 👉 NEW: Helper to detect video URLs
 const isVideo = (url: string) => {
   return typeof url === 'string' && /\.(mp4|webm|ogg|mov)$/i.test(url);
 };
@@ -28,7 +27,24 @@ export default function ProductDisplay({ product, variants }: { product: any; va
   const { addItem } = useCartStore();
   const router = useRouter()
 
-  // 1. EXTRACT ALL OPTION CATEGORIES
+  // 👉 UPGRADED: Safely extracts parent stock whether Supabase returns an object or an array
+  const getEffectiveStock = (variant: any) => {
+    if (!variant) return 0;
+    
+    // If it has a parent bundle link
+    if (variant.bundle_parent_id) {
+      if (Array.isArray(variant.parent)) {
+        return Number(variant.parent[0]?.stock_quantity) || 0;
+      }
+      if (variant.parent && typeof variant.parent === 'object') {
+        return Number(variant.parent.stock_quantity) || 0;
+      }
+    }
+    
+    // Fallback to local stock
+    return Number(variant.stock_quantity) || 0;
+  };
+
   const optionGroups = useMemo(() => {
     const groups: Record<string, Set<string>> = {};
     if (variants) {
@@ -46,7 +62,6 @@ export default function ProductDisplay({ product, variants }: { product: any; va
     return groups;
   }, [variants]);
 
-  // 2. SET INITIAL SELECTIONS
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     if (variants && variants.length > 0 && variants[0].attributes) {
@@ -57,21 +72,24 @@ export default function ProductDisplay({ product, variants }: { product: any; va
     return initial;
   });
 
-  // 3. MATCH EXACT VARIANT
+  // 👉 ROBUST VARIANT FINDER: Ignores case and whitespace mismatches
   const selectedVariant = useMemo(() => {
     return variants?.find(v => {
       if (!v.attributes) return false;
-      return Object.entries(selectedOptions).every(([key, val]) => v.attributes[key] === val);
+      return Object.entries(selectedOptions).every(([selectedKey, selectedVal]) => {
+        const matchingKey = Object.keys(v.attributes).find(
+          k => k.toLowerCase() === selectedKey.toLowerCase()
+        );
+        if (!matchingKey) return false;
+        const vVal = v.attributes[matchingKey];
+        return String(vVal).trim().toLowerCase() === String(selectedVal).trim().toLowerCase();
+      });
     });
   }, [selectedOptions, variants]);
 
-  // 4. DYNAMIC IMAGE GALLERY LOGIC
   const displayImages = useMemo(() => {
-    // Get all base images
     let imgs = (product.images || []).map(cleanImageUrl).filter(Boolean);
     const vImg = cleanImageUrl(selectedVariant?.image_url);
-
-    // If a variant is selected and has a specific image, push it to the top of the stack
     if (vImg) {
       imgs = [vImg, ...imgs.filter((img: string) => img !== vImg)];
     }
@@ -79,13 +97,13 @@ export default function ProductDisplay({ product, variants }: { product: any; va
   }, [selectedVariant, product.images]);
 
   const handleAddToBag = () => {
-    if (!selectedVariant || selectedVariant.stock_quantity <= 0) return;
+    const effectiveStock = getEffectiveStock(selectedVariant);
+    if (!selectedVariant || effectiveStock <= 0) return;
     setIsAdding(true);
     addItem(product, 1, selectedOptions);
     router.push("/cart");
   };
 
-  // HELPER: Sort options logically
   const sortOptions = (name: string, values: Set<string>) => {
     const arr = Array.from(values);
     if (name.toLowerCase() === 'size') {
@@ -101,13 +119,16 @@ export default function ProductDisplay({ product, variants }: { product: any; va
     return arr.sort(); 
   };
 
+  // Calculate real active stock for the button
+  const activeEffectiveStock = getEffectiveStock(selectedVariant);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto px-6 py-12 text-zinc-900 dark:text-zinc-100 items-start">
       
       {/* LEFT COLUMN: NIKE-STYLE THUMBNAIL GALLERY */}
       <div className="flex flex-col-reverse md:flex-row gap-4 w-full md:h-[calc(100vh-120px)] md:sticky md:top-28">
         
-        {/* 2. THE THUMBNAILS */}
+        {/* THUMBNAILS */}
         <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-20 shrink-0 snap-x md:snap-y scrollbar-hide pb-2 md:pb-0 md:h-full">
           {displayImages.map((img: string, idx: number) => (
             <button 
@@ -119,59 +140,29 @@ export default function ProductDisplay({ product, variants }: { product: any; va
                   : 'border-transparent opacity-50 hover:opacity-100'
               }`}
             >
-              {/* 👉 UPDATED: Check if video or image */}
               {isVideo(img) ? (
-                <video 
-                  src={img} 
-                  className="w-full h-full object-cover" 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline 
-                />
+                <video src={img} className="w-full h-full object-cover" autoPlay muted loop playsInline />
               ) : (
-                <Image 
-                  src={img} 
-                  alt={`Thumbnail ${idx + 1}`} 
-                  fill
-                  sizes="(max-width: 768px) 80px, 100px"
-                  className="object-cover" 
-                />
+                <Image src={img} alt={`Thumbnail ${idx + 1}`} fill sizes="(max-width: 768px) 80px, 100px" className="object-cover" />
               )}
             </button>
           ))}
         </div>
 
-        {/* 3. THE MAIN ACTIVE IMAGE */}
+        {/* MAIN ACTIVE IMAGE */}
         <div className="w-full aspect-[4/5] md:aspect-auto md:h-full md:flex-1 bg-zinc-50 dark:bg-[#0C0C10] rounded-lg overflow-hidden relative flex items-center justify-center md:p-4">
-          {/* 👉 UPDATED: Check if active media is video or image */}
           {isVideo(displayImages[activeImageIdx] || displayImages[0]) ? (
-            <video 
-              src={displayImages[activeImageIdx] || displayImages[0]} 
-              className="w-full h-full object-cover md:object-contain transition-opacity duration-300" 
-              autoPlay 
-              muted 
-              loop 
-              playsInline 
-            />
+            <video src={displayImages[activeImageIdx] || displayImages[0]} className="w-full h-full object-cover md:object-contain transition-opacity duration-300" autoPlay muted loop playsInline />
           ) : (
-            <Image 
-              src={displayImages[activeImageIdx] || displayImages[0]} 
-              alt={product.name} 
-              fill
-              priority={true}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover md:object-contain transition-opacity duration-300" 
-            />
+            <Image src={displayImages[activeImageIdx] || displayImages[0]} alt={product.name} fill priority={true} sizes="(max-width: 768px) 100vw, 50vw" className="object-cover md:object-contain transition-opacity duration-300" />
           )}
         </div>
-
       </div>
 
       {/* RIGHT COLUMN: STICKY PRODUCT DETAILS */}
       <div className="sticky top-28 space-y-10 h-[calc(100vh-120px)] overflow-y-auto pb-12 pr-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         
-        {/* 1. Title & Price */}
+        {/* Title & Price */}
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter">{product.name}</h1>
           <p className="text-lg font-bold">Ksh {selectedVariant?.price?.toLocaleString() || product.price?.toLocaleString()}</p>
@@ -179,7 +170,7 @@ export default function ProductDisplay({ product, variants }: { product: any; va
 
         <hr className="border-zinc-100 dark:border-zinc-900" />
 
-        {/* 2. Attributes (Sizes/Colors) */}
+        {/* Attributes (Sizes/Colors) */}
         <div className="space-y-8">
           {Object.entries(optionGroups).map(([name, values]) => {
             const sortedValues = sortOptions(name, values);
@@ -191,11 +182,21 @@ export default function ProductDisplay({ product, variants }: { product: any; va
                   {sortedValues.map(val => {
                     const isActive = selectedOptions[name] === val;
                     const isAvailable = variants?.some(v => {
-                      if (!v.attributes) return false;
-                      const hypotheticalSelection = { ...selectedOptions, [name]: val };
-                      const isMatch = Object.entries(hypotheticalSelection).every(([k, vVal]) => v.attributes[k] === vVal);
-                      return isMatch && v.stock_quantity > 0;
-                    });
+      if (!v.attributes) return false;
+      const hypotheticalSelection = { ...selectedOptions, [name]: val };
+      
+      const isMatch = Object.entries(hypotheticalSelection).every(([selectedKey, selectedVal]) => {
+        const matchingKey = Object.keys(v.attributes).find(
+          k => k.toLowerCase() === selectedKey.toLowerCase()
+        );
+        if (!matchingKey) return false;
+        const vVal = v.attributes[matchingKey];
+        return String(vVal).trim().toLowerCase() === String(selectedVal).trim().toLowerCase();
+      });
+
+      const effectiveStock = getEffectiveStock(v);
+      return isMatch && effectiveStock > 0;
+    });
 
                     return (
                       <button 
@@ -219,20 +220,20 @@ export default function ProductDisplay({ product, variants }: { product: any; va
           })}
         </div>
 
-        {/* 3. Add to Bag */}
+        {/* Add to Bag */}
         <div className="pt-2">
           <Button 
             className={`w-full h-14 uppercase tracking-[0.25em] text-xs font-black rounded-none transition-transform active:scale-95 ${
-              (!selectedVariant || selectedVariant.stock_quantity <= 0) ? 'opacity-50 cursor-not-allowed' : ''
+              (!selectedVariant || activeEffectiveStock <= 0) ? 'opacity-50 cursor-not-allowed' : ''
             }`}
             onClick={handleAddToBag}
-            disabled={!selectedVariant || selectedVariant.stock_quantity <= 0 || isAdding}
+            disabled={!selectedVariant || activeEffectiveStock <= 0 || isAdding}
           >
-            {isAdding ? "Adding..." : (selectedVariant && selectedVariant.stock_quantity > 0) ? "Add to Bag" : "Sold Out"}
+            {isAdding ? "Adding..." : (selectedVariant && activeEffectiveStock > 0) ? "Add to Bag" : "Sold Out"}
           </Button>
         </div>
 
-        {/* 4. Description (Moved to Bottom) */}
+        {/* Description */}
         <div className="pt-8 border-t border-zinc-100 dark:border-zinc-900 mt-8">
           <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 block mb-4">
             // Product Intel

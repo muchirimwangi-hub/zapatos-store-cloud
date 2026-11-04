@@ -1,12 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus, X, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
-// 👉 FIX: Added isEmployee to the TypeScript definitions to clear the red line
 export function ProductForm({ 
   productId, 
   initialData, 
@@ -26,6 +25,28 @@ export function ProductForm({
   const [isActive, setIsActive] = useState<boolean>(initialData?.is_active ?? true);
   const [images, setImages] = useState<string[]>(initialData?.images || []);
   
+  // 👉 UPDATED: Now stores label AND stock_quantity for master synchronization
+  const [bundleParents, setBundleParents] = useState<{id: string, label: string, stock_quantity: number}[]>([]);
+
+  useEffect(() => {
+    const fetchBundleParents = async () => {
+      const supabase = createClient();
+      // 👉 Fetch stock_quantity so we can mirror it in the UI
+      const { data } = await supabase.from('products').select('id, name, product_variants(id, sku, attributes, stock_quantity)');
+      if (data) {
+        const parents = data.flatMap(p => 
+          (p.product_variants || []).map((pv: any) => ({
+            id: pv.id,
+            label: `${p.name} - ${pv.attributes ? Object.values(pv.attributes).join(' / ') : pv.sku}`,
+            stock_quantity: pv.stock_quantity || 0
+          }))
+        );
+        setBundleParents(parents);
+      }
+    };
+    fetchBundleParents();
+  }, []);
+
   const [optionKeys, setOptionKeys] = useState<string[]>(
     initialData?.product_variants?.[0]?.attributes 
       ? Object.keys(initialData.product_variants[0].attributes) 
@@ -38,7 +59,9 @@ export function ProductForm({
     price: v.price || 0,
     compare_at_price: v.compare_at_price || 0,
     weight_kg: v.weight_kg || 0,
-    image_url: v.image_url || ""
+    image_url: v.image_url || "",
+    bundle_parent_id: v.bundle_parent_id || "",
+    searchQuery: "" 
   })) || []);
 
   const [variantFilter, setVariantFilter] = useState("");
@@ -100,7 +123,7 @@ export function ProductForm({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEmployee) return; // Failsafe against backend saves
+    if (isEmployee) return; 
     setIsSaving(true);
     const supabase = createClient();
     const generatedSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -128,7 +151,8 @@ export function ProductForm({
             image_url: v.image_url || "",
             price: parseFloat(v.price) || 0,
             compare_at_price: parseFloat(v.compare_at_price) || 0,
-            weight_kg: parseFloat(v.weight_kg) || 0
+            weight_kg: parseFloat(v.weight_kg) || 0,
+            bundle_parent_id: v.bundle_parent_id || null
           };
         });
         await supabase.from("product_variants").insert(formattedVariants);
@@ -142,7 +166,6 @@ export function ProductForm({
   return (
     <form onSubmit={handleSave} className="space-y-8 p-8 max-w-5xl mx-auto border border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-[#08080A]">
 
-      {/* 👉 NEW: Employee Warning Banner */}
       {isEmployee && (
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 flex items-center gap-3 text-sm font-bold tracking-widest uppercase rounded-none">
           <Lock className="w-5 h-5" />
@@ -153,7 +176,7 @@ export function ProductForm({
       {/* SECTION 1: IDENTITY */}
       <div className="space-y-4">
         <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">1. Identity</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Identity</h2>
           <select 
             disabled={isEmployee}
             className={`border px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-none outline-none ${isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-zinc-100 text-zinc-500 border-zinc-200'} ${isEmployee ? 'opacity-60 cursor-not-allowed' : ''}`} 
@@ -180,7 +203,6 @@ export function ProductForm({
       <div className="space-y-4 p-4 border border-zinc-200 bg-zinc-50 dark:bg-[#0C0C10] rounded-none">
         <h2 className="text-lg font-bold">2. Upload Media</h2>
         
-        {/* 👉 Hides upload button for employees */}
         {!isEmployee && (
           <>
             <p className="text-xs text-zinc-500 font-mono -mt-2">Supports Images & Short Videos (Max 10MB per file)</p>
@@ -202,7 +224,6 @@ export function ProductForm({
                   <img src={img} alt={`Upload ${i}`} className="w-full h-full object-cover" />
                 )}
 
-                {/* 👉 Hides delete button for employees */}
                 {!isEmployee && (
                   <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-red-500 text-white rounded-none p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <X className="w-3 h-3" />
@@ -258,13 +279,32 @@ export function ProductForm({
             }
 
             return (
-              <div key={i} className={`flex flex-wrap gap-2 border border-zinc-200 p-2 pl-3 items-center bg-zinc-50 rounded-none ${isEmployee ? 'opacity-80' : 'group hover:border-zinc-400 transition-colors'}`}>
+              <div key={i} className={`flex flex-wrap gap-2 border border-zinc-200 p-2 pl-3 items-center bg-zinc-50 rounded-none relative ${isEmployee ? 'opacity-80' : 'group hover:border-zinc-400 transition-colors'}`}>
                 
                 {optionKeys.map(key => (
                   <Input disabled={isEmployee} key={key} className="w-24 placeholder:text-zinc-300 rounded-none h-9 text-xs bg-white disabled:cursor-not-allowed" placeholder={key} value={v.attributes[key] || ""} onChange={e => updateVariantAttribute(i, key, e.target.value)} />
                 ))}
                 
-                <Input disabled={isEmployee} className="w-16 rounded-none h-9 text-xs font-mono bg-white disabled:cursor-not-allowed" type="number" placeholder="Qty" title="Stock Quantity" value={v.stock_quantity} onChange={e => { const nv = [...variants]; nv[i].stock_quantity = e.target.value; setVariants(nv); }} />
+                {/* 👉 UPGRADED QTY BOX: Automatically displays master tracksuits stock if linked! */}
+                <Input 
+                  disabled={isEmployee || !!v.bundle_parent_id} 
+                  className={`w-16 rounded-none h-9 text-xs font-mono bg-white disabled:cursor-not-allowed ${v.bundle_parent_id ? 'font-bold text-green-700 bg-green-50/50 border-green-200' : ''}`} 
+                  type="number" 
+                  placeholder="Qty" 
+                  title={v.bundle_parent_id ? "Synced with Master Tracksuit Stock" : "Stock Quantity"}
+                  value={
+                    v.bundle_parent_id 
+                      ? (bundleParents.find(p => p.id === v.bundle_parent_id)?.stock_quantity ?? 0)
+                      : v.stock_quantity
+                  } 
+                  onChange={e => { 
+                    if (!v.bundle_parent_id) {
+                      const nv = [...variants]; 
+                      nv[i].stock_quantity = e.target.value; 
+                      setVariants(nv); 
+                    }
+                  }} 
+                />
                 
                 <Input disabled={isEmployee} className="w-20 rounded-none h-9 text-xs font-mono bg-zinc-50 border-red-200 text-red-500 placeholder:text-red-300 disabled:cursor-not-allowed" type="number" placeholder="Orig. KES" title="Original Price (Leave 0 for no discount)" value={v.compare_at_price || ""} onChange={e => { const nv = [...variants]; nv[i].compare_at_price = e.target.value; setVariants(nv); }} />
                 
@@ -279,7 +319,64 @@ export function ProductForm({
                   ))}
                 </select>
 
-                {/* 👉 Hides variant trash can for employees */}
+                {/* ERGONOMIC SEARCHABLE COMBOBOX FOR MASTER LINK */}
+                <div className="flex-1 min-w-[200px] relative">
+                  <input 
+                    type="text"
+                    disabled={isEmployee}
+                    placeholder="Search Master Tracksuit..."
+                    className="w-full border px-2 rounded-none text-[10px] font-mono font-bold tracking-tight h-9 bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                    value={
+                      bundleParents.find(p => p.id === v.bundle_parent_id)?.label || v.searchQuery || ""
+                    }
+                    onChange={e => {
+                      const q = e.target.value;
+                      const nv = [...variants];
+                      nv[i].searchQuery = q;
+                      setVariants(nv);
+                    }}
+                    onFocus={() => {
+                      const nv = [...variants];
+                      if (!nv[i].searchQuery && v.bundle_parent_id) {
+                        const match = bundleParents.find(p => p.id === v.bundle_parent_id);
+                        if (match) nv[i].searchQuery = match.label;
+                      }
+                      setVariants(nv);
+                    }}
+                  />
+                  {v.searchQuery !== undefined && v.searchQuery !== "" && (
+                    <div className="absolute z-50 left-0 right-0 top-full bg-white border border-black shadow-xl max-h-48 overflow-y-auto">
+                      <div 
+                        className="p-2 text-[10px] text-red-600 font-bold cursor-pointer hover:bg-zinc-100 border-b"
+                        onClick={() => {
+                          const nv = [...variants];
+                          nv[i].bundle_parent_id = "";
+                          nv[i].searchQuery = "";
+                          setVariants(nv);
+                        }}
+                      >
+                        ✕ Clear Master Link (Standalone)
+                      </div>
+                      {bundleParents
+                        .filter(p => p.label.toLowerCase().includes((v.searchQuery || "").toLowerCase()))
+                        .map(parent => (
+                          <div 
+                            key={parent.id}
+                            className="p-2 text-[10px] font-mono cursor-pointer hover:bg-black hover:text-white border-b last:border-0"
+                            onClick={() => {
+                              const nv = [...variants];
+                              nv[i].bundle_parent_id = parent.id;
+                              nv[i].searchQuery = ""; 
+                              setVariants(nv);
+                            }}
+                          >
+                            {parent.label}
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
                 {!isEmployee && (
                   <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-none" onClick={() => setVariants(variants.filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
                 )}
@@ -289,13 +386,12 @@ export function ProductForm({
         </div>
         
         {!isEmployee && (
-          <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, compare_at_price: 0, weight_kg: 0, image_url: '' }])}>
+          <Button type="button" variant="outline" className="rounded-none h-10 w-full border-dashed border-2 hover:border-black text-xs uppercase tracking-widest font-bold" onClick={() => setVariants([...variants, { attributes: {}, stock_quantity: 0, price: 0, compare_at_price: 0, weight_kg: 0, image_url: '', bundle_parent_id: '', searchQuery: '' }])}>
             <Plus className="w-4 h-4 mr-2" /> Append Variant Row
           </Button>
         )}
       </div>
 
-      {/* 👉 Hides the entire save button for employees */}
       {!isEmployee && (
         <Button type="submit" disabled={isSaving || isUploading} className="w-full h-14 bg-black text-white hover:bg-zinc-800 rounded-none uppercase tracking-[0.2em] font-black">
           {isSaving ? "Transmitting to Database..." : "Commit Apparel Record"}

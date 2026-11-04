@@ -14,18 +14,20 @@ interface VariantAttribute {
 export function VariantBuilder({ 
   onVariantsChange, 
   initialVariants = [],
-  availableImages = [] 
+  availableImages = [],
+  productsList = [] // 👉 NEW: We need to pass the full product list into the builder
 }: { 
   onVariantsChange: (variants: any[]) => void,
   initialVariants?: any[],
-  availableImages?: string[] 
+  availableImages?: string[],
+  productsList?: any[] 
 }) {
   const [attributes, setAttributes] = useState<VariantAttribute[]>([
     { name: "Size", values: ["S", "M", "L"], rawValues: "S, M, L" }
   ])
   const [generatedVariants, setGeneratedVariants] = useState<any[]>([])
   const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({})
-  const [isHydrated, setIsHydrated] = useState(false) // Fixes the destructive state loop
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Hydrate only ONCE on initialization
   useEffect(() => {
@@ -68,6 +70,20 @@ export function VariantBuilder({
     });
   }, [generatedVariants, activeFilters]);
 
+  // 👉 NEW: Memoize a flattened list of all possible "Master" variants from other products
+  const availableBundleParents = useMemo(() => {
+    return productsList.flatMap(p => {
+      if (!p.product_variants) return [];
+      return p.product_variants.map((pv: any) => {
+        const variantName = pv.attributes ? Object.values(pv.attributes).join(" / ") : pv.sku;
+        return {
+          id: pv.id,
+          label: `${p.name} - ${variantName}`
+        }
+      });
+    });
+  }, [productsList]);
+
   const updateAttributeValues = (idx: number, valString: string) => {
     const newAttrs = [...attributes]
     newAttrs[idx].rawValues = valString 
@@ -82,7 +98,6 @@ export function VariantBuilder({
     onVariantsChange(updated)
   }
 
-  // UPGRADED: Merges new combinations with your existing data
   const generateMatrix = () => {
     let matrix: any[] = [{}]
     attributes.forEach((attr, idx) => {
@@ -96,15 +111,14 @@ export function VariantBuilder({
     })
 
     const final = matrix.map(m => {
-      // Look for an identical pre-existing combination
       const existing = generatedVariants.find(gv => 
         gv.option1?.value === m.option1?.value && 
         (m.option2 ? gv.option2?.value === m.option2.value : true) &&
         (m.option3 ? gv.option3?.value === m.option3.value : true)
       )
 
-      // Retain old values if matched, otherwise deploy fresh defaults
-      return existing || { sku: "", price: "", stock: "0", image_url: "", ...m }
+      // 👉 INJECTED: Added bundle_parent_id to the fallback object
+      return existing || { sku: "", price: "", stock: "0", image_url: "", bundle_parent_id: null, ...m }
     })
 
     setGeneratedVariants(final)
@@ -180,6 +194,7 @@ export function VariantBuilder({
                   <th className="p-4">Media Link</th>
                   <th className="p-4">Price</th>
                   <th className="p-4">Stock</th>
+                  <th className="p-4">Master Bundle Link (Optional)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -219,6 +234,23 @@ export function VariantBuilder({
                       <td className="p-4">
                         <Input className="h-9 rounded-none w-20 border-black/5" value={v.stock} onChange={e => updateVariantField(originalIndex, 'stock', e.target.value)} />
                       </td>
+                      
+                      {/* 👉 NEW: The dropdown to select the parent Tracksuit */}
+                      <td className="p-4">
+                        <select 
+                          className="h-9 text-[10px] font-mono border border-black/10 bg-white px-2 outline-none w-[200px]"
+                          value={v.bundle_parent_id || ""}
+                          onChange={(e) => updateVariantField(originalIndex, 'bundle_parent_id', e.target.value)}
+                        >
+                          <option value="">Standalone (No Master Link)</option>
+                          {availableBundleParents.map((parent) => (
+                            <option key={parent.id} value={parent.id}>
+                              {parent.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
                     </tr>
                   );
                 })}

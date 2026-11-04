@@ -151,7 +151,22 @@ export default function AdminProductsPage() {
                       </button>
                     </td>
 
-                    <td className="p-4 font-mono text-zinc-600">{product.product_variants?.reduce((acc: number, v: any) => acc + (parseInt(v.stock_quantity) || 0), 0)} Units</td>
+                    <td className="p-4 font-mono text-zinc-600">
+  {product.product_variants?.reduce((acc: number, v: any) => {
+    // If this variant is linked to a master parent, look up the parent's stock count!
+    if (v.bundle_parent_id) {
+      // Find the parent variant across all products in state
+      for (const p of products) {
+        const parentVar = (p.product_variants || []).find((pv: any) => pv.id === v.bundle_parent_id);
+        if (parentVar) {
+          return acc + (parseInt(parentVar.stock_quantity) || 0);
+        }
+      }
+    }
+    // Otherwise, use its own local stock quantity
+    return acc + (parseInt(v.stock_quantity) || 0);
+  }, 0)} Units
+</td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="icon" asChild className="hover:bg-zinc-100 rounded-none h-8 w-8 text-zinc-500">

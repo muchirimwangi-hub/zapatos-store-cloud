@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Activity, Cpu, ShieldAlert } from "lucide-react"
+import { ArrowRight, Activity } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -308,7 +308,7 @@ export default function HomePage() {
       </section>
 
       {/* 2.5. SYSTEM DIAGNOSTIC / QUIZ BANNER */}
-      <section className="relative py-24 bg-zinc-950 border-y border-zinc-900 overflow-hidden">
+      <section className="relative py-24 bg-zinc-950 border-b border-zinc-900 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:40px_40px]" />
         
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-6">
@@ -332,91 +332,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. CAPABILITY MATRIX PANEL */}
-      <section className="relative py-32 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/60 transition-colors duration-500 z-30">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: easeQuint }}
-            className="lg:col-span-6 space-y-6 text-left"
-          >
-            <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-600 tracking-widest uppercase">DESIGN PHILOSOPHY</span>
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-tight">
-              BUILT FOR ELEVATED
-              <br />
-              <span className="text-zinc-400 dark:text-zinc-700">ATHLETIC EXECUTION.</span>
-            </h2>
-            <p className="text-sm md:text-base text-zinc-500 dark:text-zinc-400 font-light leading-relaxed tracking-wide">
-              Every curve, low-profile flatlock seam, and localized compression zone maps perfectly to human movement. We filter out unnecessary visual noise to offer absolute, distraction-free garments that look impeccable and outlast heavy workout schedules.
-            </p>
-            <div className="pt-2">
-              <Button 
-                size="lg"
-                className="bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-none h-12 px-10 uppercase text-xs font-black tracking-widest transition-transform active:scale-95"
-                asChild
-              >
-                <Link href="/about">
-                  DISCOVER THE DESIGN
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, ease: easeQuint }}
-            className="lg:col-span-6 relative aspect-square w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 overflow-hidden"
-          >
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-[4000ms] hover:scale-105 ease-out"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2070&auto=format&fit=crop')`
-              }}
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 4. FINALE CALL TO ACTION */}
-      <section className="relative py-36 bg-white dark:bg-[#08080A] transition-colors duration-500 z-30">
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: easeQuint }}
-            className="border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-[#0C0C10] p-12 md:p-20 text-center space-y-8 transition-colors duration-500"
-          >
-            <div className="flex justify-center gap-4 text-zinc-400 dark:text-zinc-600">
-              <Cpu className="w-5 h-5 stroke-[1.5]" />
-              <Activity className="w-5 h-5 stroke-[1.5]" />
-              <ShieldAlert className="w-5 h-5 stroke-[1.5]" />
-            </div>
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">
-              UPGRADE YOUR APPAREL.
-            </h2>
-            <p className="text-sm md:text-base text-zinc-500 dark:text-zinc-400 font-light max-w-xl mx-auto leading-relaxed tracking-wide">
-              Experience upscale sporting performance styled with luxury aesthetic restraint. Find your new premium activewear built to survive the heavy demands of modern lifestyle paces.
-            </p>
-            <div className="pt-4">
-              <Button 
-                size="lg" 
-                className="bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-none h-14 px-16 uppercase text-xs font-black tracking-[0.3em] transition-transform active:scale-95"
-                asChild
-              >
-                <Link href="/shop">
-                  EXPLORE APPAREL
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
     </div>
   )
 }

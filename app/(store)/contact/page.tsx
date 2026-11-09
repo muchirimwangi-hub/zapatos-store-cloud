@@ -29,7 +29,7 @@ export default function ContactPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to transmit log')
+        throw new Error(data.error || 'Failed to send message')
       }
 
       setSubmitted(true)
@@ -46,11 +46,11 @@ export default function ContactPage() {
       {/* TECHNICAL LAYOUT BLUEPRINT GRID */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.02] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]" />
 
-      {/* 1. HERO CONTROLLER LAYER */}
+      {/* 1. HERO LAYER */}
       <section className="relative pt-48 pb-24 md:pt-64 md:pb-32 border-b border-zinc-100 dark:border-zinc-900/80">
         <div className="max-w-6xl mx-auto px-6 space-y-6 text-left">
           <p className="text-[10px] font-mono tracking-[0.5em] text-zinc-400 dark:text-zinc-600 uppercase">
-            // TERMINAL INDEX: CONNECT
+            CUSTOMER SUPPORT & INQUIRIES
           </p>
           <motion.h1 
             initial={{ opacity: 0, x: -30 }}
@@ -58,10 +58,10 @@ export default function ContactPage() {
             transition={{ duration: 0.8, ease: easeQuint }}
             className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase leading-none text-zinc-950 dark:text-white"
           >
-            SAY HELLO.
+            GET IN TOUCH.
           </motion.h1>
           <p className="text-base md:text-lg text-zinc-500 dark:text-zinc-400 font-light max-w-2xl leading-relaxed tracking-wide pt-4 border-t border-zinc-100 dark:border-zinc-900">
-            Questions about sizing or an existing order? Our team in Nakuru is ready to help guide your performance architecture.
+            Questions about sizing, bulk orders, or an existing purchase? Our team in Nakuru is ready to help outfit your performance.
           </p>
         </div>
       </section>
@@ -70,7 +70,7 @@ export default function ContactPage() {
       <section className="py-24 max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
           
-          {/* HARDWARE APPLICATION INTERFACE FORM */}
+          {/* CONTACT FORM */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -82,17 +82,17 @@ export default function ContactPage() {
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-zinc-950 dark:bg-white text-white dark:text-black">
                   <ShieldCheck className="h-5 w-5 stroke-[1.5]" />
                 </div>
-                <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-950 dark:text-white">COMMS DISPATCHED</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-950 dark:text-white">MESSAGE RECEIVED</h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 font-light leading-relaxed max-w-sm mx-auto">
-                  Log packet safely processed into the pipeline. Review queues are active; expected feedback interval inside 24 operational hours.
+                  Your inquiry has been successfully submitted. Our team will review your request and get back to you within 24 hours.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white">TRANSMIT PACKET</h2>
+                  <h2 className="text-2xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white">GENERAL & WHOLESALE INQUIRIES</h2>
                   <p className="text-xs font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                    // INITIALIZE INPUT PIPELINE SEQUENCES
+                    REACH OUT FOR SUPPORT, SIZING, OR BULK ORDERS
                   </p>
                 </div>
 
@@ -136,7 +136,7 @@ export default function ContactPage() {
                   <textarea
                     required
                     rows={6}
-                    placeholder="State technical constraints, hardware orders, or deployment tracking metrics..."
+                    placeholder="Ask about sizing, corporate team packages, wholesale partnerships, or track your current order..."
                     value={formData.message}
                     onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                     className="flex w-full border border-zinc-200 dark:border-zinc-800 bg-transparent px-3 py-3 text-sm text-zinc-950 dark:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-white rounded-none resize-none transition-all duration-200 font-light placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
@@ -144,7 +144,7 @@ export default function ContactPage() {
                 </div>
 
                 {error && (
-                  <p className="text-xs font-mono font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">// STRUCT_ERR: {error}</p>
+                  <p className="text-xs font-mono font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">ERROR: {error}</p>
                 )}
 
                 <Button 
@@ -154,13 +154,13 @@ export default function ContactPage() {
                   disabled={isSending}
                 >
                   <Send className="mr-2 h-3.5 w-3.5 stroke-[1.5]" />
-                  {isSending ? 'SENDINGPACKET...' : 'SEND MESSAGE'}
+                  {isSending ? 'SENDING MESSAGE...' : 'SEND MESSAGE'}
                 </Button>
               </form>
             )}
           </motion.div>
 
-          {/* HARDWARE INFRASTRUCTURE CHANNELS INDEX */}
+          {/* STORE DETAILS */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -168,9 +168,9 @@ export default function ContactPage() {
             className="lg:col-span-5 space-y-10"
           >
             <div className="space-y-4">
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white">SYSTEM HARDWARE INFO</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white">HQ & CONTACT INFO</h2>
               <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 font-light leading-relaxed">
-                Direct infrastructure logs mapping deployment assets across local nodes. Response systems optimized to device baseline settings.
+                Visit our Nakuru storefront for fittings and wholesale consultations, or reach out to our team directly.
               </p>
             </div>
 
@@ -178,30 +178,30 @@ export default function ContactPage() {
               {[
                 {
                   icon: MapPin,
-                  title: "Location Matrix",
+                  title: "Store Location",
                   detail: "Lams Business Mall, Nakuru",
-                  sub: "Central hub operations & localized talent deployment",
+                  sub: "Retail storefront & wholesale distribution hub",
                   href: "https://maps.google.com/?q=Lams+Business+Mall,+Nakuru",
                 },
                 {
                   icon: Clock,
-                  title: "Business Hours Matrix",
+                  title: "Business Hours",
                   detail: "Mon — Sat: 8:30am – 5:30pm",
-                  sub: "System clocks synchronized to East Africa Time",
+                  sub: "Standard East Africa Time (EAT)",
                   href: null,
                 },
                 {
                   icon: Mail,
-                  title: "Direct Support Relay",
+                  title: "Email Support",
                   detail: "info@zapatoscave.com",
-                  sub: "Monitored constantly during shift frameworks",
+                  sub: "For customer service and order tracking",
                   href: "mailto:info@zapatoscave.com",
                 },
                 {
                   icon: Phone,
-                  title: "Secure Terminal Link",
+                  title: "Phone & WhatsApp",
                   detail: "+254 720 383601",
-                  sub: "Direct hardware call / WhatsApp verification",
+                  sub: "Direct lines for immediate assistance",
                   href: "tel:+254720383601",
                   isPhoneLink: true,
                 },
@@ -228,7 +228,7 @@ export default function ContactPage() {
                               href="tel:+254720383601" 
                               className="inline-flex items-center text-[10px] font-mono uppercase bg-zinc-200 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-2.5 py-1 border border-zinc-300 dark:border-zinc-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
                             >
-                              // CALL DIRECT
+                              CALL DIRECT
                             </a>
                             <a 
                               href="https://wa.me/254720383601?text=Hello%20Zapatos%20Cave,%20I%20have%20a%20question%20regarding%20sizing/order..." 
@@ -236,7 +236,7 @@ export default function ContactPage() {
                               rel="noopener noreferrer" 
                               className="inline-flex items-center text-[10px] font-mono uppercase bg-zinc-200 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-2.5 py-1 border border-zinc-300 dark:border-zinc-800 hover:bg-green-600 hover:text-white dark:hover:bg-green-600 dark:hover:text-white transition-colors"
                             >
-                              // WHATSAPP
+                              WHATSAPP
                             </a>
                           </div>
                         </div>

@@ -25,7 +25,7 @@ export default function AboutPage() {
           
           <div className="flex items-center justify-between text-[10px] font-mono tracking-[0.5em] text-zinc-400 dark:text-zinc-600 uppercase">
             <span>ZAPATOS CAVE MANIFESTO</span>
-            <span>ESTABLISHED 2026</span>
+            <span>ESTABLISHED AUG 2018</span>
           </div>
 
           <div className="space-y-4">
@@ -49,21 +49,26 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-4">
             <div className="md:col-span-4 text-[11px] font-mono tracking-widest text-zinc-400 dark:text-zinc-500 uppercase">
-              OUR MISSION
+              OUR STORY
             </div>
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: easeQuint }}
-              className="md:col-span-8 text-base md:text-lg text-zinc-600 dark:text-zinc-400 font-light leading-relaxed tracking-wide"
+              className="md:col-span-8 space-y-6"
             >
-              Zapatos Cave is a premium activewear brand engineering high-performance ONLI_FRESH compression wear, luxury Zapatos Essentials tracksuits, and elite training apparel. We create sophisticated garments exclusively for individuals who manage their physical conditioning and lifestyle with absolute precision.
-            </motion.p>
+              <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 font-light leading-relaxed tracking-wide">
+                Founded in August 2018, Zapatos Cave began with a singular focus: stripping away the noise of mass-market activewear. What started as a dedicated pursuit of performance has evolved into a premium brand engineering high-performance ONLI_FRESH compression wear and luxury Zapatos Essentials tracksuits. 
+              </p>
+              <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 font-light leading-relaxed tracking-wide">
+                We create sophisticated garments exclusively for individuals who manage their physical conditioning and lifestyle with absolute precision.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* 2. BRUTALIST MEDIA DISPLAY - FILTER REMOVED */}
+      {/* 2. BRUTALIST MEDIA DISPLAY */}
       <section className="py-20 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/60 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div 
@@ -114,8 +119,39 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 4. FABRIC TECHNOLOGY INDEX */}
-      <section className="py-36 bg-zinc-50 dark:bg-[#0C0C10] border-b border-zinc-100 dark:border-zinc-900/80 transition-colors duration-500">
+      {/* 4. WHOLESALE & CORPORATE DIVISION */}
+      <section className="py-24 bg-zinc-950 dark:bg-[#050505] text-white transition-colors duration-500">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <div className="lg:col-span-4 space-y-4">
+            <span className="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">DIVISION</span>
+            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-none">
+              WHOLESALE & <br />
+              <span className="text-zinc-600">CORPORATE.</span>
+            </h2>
+          </div>
+          
+          <div className="lg:col-span-8 flex flex-col justify-center text-zinc-400 font-light leading-relaxed tracking-wide text-sm md:text-base space-y-6">
+            <div className="h-[1px] w-8 bg-zinc-700" />
+            <p>
+              Beyond individual performance, Zapatos Cave equips entire units. We provide comprehensive bulk and wholesale distribution for retail partners, corporate team-building events, and institutional athletic teams. 
+            </p>
+            <p>
+              Whether outfitting a corporate retreat, a competitive sports roster, or stocking a premium storefront, we deliver the same uncompromising ONLI_FRESH technology and minimalist structural aesthetic at scale. Zero compromise on quality, tailored for the collective.
+            </p>
+            <div className="pt-4">
+              <Link 
+                href="/contact" 
+                className="text-xs font-bold uppercase tracking-widest text-white border-b border-white pb-1 hover:text-zinc-400 hover:border-zinc-400 transition-colors"
+              >
+                Inquire About Bulk Orders →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. FABRIC TECHNOLOGY INDEX */}
+      <section className="py-36 bg-zinc-50 dark:bg-[#0C0C10] border-y border-zinc-100 dark:border-zinc-900/80 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-12">
             {[
@@ -161,7 +197,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 5. FINALE CALL TO ACTION */}
+      {/* 6. FINALE CALL TO ACTION */}
       <section className="py-44 bg-white dark:bg-[#08080A] transition-colors duration-500">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
           <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-zinc-950 dark:text-white leading-none">

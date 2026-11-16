@@ -60,6 +60,8 @@ interface ProductVariantSelection {
   variant_name: string
   price: number
   stock_quantity: number
+  bundle_parent_id: string | null
+  stock_source_id: string
 }
 
 interface KnownCustomer {
@@ -183,16 +185,33 @@ export default function AdminOrdersPage() {
   const loadCatalog = async () => {
     const { data } = await supabase
       .from("product_variants")
-      .select(`id, product_id, price, stock_quantity, attributes, products(name)`)
+      .select(`id, product_id, price, stock_quantity, bundle_parent_id, attributes, products(name)`)
+
     if (data) {
-      const formatted = data.map((v: any) => ({
-        id: v.id,
-        product_id: v.product_id,
-        product_name: v.products?.name || "Unknown Product",
-        variant_name: v.attributes ? Object.values(v.attributes).join(" / ") : "Standard",
-        price: v.price,
-        stock_quantity: v.stock_quantity || 0,
-      }))
+      // Build lookup map of raw stock quantities by variant ID so child variants resolve parent tracksuit stock
+      const stockLookup = new Map<string, number>()
+      data.forEach((v: any) => {
+        stockLookup.set(v.id, Number(v.stock_quantity) || 0)
+      })
+
+      const formatted: ProductVariantSelection[] = data.map((v: any) => {
+        const parentId = v.bundle_parent_id || null
+        const resolvedStock =
+          parentId && stockLookup.has(parentId)
+            ? stockLookup.get(parentId)!
+            : Number(v.stock_quantity) || 0
+
+        return {
+          id: v.id,
+          product_id: v.product_id,
+          product_name: v.products?.name || "Unknown Product",
+          variant_name: v.attributes ? Object.values(v.attributes).join(" / ") : "Standard",
+          price: v.price,
+          stock_quantity: resolvedStock,
+          bundle_parent_id: parentId,
+          stock_source_id: parentId || v.id,
+        }
+      })
       setAllVariants(formatted)
     }
   }
@@ -303,9 +322,10 @@ export default function AdminOrdersPage() {
   const parsedExtraDiscount = Math.max(0, parseFloat(extraDiscountInput) || 0)
   const liveNetPayable = Math.max(0, selectedOrderGrossAmount - parsedExtraDiscount)
   const savedPaymentLogs: PaymentLog[] = Array.isArray(selectedOrder?.payment_logs) ? selectedOrder!.payment_logs : []
-  const totalPaidAmount = savedPaymentLogs.length > 0
-    ? savedPaymentLogs.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
-    : Number(selectedOrder?.amount_paid) || 0
+  const totalPaidAmount =
+    savedPaymentLogs.length > 0
+      ? savedPaymentLogs.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+      : Number(selectedOrder?.amount_paid) || 0
   const liveBalanceDue = Math.max(0, liveNetPayable - totalPaidAmount)
 
   const handleSaveExtraDiscount = async () => {
@@ -451,16 +471,21 @@ export default function AdminOrdersPage() {
     const confirmReturn = confirm("Remove item from invoice and return quantity to warehouse stock?")
     if (!confirmReturn) return
 
+    // Resolve parent bundle variant ID if applicable so stock returns to the parent tracksuit
+    const catalogMatch = allVariants.find((v) => v.id === item.product_variant_id)
+    const targetStockId = catalogMatch?.stock_source_id || item.product_variant_id
+
     const { data: variant } = await supabase
       .from("product_variants")
       .select("stock_quantity")
-      .eq("id", item.product_variant_id)
+      .eq("id", targetStockId)
       .single()
+
     if (variant) {
       await supabase
         .from("product_variants")
-        .update({ stock_quantity: variant.stock_quantity + item.quantity })
-        .eq("id", item.product_variant_id)
+        .update({ stock_quantity: (Number(variant.stock_quantity) || 0) + item.quantity })
+        .eq("id", targetStockId)
     }
 
     const activeDiscount = Number(selectedOrder.discount_amount) || 0
@@ -481,10 +506,12 @@ export default function AdminOrdersPage() {
     const target = allVariants.find((v) => v.id === variantId)
     if (!target || target.stock_quantity < 1) return alert("Item out of stock.")
 
+    // Deduct stock from the parent tracksuit if this variant has bundle_parent_id
+    const targetStockId = target.stock_source_id
     await supabase
       .from("product_variants")
-      .update({ stock_quantity: target.stock_quantity - 1 })
-      .eq("id", variantId)
+      .update({ stock_quantity: Math.max(0, target.stock_quantity - 1) })
+      .eq("id", targetStockId)
 
     const { data, error } = await supabase
       .from("order_items")
@@ -597,14 +624,28 @@ export default function AdminOrdersPage() {
     }
 
     if (newOrderStatus !== "draft") {
+      // Group deductions by stock_source_id (handles parent tracksuit stock when split items are ordered)
+      const stockDeductions = new Map<string, { currentStock: number; deductQty: number }>()
       for (const item of newOrderItems) {
         const match = allVariants.find((v) => v.id === item.variantId)
         if (match) {
-          await supabase
-            .from("product_variants")
-            .update({ stock_quantity: match.stock_quantity - item.quantity })
-            .eq("id", item.variantId)
+          const existing = stockDeductions.get(match.stock_source_id)
+          if (existing) {
+            existing.deductQty += item.quantity
+          } else {
+            stockDeductions.set(match.stock_source_id, {
+              currentStock: match.stock_quantity,
+              deductQty: item.quantity,
+            })
+          }
         }
+      }
+
+      for (const [sourceVariantId, info] of stockDeductions.entries()) {
+        await supabase
+          .from("product_variants")
+          .update({ stock_quantity: Math.max(0, info.currentStock - info.deductQty) })
+          .eq("id", sourceVariantId)
       }
     }
 
@@ -922,6 +963,11 @@ export default function AdminOrdersPage() {
                               <div>
                                 <span className="font-bold uppercase">{v.product_name}</span>{" "}
                                 <span className="text-zinc-500 font-mono text-[10px]">({v.variant_name})</span>
+                                {v.bundle_parent_id && (
+                                  <span className="ml-1.5 text-[9px] font-mono uppercase bg-zinc-100 text-zinc-600 px-1.5 py-0.5">
+                                    Bundle
+                                  </span>
+                                )}
                               </div>
                               <div className="text-right">
                                 <div>{formatCurrency(v.price)}</div>
@@ -1282,11 +1328,21 @@ export default function AdminOrdersPage() {
                           }`}
                           onClick={() => {
                             if (v.stock_quantity < 1) return
-                            const exists = newOrderItems.find((i) => i.variantId === v.id)
-                            if (exists && exists.quantity >= v.stock_quantity) {
+
+                            // Check total quantity already allocated against the shared parent stock source
+                            const usedSharedStock = newOrderItems.reduce((sum, item) => {
+                              const itemVariant = allVariants.find((av) => av.id === item.variantId)
+                              if (itemVariant && itemVariant.stock_source_id === v.stock_source_id) {
+                                return sum + item.quantity
+                              }
+                              return sum
+                            }, 0)
+
+                            if (usedSharedStock >= v.stock_quantity) {
                               return alert("Cannot exceed available stock.")
                             }
 
+                            const exists = newOrderItems.find((i) => i.variantId === v.id)
                             if (exists) {
                               setNewOrderItems((prev) =>
                                 prev.map((i) => (i.variantId === v.id ? { ...i, quantity: i.quantity + 1 } : i))
@@ -1301,6 +1357,11 @@ export default function AdminOrdersPage() {
                           <div>
                             <span className="font-bold uppercase">{v.product_name}</span>{" "}
                             <span className="text-zinc-500 font-mono text-[10px]">({v.variant_name})</span>
+                            {v.bundle_parent_id && (
+                              <span className="ml-1.5 text-[9px] font-mono uppercase bg-zinc-100 text-zinc-600 px-1.5 py-0.5">
+                                Bundle
+                              </span>
+                            )}
                           </div>
                           <div className="text-right">
                             <div>{formatCurrency(v.price)}</div>

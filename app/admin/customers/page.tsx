@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import { Search, Eye, Package, Truck, ShoppingBag, User } from "lucide-react"
+import { Search, Eye, Package, Truck, ShoppingBag, User, Calendar, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -49,6 +49,21 @@ interface CatalogVariant {
   variant_name: string
 }
 
+const MONTHS = [
+  { value: "0", label: "January" },
+  { value: "1", label: "February" },
+  { value: "2", label: "March" },
+  { value: "3", label: "April" },
+  { value: "4", label: "May" },
+  { value: "5", label: "June" },
+  { value: "6", label: "July" },
+  { value: "7", label: "August" },
+  { value: "8", label: "September" },
+  { value: "9", label: "October" },
+  { value: "10", label: "November" },
+  { value: "11", label: "December" },
+]
+
 const statusColors: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600",
   reserved: "bg-orange-100 text-orange-800",
@@ -60,13 +75,69 @@ const statusColors: Record<string, string> = {
   returned: "bg-red-100 text-red-800",
 }
 
+function buildCustomerProfiles(ordersList: CustomerOrder[]): CustomerProfile[] {
+  const customerMap = new Map<string, CustomerProfile>()
+
+  ordersList.forEach((o) => {
+    if (!o.email) return
+    const emailKey = o.email.trim().toLowerCase()
+    const orderTotal = Number(o.total_amount) || 0
+    const orderShipping = Number(o.shipping_cost) || 0
+    const orderGoods = Math.max(0, orderTotal - orderShipping)
+    const isCancelledOrReturned = ["cancelled", "returned"].includes((o.status || "").toLowerCase())
+
+    const firstName = o.shipping_address?.first_name?.trim() || ""
+    const lastName = o.shipping_address?.last_name?.trim() || ""
+    const fullName = `${firstName} ${lastName}`.trim()
+
+    if (!customerMap.has(emailKey)) {
+      customerMap.set(emailKey, {
+        email: emailKey,
+        full_name: fullName,
+        phone: o.shipping_address?.phone || "",
+        address: o.shipping_address?.address || "",
+        orderCount: 1,
+        goodsSpent: isCancelledOrReturned ? 0 : orderGoods,
+        shippingSpent: isCancelledOrReturned ? 0 : orderShipping,
+        totalSpent: isCancelledOrReturned ? 0 : orderTotal,
+        lastOrderDate: o.created_at,
+        orders: [o],
+      })
+    } else {
+      const existing = customerMap.get(emailKey)!
+      existing.orders.push(o)
+      existing.orderCount += 1
+
+      if (!existing.full_name && fullName) existing.full_name = fullName
+      if (!existing.phone && o.shipping_address?.phone) existing.phone = o.shipping_address.phone
+      if (!existing.address && o.shipping_address?.address) existing.address = o.shipping_address.address
+
+      if (!isCancelledOrReturned) {
+        existing.goodsSpent += orderGoods
+        existing.shippingSpent += orderShipping
+        existing.totalSpent += orderTotal
+      }
+    }
+  })
+
+  return Array.from(customerMap.values())
+}
+
 export default function AdminCustomersPage() {
-  const [customers, setCustomers] = useState<CustomerProfile[]>([])
+  const [allOrders, setAllOrders] = useState<CustomerOrder[]>([])
   const [catalogVariants, setCatalogVariants] = useState<CatalogVariant[]>([])
   const [search, setSearch] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null)
+  // Date & Period Filters
+  const [selectedYear, setSelectedYear] = useState<string>("all")
+  const [selectedMonth, setSelectedMonth] = useState<string>("all")
+  const [startDate, setStartDate] = useState<string>("")
+  const [endDate, setEndDate] = useState<string>("")
+
+  // Drawer States
+  const [selectedCustomerEmail, setSelectedCustomerEmail] = useState<string | null>(null)
+  const [drawerShowAllTime, setDrawerShowAllTime] = useState(false)
   const [customerOrderItems, setCustomerOrderItems] = useState<Record<string, any[]>>({})
   const [isLoadingItems, setIsLoadingItems] = useState(false)
 
@@ -95,63 +166,97 @@ export default function AdminCustomersPage() {
         setCatalogVariants(formattedVariants)
       }
 
-      const customerMap = new Map<string, CustomerProfile>()
+      if (ordersData) {
+        setAllOrders(ordersData as CustomerOrder[])
+      }
 
-      ordersData?.forEach((o: CustomerOrder) => {
-        if (!o.email) return
-        const emailKey = o.email.trim().toLowerCase()
-        const orderTotal = Number(o.total_amount) || 0
-        const orderShipping = Number(o.shipping_cost) || 0
-        const orderGoods = Math.max(0, orderTotal - orderShipping)
-        const isCancelledOrReturned = ["cancelled", "returned"].includes((o.status || "").toLowerCase())
-
-        const firstName = o.shipping_address?.first_name?.trim() || ""
-        const lastName = o.shipping_address?.last_name?.trim() || ""
-        const fullName = `${firstName} ${lastName}`.trim()
-
-        if (!customerMap.has(emailKey)) {
-          customerMap.set(emailKey, {
-            email: emailKey,
-            full_name: fullName,
-            phone: o.shipping_address?.phone || "",
-            address: o.shipping_address?.address || "",
-            orderCount: 1,
-            goodsSpent: isCancelledOrReturned ? 0 : orderGoods,
-            shippingSpent: isCancelledOrReturned ? 0 : orderShipping,
-            totalSpent: isCancelledOrReturned ? 0 : orderTotal,
-            lastOrderDate: o.created_at,
-            orders: [o],
-          })
-        } else {
-          const existing = customerMap.get(emailKey)!
-          existing.orders.push(o)
-          existing.orderCount += 1
-
-          if (!existing.full_name && fullName) existing.full_name = fullName
-          if (!existing.phone && o.shipping_address?.phone) existing.phone = o.shipping_address.phone
-          if (!existing.address && o.shipping_address?.address) existing.address = o.shipping_address.address
-
-          if (!isCancelledOrReturned) {
-            existing.goodsSpent += orderGoods
-            existing.shippingSpent += orderShipping
-            existing.totalSpent += orderTotal
-          }
-        }
-      })
-
-      setCustomers(Array.from(customerMap.values()))
       setIsLoading(false)
     }
 
     load()
   }, [])
 
+  // Extract distinct years from orders (sorted newest first)
+  const availableYears = useMemo(() => {
+    const years = new Set<string>()
+    years.add(new Date().getFullYear().toString())
+    allOrders.forEach((o) => {
+      if (o.created_at) {
+        const y = new Date(o.created_at).getFullYear()
+        if (!isNaN(y)) years.add(y.toString())
+      }
+    })
+    return Array.from(years).sort((a, b) => Number(b) - Number(a))
+  }, [allOrders])
+
+  const hasActiveDateFilter =
+    selectedYear !== "all" || selectedMonth !== "all" || Boolean(startDate) || Boolean(endDate)
+
+  // Filter raw orders by selected Year/Month or Custom Date Range
+  const filteredOrders = useMemo(() => {
+    if (!hasActiveDateFilter) return allOrders
+
+    const startBound = startDate ? new Date(`${startDate}T00:00:00`) : null
+    const endBound = endDate ? new Date(`${endDate}T23:59:59.999`) : null
+
+    return allOrders.filter((o) => {
+      const orderDate = new Date(o.created_at)
+      if (isNaN(orderDate.getTime())) return false
+
+      if (startBound || endBound) {
+        if (startBound && orderDate < startBound) return false
+        if (endBound && orderDate > endBound) return false
+        return true
+      }
+
+      if (selectedYear !== "all" && orderDate.getFullYear().toString() !== selectedYear) {
+        return false
+      }
+      if (selectedMonth !== "all" && orderDate.getMonth().toString() !== selectedMonth) {
+        return false
+      }
+      return true
+    })
+  }, [allOrders, hasActiveDateFilter, selectedYear, selectedMonth, startDate, endDate])
+
+  // Aggregate customer metrics for the active period and all-time
+  const customers = useMemo(() => buildCustomerProfiles(filteredOrders), [filteredOrders])
+  const allTimeCustomers = useMemo(() => buildCustomerProfiles(allOrders), [allOrders])
+
+  const activePeriodLabel = useMemo(() => {
+    if (startDate && endDate) return `${startDate} → ${endDate}`
+    if (startDate) return `From ${startDate}`
+    if (endDate) return `Up to ${endDate}`
+    if (selectedYear !== "all" && selectedMonth !== "all") {
+      const monthName = MONTHS.find((m) => m.value === selectedMonth)?.label || ""
+      return `${monthName} ${selectedYear}`
+    }
+    if (selectedYear !== "all") return `Year ${selectedYear}`
+    if (selectedMonth !== "all") {
+      const monthName = MONTHS.find((m) => m.value === selectedMonth)?.label || ""
+      return `${monthName} (All Years)`
+    }
+    return "All Time"
+  }, [selectedYear, selectedMonth, startDate, endDate])
+
+  const handleResetFilters = () => {
+    setSelectedYear("all")
+    setSelectedMonth("all")
+    setStartDate("")
+    setEndDate("")
+    setSearch("")
+  }
+
   const handleOpenCustomer = async (customer: CustomerProfile) => {
-    setSelectedCustomer(customer)
+    setSelectedCustomerEmail(customer.email)
+    setDrawerShowAllTime(false)
     setCustomerOrderItems({})
     setIsLoadingItems(true)
 
-    const orderIds = customer.orders.map((o) => o.id)
+    // Fetch line items for all orders belonging to this customer so Period / All-Time toggle works instantly
+    const fullProfile = allTimeCustomers.find((c) => c.email === customer.email) || customer
+    const orderIds = fullProfile.orders.map((o) => o.id)
+
     if (orderIds.length > 0) {
       const { data, error } = await supabase
         .from("order_items")
@@ -182,6 +287,18 @@ export default function AdminCustomersPage() {
     setIsLoadingItems(false)
   }
 
+  const periodCustomer = useMemo(
+    () => (selectedCustomerEmail ? customers.find((c) => c.email === selectedCustomerEmail) || null : null),
+    [selectedCustomerEmail, customers]
+  )
+
+  const allTimeCustomer = useMemo(
+    () => (selectedCustomerEmail ? allTimeCustomers.find((c) => c.email === selectedCustomerEmail) || null : null),
+    [selectedCustomerEmail, allTimeCustomers]
+  )
+
+  const activeDrawerCustomer = drawerShowAllTime ? allTimeCustomer : periodCustomer || allTimeCustomer
+
   const filtered = customers.filter((c) => {
     const q = search.toLowerCase().trim()
     if (!q) return true
@@ -198,17 +315,21 @@ export default function AdminCustomersPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto px-4 py-2">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight uppercase">Customers</h1>
-        <p className="text-xs font-mono text-gray-500 mt-1 uppercase">
-          Verified Directory: {customers.length} Unique Profiles
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight uppercase">Customers</h1>
+          <p className="text-xs font-mono text-gray-500 mt-1 uppercase">
+            Verified Directory: {customers.length} Unique Profiles • Period: {activePeriodLabel}
+          </p>
+        </div>
       </div>
 
-      {/* Storewide Customer Spend Summary */}
+      {/* Storewide / Period Customer Spend Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-zinc-200 p-4">
-          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Active Customers</div>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+            {hasActiveDateFilter ? "Active Customers (Period)" : "Active Customers"}
+          </div>
           <div className="text-2xl font-black mt-1">{customers.length}</div>
         </div>
         <div className="bg-white border border-zinc-200 p-4">
@@ -220,21 +341,127 @@ export default function AdminCustomersPage() {
           <div className="text-2xl font-black mt-1">{formatCurrency(totalShippingRevenue)}</div>
         </div>
         <div className="bg-white border border-zinc-200 p-4">
-          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Combined Lifetime Spend</div>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+            {hasActiveDateFilter ? "Combined Period Spend" : "Combined Lifetime Spend"}
+          </div>
           <div className="text-2xl font-black mt-1">{formatCurrency(totalCombinedRevenue)}</div>
         </div>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search customers by name, email, or phone..."
-          className="pl-9 bg-white rounded-none border-zinc-200 h-11 text-sm"
-        />
+      {/* Search & Date Duration Filter Bar */}
+      <div className="bg-white border border-zinc-200 p-4 space-y-3">
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end">
+          {/* Customer Search */}
+          <div className="flex-1 min-w-[220px]">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block mb-1">
+              Customer Search
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, email, or phone..."
+                className="pl-9 bg-white rounded-none border-zinc-200 h-10 text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Year Selector */}
+          <div className="w-full sm:w-36">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block mb-1">
+              Year
+            </label>
+            <select
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(e.target.value)
+                setStartDate("")
+                setEndDate("")
+              }}
+              className="w-full h-10 border border-zinc-200 bg-white px-3 text-xs font-mono uppercase text-zinc-800 rounded-none focus:outline-none focus:border-black cursor-pointer"
+            >
+              <option value="all">All Years</option>
+              {availableYears.map((yr) => (
+                <option key={yr} value={yr}>
+                  {yr}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Month Selector */}
+          <div className="w-full sm:w-44">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block mb-1">
+              Month
+            </label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => {
+                setSelectedMonth(e.target.value)
+                setStartDate("")
+                setEndDate("")
+              }}
+              className="w-full h-10 border border-zinc-200 bg-white px-3 text-xs font-mono uppercase text-zinc-800 rounded-none focus:outline-none focus:border-black cursor-pointer"
+            >
+              <option value="all">All Months</option>
+              {MONTHS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Custom Date Range: Start Date */}
+          <div className="w-full sm:w-40">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-1 mb-1">
+              <Calendar className="h-3 w-3" /> From Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value)
+                setSelectedYear("all")
+                setSelectedMonth("all")
+              }}
+              className="w-full h-10 border border-zinc-200 bg-white px-3 text-xs font-mono text-zinc-800 rounded-none focus:outline-none focus:border-black"
+            />
+          </div>
+
+          {/* Custom Date Range: End Date */}
+          <div className="w-full sm:w-40">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 flex items-center gap-1 mb-1">
+              <Calendar className="h-3 w-3" /> To Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value)
+                setSelectedYear("all")
+                setSelectedMonth("all")
+              }}
+              className="w-full h-10 border border-zinc-200 bg-white px-3 text-xs font-mono text-zinc-800 rounded-none focus:outline-none focus:border-black"
+            />
+          </div>
+
+          {/* Clear Filters Button */}
+          {(hasActiveDateFilter || search.trim() !== "") && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleResetFilters}
+              className="h-10 px-4 rounded-none border-zinc-300 text-xs font-mono uppercase tracking-wider hover:bg-black hover:text-white shrink-0"
+            >
+              <X className="h-3.5 w-3.5 mr-1.5" /> Reset
+            </Button>
+          )}
+        </div>
       </div>
 
+      {/* Customers Ledger Table */}
       <div className="bg-white border border-zinc-200 rounded-none overflow-hidden shadow-sm">
         {isLoading ? (
           <div className="p-16 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">
@@ -242,7 +469,7 @@ export default function AdminCustomersPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-16 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">
-            No customer records match.
+            No customer records match the selected period.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -305,21 +532,47 @@ export default function AdminCustomersPage() {
       </div>
 
       {/* Customer Detail & Order History Drawer */}
-      <Sheet open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
+      <Sheet open={!!activeDrawerCustomer} onOpenChange={(open) => !open && setSelectedCustomerEmail(null)}>
         <SheetContent className="sm:max-w-2xl w-full overflow-y-auto bg-white rounded-none border-l border-zinc-200 p-8 space-y-6">
-          {selectedCustomer && (
+          {activeDrawerCustomer && (
             <>
               <SheetHeader className="space-y-1 border-b border-zinc-100 pb-5">
-                <div className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
-                  <User className="h-3 w-3" /> Customer Financial Profile
+                <div className="flex items-center justify-between gap-2 pr-6">
+                  <div className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
+                    <User className="h-3 w-3" /> Customer Financial Profile
+                  </div>
+
+                  {hasActiveDateFilter && allTimeCustomer && (
+                    <div className="flex border border-zinc-200 text-[10px] font-mono uppercase">
+                      <button
+                        type="button"
+                        onClick={() => setDrawerShowAllTime(false)}
+                        className={`px-2.5 py-1 transition-colors ${
+                          !drawerShowAllTime ? "bg-black text-white font-bold" : "bg-white text-zinc-500 hover:text-black"
+                        }`}
+                      >
+                        {activePeriodLabel}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDrawerShowAllTime(true)}
+                        className={`px-2.5 py-1 transition-colors ${
+                          drawerShowAllTime ? "bg-black text-white font-bold" : "bg-white text-zinc-500 hover:text-black"
+                        }`}
+                      >
+                        All Time ({allTimeCustomer.orderCount})
+                      </button>
+                    </div>
+                  )}
                 </div>
+
                 <SheetTitle className="text-2xl font-black uppercase tracking-tight">
-                  {selectedCustomer.full_name || "Guest User"}
+                  {activeDrawerCustomer.full_name || "Guest User"}
                 </SheetTitle>
                 <div className="text-xs font-mono text-zinc-500 space-y-0.5 pt-1">
-                  <div>{selectedCustomer.email}</div>
-                  {selectedCustomer.phone && <div>Tel: {selectedCustomer.phone}</div>}
-                  {selectedCustomer.address && <div>Location: {selectedCustomer.address}</div>}
+                  <div>{activeDrawerCustomer.email}</div>
+                  {activeDrawerCustomer.phone && <div>Tel: {activeDrawerCustomer.phone}</div>}
+                  {activeDrawerCustomer.address && <div>Location: {activeDrawerCustomer.address}</div>}
                 </div>
               </SheetHeader>
 
@@ -329,23 +582,23 @@ export default function AdminCustomersPage() {
                   <div className="text-[10px] font-mono uppercase text-zinc-400 flex items-center gap-1">
                     <ShoppingBag className="h-3 w-3" /> Orders
                   </div>
-                  <div className="text-lg font-black mt-1">{selectedCustomer.orderCount}</div>
+                  <div className="text-lg font-black mt-1">{activeDrawerCustomer.orderCount}</div>
                 </div>
                 <div className="bg-zinc-50 border border-zinc-200 p-3">
                   <div className="text-[10px] font-mono uppercase text-zinc-400 flex items-center gap-1">
                     <Package className="h-3 w-3" /> Goods
                   </div>
-                  <div className="text-lg font-black mt-1">{formatCurrency(selectedCustomer.goodsSpent)}</div>
+                  <div className="text-lg font-black mt-1">{formatCurrency(activeDrawerCustomer.goodsSpent)}</div>
                 </div>
                 <div className="bg-zinc-50 border border-zinc-200 p-3">
                   <div className="text-[10px] font-mono uppercase text-zinc-400 flex items-center gap-1">
                     <Truck className="h-3 w-3" /> Shipping
                   </div>
-                  <div className="text-lg font-black mt-1">{formatCurrency(selectedCustomer.shippingSpent)}</div>
+                  <div className="text-lg font-black mt-1">{formatCurrency(activeDrawerCustomer.shippingSpent)}</div>
                 </div>
                 <div className="bg-black text-white p-3">
                   <div className="text-[10px] font-mono uppercase text-zinc-400">Total Spent</div>
-                  <div className="text-lg font-black mt-1">{formatCurrency(selectedCustomer.totalSpent)}</div>
+                  <div className="text-lg font-black mt-1">{formatCurrency(activeDrawerCustomer.totalSpent)}</div>
                 </div>
               </div>
 
@@ -356,11 +609,11 @@ export default function AdminCustomersPage() {
               {/* Complete Order History */}
               <div className="space-y-3">
                 <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-400">
-                  Order Manifest History ({selectedCustomer.orders.length})
+                  Order Manifest History ({activeDrawerCustomer.orders.length})
                 </h3>
 
                 <div className="space-y-3">
-                  {selectedCustomer.orders.map((order) => {
+                  {activeDrawerCustomer.orders.map((order) => {
                     const orderTotal = Number(order.total_amount) || 0
                     const orderShipping = Number(order.shipping_cost) || 0
                     const orderGoods = Math.max(0, orderTotal - orderShipping)

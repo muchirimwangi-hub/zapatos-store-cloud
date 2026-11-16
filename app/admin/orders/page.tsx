@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { ShoppingCart, Eye, Plus, Trash2, Edit2, Search, ArrowLeftRight } from "lucide-react"
+import { Eye, Plus, Trash2, Edit2, Search, ArrowLeftRight, UserCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
@@ -36,7 +36,7 @@ interface OrderRow {
 interface OrderItem {
   id: string
   order_id: string
-  product_variant_id: string 
+  product_variant_id: string
   quantity: number
   price: number
   products?: { name: string }
@@ -49,7 +49,16 @@ interface ProductVariantSelection {
   product_name: string
   variant_name: string
   price: number
-  stock_quantity: number 
+  stock_quantity: number
+}
+
+interface KnownCustomer {
+  email: string
+  first_name: string
+  last_name: string
+  phone: string
+  address: string
+  order_count: number
 }
 
 const statusColors: Record<string, string> = {
@@ -67,8 +76,6 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRow[]>([])
   const [search, setSearch] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-
-  // 👉 NEW: State to track if the current user is an employee
   const [isEmployee, setIsEmployee] = useState(false)
 
   const [selectedOrder, setSelectedOrder] = useState<OrderRow | null>(null)
@@ -81,7 +88,11 @@ export default function AdminOrdersPage() {
 
   const [allVariants, setAllVariants] = useState<ProductVariantSelection[]>([])
   const [shippingRates, setShippingRates] = useState<any[]>([])
-  const [knownCustomers, setKnownCustomers] = useState<any[]>([])
+  const [knownCustomers, setKnownCustomers] = useState<KnownCustomer[]>([])
+
+  // Live Customer Search States
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("")
+  const [linkedCustomerEmail, setLinkedCustomerEmail] = useState<string | null>(null)
 
   const [variantSearchQuery, setVariantSearchQuery] = useState("")
   const [shippingSearchQuery, setShippingSearchQuery] = useState("")
@@ -92,9 +103,9 @@ export default function AdminOrdersPage() {
   const [newOrderPhone, setNewOrderPhone] = useState("")
   const [newOrderAddress, setNewOrderAddress] = useState("")
   const [newOrderShippingCost, setNewOrderShippingCost] = useState(0)
-  
+
   const [newOrderItems, setNewOrderItems] = useState<{ variantId: string; quantity: number; discount?: number }[]>([])
-  const [newOrderStatus, setNewOrderStatus] = useState("reserved") 
+  const [newOrderStatus, setNewOrderStatus] = useState("reserved")
 
   const supabase = createClient()
 
@@ -103,25 +114,37 @@ export default function AdminOrdersPage() {
     const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false })
     if (data) {
       setOrders(data as OrderRow[])
-      const custMap = new Map()
-      data.forEach(o => {
-        if (o.email && !custMap.has(o.email)) {
-          custMap.set(o.email, {
-            email: o.email,
+      const custMap = new Map<string, KnownCustomer>()
+
+      data.forEach((o) => {
+        if (!o.email) return
+        const emailKey = o.email.trim().toLowerCase()
+        if (!custMap.has(emailKey)) {
+          custMap.set(emailKey, {
+            email: emailKey,
             first_name: o.shipping_address?.first_name || "",
             last_name: o.shipping_address?.last_name || "",
             phone: o.shipping_address?.phone || "",
-            address: o.shipping_address?.address || ""
+            address: o.shipping_address?.address || "",
+            order_count: 1,
           })
+        } else {
+          const existing = custMap.get(emailKey)!
+          existing.order_count += 1
+          if (!existing.first_name && o.shipping_address?.first_name) existing.first_name = o.shipping_address.first_name
+          if (!existing.last_name && o.shipping_address?.last_name) existing.last_name = o.shipping_address.last_name
+          if (!existing.phone && o.shipping_address?.phone) existing.phone = o.shipping_address.phone
+          if (!existing.address && o.shipping_address?.address) existing.address = o.shipping_address.address
         }
       })
+
       setKnownCustomers(Array.from(custMap.values()))
     }
     setIsLoading(false)
   }
 
   const loadCatalog = async () => {
-    const { data } = await supabase.from("product_variants").select(`id, price, stock_quantity, attributes, products(name)`)
+    const { data } = await supabase.from("product_variants").select(`id, product_id, price, stock_quantity, attributes, products(name)`)
     if (data) {
       const formatted = data.map((v: any) => ({
         id: v.id,
@@ -129,7 +152,7 @@ export default function AdminOrdersPage() {
         product_name: v.products?.name || "Unknown Product",
         variant_name: v.attributes ? Object.values(v.attributes).join(" / ") : "Standard",
         price: v.price,
-        stock_quantity: v.stock_quantity || 0
+        stock_quantity: v.stock_quantity || 0,
       }))
       setAllVariants(formatted)
     }
@@ -142,38 +165,65 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     const checkUserRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      // 👉 UPDATED: Auto-detects employees based on domain, excluding the master admin
-      const isDomainEmployee = user?.email?.endsWith('@zapatoscave.com') && user?.email !== 'admin@zapatoscave.com'
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      const isDomainEmployee = user?.email?.endsWith("@zapatoscave.com") && user?.email !== "admin@zapatoscave.com"
       const isMetadataEmployee = user?.user_metadata?.role === "employee"
-      
+
       if (isDomainEmployee || isMetadataEmployee) {
         setIsEmployee(true)
       }
     }
-    
+
     checkUserRole()
     loadOrders()
     loadCatalog()
-    loadShippingRates() 
+    loadShippingRates()
   }, [])
 
-  const handleCustomerSelect = (email: string) => {
-    const cust = knownCustomers.find(c => c.email === email)
-    if (cust) {
-      setNewOrderEmail(cust.email); setNewOrderFirstName(cust.first_name); 
-      setNewOrderLastName(cust.last_name); setNewOrderPhone(cust.phone); setNewOrderAddress(cust.address)
-    }
+  const handleSelectExistingCustomer = (cust: KnownCustomer) => {
+    setNewOrderEmail(cust.email)
+    setNewOrderFirstName(cust.first_name)
+    setNewOrderLastName(cust.last_name)
+    setNewOrderPhone(cust.phone)
+    setNewOrderAddress(cust.address)
+    setLinkedCustomerEmail(cust.email)
+    setCustomerSearchQuery("")
   }
 
+  const handleClearLinkedCustomer = () => {
+    setLinkedCustomerEmail(null)
+    setNewOrderEmail("")
+    setNewOrderFirstName("")
+    setNewOrderLastName("")
+    setNewOrderPhone("")
+    setNewOrderAddress("")
+  }
+
+  // Filter customers dynamically as admin types a name, email, or phone
+  const matchingCustomers = customerSearchQuery.trim()
+    ? knownCustomers.filter((c) => {
+        const searchTerms = customerSearchQuery.toLowerCase().split(" ").filter(Boolean)
+        const searchableText = `${c.first_name} ${c.last_name} ${c.email} ${c.phone}`.toLowerCase()
+        return searchTerms.every((term) => searchableText.includes(term))
+      })
+    : []
+
+  // Detect if typed email already belongs to an existing profile when not yet linked
+  const exactEmailMatch =
+    !linkedCustomerEmail && newOrderEmail.trim()
+      ? knownCustomers.find((c) => c.email === newOrderEmail.trim().toLowerCase())
+      : null
+
   const handleViewDetails = async (order: OrderRow) => {
-    setSelectedOrder(order); setIsDetailOpen(true); setIsEditingItems(false); setSelectedOrderItems([])
-    
-    const { data, error } = await supabase
-      .from("order_items")
-      .select(`*`) 
-      .eq("order_id", order.id)
+    setSelectedOrder(order)
+    setIsDetailOpen(true)
+    setIsEditingItems(false)
+    setSelectedOrderItems([])
+
+    const { data, error } = await supabase.from("order_items").select(`*`).eq("order_id", order.id)
 
     if (error) {
       alert(`SUPABASE ERROR:\n${error.message || JSON.stringify(error)}`)
@@ -182,18 +232,16 @@ export default function AdminOrdersPage() {
 
     if (data) {
       const formatted = data.map((item: any) => {
-        // We still check the catalog just in case it's an old order before the snapshot update
-        const catalogMatch = allVariants.find(v => v.id === item.product_variant_id)
-        
+        const catalogMatch = allVariants.find((v) => v.id === item.product_variant_id)
+
         return {
           id: item.id,
           order_id: item.order_id,
           product_variant_id: item.product_variant_id,
           quantity: item.quantity,
           price: item.price,
-          // 👉 THE FIX: Read the saved snapshot name first.
           products: { name: item.product_name || catalogMatch?.product_name || "UNAVAILABLE GHOST ITEM" },
-          product_variants: { attributes: { label: item.variant_name || catalogMatch?.variant_name || "Standard" } }
+          product_variants: { attributes: { label: item.variant_name || catalogMatch?.variant_name || "Standard" } },
         }
       })
       setSelectedOrderItems(formatted)
@@ -202,39 +250,35 @@ export default function AdminOrdersPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     await supabase.from("orders").update({ status: newStatus }).eq("id", id)
-    
+
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)))
-    if (selectedOrder?.id === id) setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null)
+    if (selectedOrder?.id === id) setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus } : null))
 
     if (newStatus === "shipped" || newStatus === "completed") {
-      const orderToEmail = orders.find(o => o.id === id);
-      
+      const orderToEmail = orders.find((o) => o.id === id)
+
       if (orderToEmail && orderToEmail.email) {
-        console.log(`Intercepting Order ${id} to dispatch ${newStatus} email to ${orderToEmail.email}...`);
-        
         const result = await sendDispatchNotification(
           orderToEmail.email,
           orderToEmail.shipping_address?.first_name || "Client",
           orderToEmail.id,
           orderToEmail.tracking_number || "PENDING"
-        );
+        )
 
-        if (result.success) {
-          console.log("Dispatch Email transmitted successfully with full manifest.");
-        } else {
-          console.error("Failed to transmit Dispatch Email:", result.error);
+        if (!result.success) {
+          console.error("Failed to transmit Dispatch Email:", result.error)
         }
       }
     }
   }
 
   const handleSaveTracking = async () => {
-    if (!selectedOrder) return;
-    await supabase.from("orders").update({ tracking_number: trackingInput }).eq("id", selectedOrder.id);
-    
-    setSelectedOrder(prev => prev ? { ...prev, tracking_number: trackingInput } : null);
-    setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, tracking_number: trackingInput } : o));
-    setIsEditingTracking(false);
+    if (!selectedOrder) return
+    await supabase.from("orders").update({ tracking_number: trackingInput }).eq("id", selectedOrder.id)
+
+    setSelectedOrder((prev) => (prev ? { ...prev, tracking_number: trackingInput } : null))
+    setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? { ...o, tracking_number: trackingInput } : o)))
+    setIsEditingTracking(false)
   }
 
   const handleReturnItem = async (item: OrderItem) => {
@@ -242,51 +286,69 @@ export default function AdminOrdersPage() {
     const confirmReturn = confirm("Remove item from invoice and return quantity to warehouse stock?")
     if (!confirmReturn) return
 
-    const { data: variant } = await supabase.from('product_variants').select('stock_quantity').eq('id', item.product_variant_id).single()
-    if (variant) await supabase.from('product_variants').update({ stock_quantity: variant.stock_quantity + item.quantity }).eq('id', item.product_variant_id)
+    const { data: variant } = await supabase
+      .from("product_variants")
+      .select("stock_quantity")
+      .eq("id", item.product_variant_id)
+      .single()
+    if (variant) {
+      await supabase
+        .from("product_variants")
+        .update({ stock_quantity: variant.stock_quantity + item.quantity })
+        .eq("id", item.product_variant_id)
+    }
 
-    const revisedTotal = Math.max(0, selectedOrder.total_amount - (item.price * item.quantity))
+    const revisedTotal = Math.max(0, selectedOrder.total_amount - item.price * item.quantity)
     await supabase.from("order_items").delete().eq("id", item.id)
     await supabase.from("orders").update({ total_amount: revisedTotal }).eq("id", selectedOrder.id)
 
-    setSelectedOrderItems(prev => prev.filter(i => i.id !== item.id))
-    setSelectedOrder(prev => prev ? { ...prev, total_amount: revisedTotal } : null)
-    setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, total_amount: revisedTotal } : o))
-    loadCatalog() 
+    setSelectedOrderItems((prev) => prev.filter((i) => i.id !== item.id))
+    setSelectedOrder((prev) => (prev ? { ...prev, total_amount: revisedTotal } : null))
+    setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? { ...o, total_amount: revisedTotal } : o)))
+    loadCatalog()
   }
 
   const handleAddLineItemToExisting = async (variantId: string) => {
     if (!selectedOrder) return
-    const target = allVariants.find(v => v.id === variantId)
+    const target = allVariants.find((v) => v.id === variantId)
     if (!target || target.stock_quantity < 1) return alert("Item out of stock.")
 
-    await supabase.from('product_variants').update({ stock_quantity: target.stock_quantity - 1 }).eq('id', variantId)
+    await supabase
+      .from("product_variants")
+      .update({ stock_quantity: target.stock_quantity - 1 })
+      .eq("id", variantId)
 
     const { data, error } = await supabase
       .from("order_items")
-      .insert({ order_id: selectedOrder.id, product_id: target.product_id, product_variant_id: variantId, quantity: 1, price: target.price })
-      .select('*')
+      .insert({
+        order_id: selectedOrder.id,
+        product_id: target.product_id,
+        product_variant_id: variantId,
+        quantity: 1,
+        price: target.price,
+      })
+      .select("*")
       .single()
 
-    if (error) console.error("Insert Error", error);
+    if (error) console.error("Insert Error", error)
 
     if (data) {
       const newItem: OrderItem = {
-         id: data.id, 
-         order_id: data.order_id, 
-         product_variant_id: data.product_variant_id, 
-         quantity: data.quantity, 
-         price: data.price,
-         products: { name: target.product_name },
-         product_variants: { attributes: { label: target.variant_name } }
+        id: data.id,
+        order_id: data.order_id,
+        product_variant_id: data.product_variant_id,
+        quantity: data.quantity,
+        price: data.price,
+        products: { name: target.product_name },
+        product_variants: { attributes: { label: target.variant_name } },
       }
       const revisedTotal = selectedOrder.total_amount + target.price
       await supabase.from("orders").update({ total_amount: revisedTotal }).eq("id", selectedOrder.id)
-      
-      setSelectedOrderItems(prev => [...prev, newItem])
-      setSelectedOrder(prev => prev ? { ...prev, total_amount: revisedTotal } : null)
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, total_amount: revisedTotal } : o))
-      loadCatalog() 
+
+      setSelectedOrderItems((prev) => [...prev, newItem])
+      setSelectedOrder((prev) => (prev ? { ...prev, total_amount: revisedTotal } : null))
+      setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? { ...o, total_amount: revisedTotal } : o)))
+      loadCatalog()
     }
   }
 
@@ -294,90 +356,110 @@ export default function AdminOrdersPage() {
     e.preventDefault()
     if (newOrderItems.length === 0) return alert("Add at least one item.")
 
-    // 👉 NEW: Backend Failsafe to guarantee employees cannot bypass the 200 discount limit
     if (isEmployee) {
-      const exceedsLimit = newOrderItems.some(item => (item.discount || 0) > 200)
+      const exceedsLimit = newOrderItems.some((item) => (item.discount || 0) > 200)
       if (exceedsLimit) {
         return alert("Security Protocol: Employees cannot authorize discounts greater than 200 KSH per item.")
       }
     }
 
     const calculatedSubtotal = newOrderItems.reduce((acc, item) => {
-      const match = allVariants.find(v => v.id === item.variantId)
+      const match = allVariants.find((v) => v.id === item.variantId)
       const lineTotal = (match ? match.price * item.quantity : 0) - (item.discount || 0)
       return acc + Math.max(0, lineTotal)
     }, 0)
     const totalWithShipping = calculatedSubtotal + Number(newOrderShippingCost)
 
+    const normalizedEmail = newOrderEmail.trim().toLowerCase()
+
     const shippingPayload = {
-      first_name: newOrderFirstName, last_name: newOrderLastName,
-      address: newOrderAddress, phone: newOrderPhone
+      first_name: newOrderFirstName.trim(),
+      last_name: newOrderLastName.trim(),
+      address: newOrderAddress.trim(),
+      phone: newOrderPhone.trim(),
     }
 
-    const { data: orderData, error: orderErr } = await supabase.from("orders").insert({
-        email: newOrderEmail, status: newOrderStatus, shipping_cost: Number(newOrderShippingCost),
-        total_amount: totalWithShipping, tax: 0, shipping_address: shippingPayload
-    }).select().single()
+    const { data: orderData, error: orderErr } = await supabase
+      .from("orders")
+      .insert({
+        email: normalizedEmail,
+        status: newOrderStatus,
+        shipping_cost: Number(newOrderShippingCost),
+        total_amount: totalWithShipping,
+        tax: 0,
+        shipping_address: shippingPayload,
+      })
+      .select()
+      .single()
 
     if (orderErr) return alert(`Order execution failure: ${orderErr.message}`)
 
-    const itemsPayload = newOrderItems.map(item => {
-      const match = allVariants.find(v => v.id === item.variantId)
+    const itemsPayload = newOrderItems.map((item) => {
+      const match = allVariants.find((v) => v.id === item.variantId)
       const basePrice = match?.price || 0
-      
-      const totalLinePrice = Math.max(0, (basePrice * item.quantity) - (item.discount || 0))
+
+      const totalLinePrice = Math.max(0, basePrice * item.quantity - (item.discount || 0))
       const effectiveUnitPrice = item.quantity > 0 ? totalLinePrice / item.quantity : 0
 
       return {
-         order_id: orderData.id,
-         product_id: match?.product_id,
-         product_variant_id: item.variantId, 
-         quantity: item.quantity, 
-         price: effectiveUnitPrice,
-         product_name: match?.product_name || "Manual Item",
-         variant_name: match?.variant_name || "Standard"
-       }
+        order_id: orderData.id,
+        product_id: match?.product_id,
+        product_variant_id: item.variantId,
+        quantity: item.quantity,
+        price: effectiveUnitPrice,
+        product_name: match?.product_name || "Manual Item",
+        variant_name: match?.variant_name || "Standard",
+      }
     })
-    
+
     const { error: itemsErr } = await supabase.from("order_items").insert(itemsPayload)
     if (itemsErr) {
-       console.error(itemsErr)
-       return alert(`Line item construction failure. Check console.`)
+      console.error(itemsErr)
+      return alert(`Line item construction failure. Check console.`)
     }
 
     if (newOrderStatus === "shipped") {
-       console.log("Dispatching manual order email...");
-       await sendDispatchNotification(
-         newOrderEmail,
-         newOrderFirstName,
-         orderData.id,
-         "PENDING"
-       );
+      await sendDispatchNotification(normalizedEmail, newOrderFirstName.trim(), orderData.id, "PENDING")
     }
 
     if (newOrderStatus !== "draft") {
       for (const item of newOrderItems) {
-        const match = allVariants.find(v => v.id === item.variantId)
-        if (match) await supabase.from('product_variants').update({ stock_quantity: match.stock_quantity - item.quantity }).eq('id', item.variantId)
+        const match = allVariants.find((v) => v.id === item.variantId)
+        if (match) {
+          await supabase
+            .from("product_variants")
+            .update({ stock_quantity: match.stock_quantity - item.quantity })
+            .eq("id", item.variantId)
+        }
       }
     }
 
-    setNewOrderEmail(""); setNewOrderFirstName(""); setNewOrderLastName(""); setNewOrderPhone(""); setNewOrderAddress("")
-    setNewOrderShippingCost(0); setNewOrderItems([]); setIsCreateOpen(false)
-    loadOrders(); loadCatalog()
+    handleClearLinkedCustomer()
+    setCustomerSearchQuery("")
+    setNewOrderShippingCost(0)
+    setNewOrderItems([])
+    setIsCreateOpen(false)
+    loadOrders()
+    loadCatalog()
   }
 
   const filtered = orders.filter((o) => {
     const s = (search || "").toLowerCase()
-    return (o.id || "").toLowerCase().includes(s) || (o.status || "").toLowerCase().includes(s) || (o.email || "").toLowerCase().includes(s)
+    const fullName = `${o.shipping_address?.first_name || ""} ${o.shipping_address?.last_name || ""}`.toLowerCase()
+    return (
+      (o.id || "").toLowerCase().includes(s) ||
+      (o.status || "").toLowerCase().includes(s) ||
+      (o.email || "").toLowerCase().includes(s) ||
+      fullName.includes(s)
+    )
   })
 
   const newOrderSubtotal = newOrderItems.reduce((acc, item) => {
-    const match = allVariants.find(v => v.id === item.variantId)
+    const match = allVariants.find((v) => v.id === item.variantId)
     const lineTotal = (match ? match.price * item.quantity : 0) - (item.discount || 0)
     return acc + Math.max(0, lineTotal)
   }, 0)
-  
+
   const newOrderFinalTotal = newOrderSubtotal + newOrderShippingCost
 
   return (
@@ -387,18 +469,30 @@ export default function AdminOrdersPage() {
           <h1 className="text-3xl font-black tracking-tight uppercase">Logistics Pipeline</h1>
           <p className="text-xs font-mono text-gray-500 mt-1 uppercase">System Manifest: {orders.length} Records</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-black hover:bg-zinc-800 text-white font-bold rounded-none uppercase tracking-widest text-xs h-12 px-6">
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="bg-black hover:bg-zinc-800 text-white font-bold rounded-none uppercase tracking-widest text-xs h-12 px-6"
+        >
           <Plus className="h-4 w-4 mr-2" /> Manual Generation
         </Button>
       </div>
 
-      <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter by Reference, Status, or Email..." className="max-w-md bg-white rounded-none border-zinc-200 h-11 text-sm" />
+      <Input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Filter by Reference, Customer Name, Status, or Email..."
+        className="max-w-md bg-white rounded-none border-zinc-200 h-11 text-sm"
+      />
 
       <div className="bg-white rounded-none border border-zinc-200 overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="p-16 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">Polling Datastore...</div>
+          <div className="p-16 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">
+            Polling Datastore...
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="p-16 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">No parameters match.</div>
+          <div className="p-16 text-center text-xs font-mono text-gray-400 uppercase tracking-widest">
+            No parameters match.
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -415,19 +509,32 @@ export default function AdminOrdersPage() {
               <tbody className="divide-y divide-zinc-100 text-sm">
                 {filtered.map((order, index) => (
                   <motion.tr
-                    key={order.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.015 }}
-                    className="hover:bg-zinc-50/70 cursor-pointer" onClick={() => handleViewDetails(order)}
+                    key={order.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.015 }}
+                    className="hover:bg-zinc-50/70 cursor-pointer"
+                    onClick={() => handleViewDetails(order)}
                   >
-                    <td className="px-6 py-4 font-mono text-xs font-bold text-black uppercase">#{order.id.substring(0, 8)}</td>
+                    <td className="px-6 py-4 font-mono text-xs font-bold text-black uppercase">
+                      #{order.id.substring(0, 8)}
+                    </td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-zinc-900">{order.shipping_address?.first_name} {order.shipping_address?.last_name}</div>
+                      <div className="font-semibold text-zinc-900">
+                        {order.shipping_address?.first_name} {order.shipping_address?.last_name}
+                      </div>
                       <div className="text-xs text-zinc-400 font-mono">{order.email}</div>
                     </td>
-                    <td className="px-6 py-4 text-zinc-600 text-xs font-mono">{new Date(order.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-zinc-600 text-xs font-mono">
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </td>
                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <select
-                        value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)}
-                        className={`text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border-0 cursor-pointer ${statusColors[order.status]}`}
+                        value={order.status}
+                        onChange={(e) => updateStatus(order.id, e.target.value)}
+                        className={`text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border-0 cursor-pointer ${
+                          statusColors[order.status]
+                        }`}
                       >
                         <option value="draft">Draft (Unpaid)</option>
                         <option value="reserved">Reserved (Awaiting Pay)</option>
@@ -441,7 +548,9 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 font-bold">{formatCurrency(order.total_amount)}</td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-zinc-500 rounded-none"><Eye className="h-3.5 w-3.5 mr-1.5" /> Details</Button>
+                      <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-zinc-500 rounded-none">
+                        <Eye className="h-3.5 w-3.5 mr-1.5" /> Details
+                      </Button>
                     </td>
                   </motion.tr>
                 ))}
@@ -451,17 +560,22 @@ export default function AdminOrdersPage() {
         )}
       </div>
 
+      {/* Order Details Drawer */}
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <SheetContent className="sm:max-w-xl w-full overflow-y-auto bg-white rounded-none border-l border-zinc-200 p-8 space-y-8">
           {selectedOrder && (
             <>
               <SheetHeader className="space-y-2 border-b border-zinc-100 pb-6">
                 <div className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">Fulfillment Matrix</div>
-                <SheetTitle className="text-2xl font-black uppercase tracking-tight">Manifest #{selectedOrder.id.substring(0, 12).toUpperCase()}</SheetTitle>
+                <SheetTitle className="text-2xl font-black uppercase tracking-tight">
+                  Manifest #{selectedOrder.id.substring(0, 12).toUpperCase()}
+                </SheetTitle>
               </SheetHeader>
 
               <div className="space-y-4">
-                <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-400">Consignee Routing Details</h3>
+                <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-400">
+                  Consignee Routing Details
+                </h3>
                 <div className="bg-zinc-50 p-4 border border-zinc-100 space-y-3 text-sm">
                   <div className="grid grid-cols-3 border-b border-zinc-100/80 pb-2">
                     <span className="text-xs font-mono uppercase text-zinc-400">Identity</span>
@@ -475,31 +589,49 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="grid grid-cols-3 border-b border-zinc-100/80 pb-2">
                     <span className="text-xs font-mono uppercase text-zinc-400">Telecom Link</span>
-                    <span className="col-span-2 font-mono text-xs text-zinc-700">{selectedOrder.shipping_address?.phone || "N/A"}</span>
+                    <span className="col-span-2 font-mono text-xs text-zinc-700">
+                      {selectedOrder.shipping_address?.phone || "N/A"}
+                    </span>
                   </div>
                   <div className="grid grid-cols-3">
                     <span className="text-xs font-mono uppercase text-zinc-400">Physical Drop</span>
-                    <span className="col-span-2 text-xs text-zinc-600 leading-relaxed">{selectedOrder.shipping_address?.address || "N/A"}</span>
+                    <span className="col-span-2 text-xs text-zinc-600 leading-relaxed">
+                      {selectedOrder.shipping_address?.address || "N/A"}
+                    </span>
                   </div>
                   <div className="grid grid-cols-3 border-t border-zinc-100/80 pt-3 mt-3">
                     <span className="text-xs font-mono uppercase text-zinc-400 mt-2">Tracking Code</span>
                     <span className="col-span-2">
                       {isEditingTracking ? (
                         <div className="flex gap-2">
-                          <Input 
-                            value={trackingInput} 
-                            onChange={(e) => setTrackingInput(e.target.value)} 
-                            placeholder="Paste Waybill/Tracking..." 
+                          <Input
+                            value={trackingInput}
+                            onChange={(e) => setTrackingInput(e.target.value)}
+                            placeholder="Paste Waybill/Tracking..."
                             className="h-8 text-xs font-mono rounded-none border-zinc-300"
                           />
-                          <Button size="sm" className="h-8 rounded-none text-[10px] uppercase font-bold" onClick={handleSaveTracking}>Save</Button>
+                          <Button
+                            size="sm"
+                            className="h-8 rounded-none text-[10px] uppercase font-bold"
+                            onClick={handleSaveTracking}
+                          >
+                            Save
+                          </Button>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-xs text-zinc-800 font-bold">
                             {selectedOrder.tracking_number || "AWAITING DISPATCH"}
                           </span>
-                          <Button variant="ghost" size="sm" className="h-6 text-[10px] uppercase text-zinc-400 hover:text-black" onClick={() => { setTrackingInput(selectedOrder.tracking_number || ""); setIsEditingTracking(true); }}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-[10px] uppercase text-zinc-400 hover:text-black"
+                            onClick={() => {
+                              setTrackingInput(selectedOrder.tracking_number || "")
+                              setIsEditingTracking(true)
+                            }}
+                          >
                             <Edit2 className="h-3 w-3 mr-1" /> Edit
                           </Button>
                         </div>
@@ -511,27 +643,51 @@ export default function AdminOrdersPage() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-400">Allocated Line Items</h3>
-                  <Button variant="outline" size="sm" className="h-7 text-[10px] font-mono uppercase rounded-none tracking-wider" onClick={() => setIsEditingItems(!isEditingItems)}>
-                    {isEditingItems ? <span className="text-green-600 font-bold">Lock Ledger</span> : <span className="flex items-center"><ArrowLeftRight className="h-3 w-3 mr-1" /> Returns & Exchanges</span>}
+                  <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-400">
+                    Allocated Line Items
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[10px] font-mono uppercase rounded-none tracking-wider"
+                    onClick={() => setIsEditingItems(!isEditingItems)}
+                  >
+                    {isEditingItems ? (
+                      <span className="text-green-600 font-bold">Lock Ledger</span>
+                    ) : (
+                      <span className="flex items-center">
+                        <ArrowLeftRight className="h-3 w-3 mr-1" /> Returns & Exchanges
+                      </span>
+                    )}
                   </Button>
                 </div>
 
                 <div className="divide-y divide-zinc-100 border border-zinc-100">
-                  {selectedOrderItems.length === 0 && <div className="p-4 text-xs text-zinc-400 text-center font-mono">No products connected.</div>}
+                  {selectedOrderItems.length === 0 && (
+                    <div className="p-4 text-xs text-zinc-400 text-center font-mono">No products connected.</div>
+                  )}
                   {selectedOrderItems.map((item) => (
                     <div key={item.id} className="p-4 flex items-center justify-between text-sm hover:bg-zinc-50/50">
                       <div>
                         <div className="font-bold text-zinc-900 uppercase tracking-tight">{item.products?.name}</div>
                         <div className="text-xs text-zinc-500 uppercase font-mono mt-0.5">
-                          {item.product_variants?.attributes ? Object.values(item.product_variants.attributes).join(" / ") : "Standard"}
+                          {item.product_variants?.attributes
+                            ? Object.values(item.product_variants.attributes).join(" / ")
+                            : "Standard"}
                         </div>
-                        <div className="text-xs font-mono text-zinc-400 mt-1">QTY: {item.quantity} × {formatCurrency(item.price)}</div>
+                        <div className="text-xs font-mono text-zinc-400 mt-1">
+                          QTY: {item.quantity} × {formatCurrency(item.price)}
+                        </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-bold text-zinc-900">{formatCurrency(item.price * item.quantity)}</span>
                         {isEditingItems && (
-                          <Button variant="ghost" size="sm" className="h-8 text-xs text-red-500 hover:text-red-700 bg-red-50 rounded-none uppercase font-bold tracking-widest" onClick={() => handleReturnItem(item)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs text-red-500 hover:text-red-700 bg-red-50 rounded-none uppercase font-bold tracking-widest"
+                            onClick={() => handleReturnItem(item)}
+                          >
                             Return to Stock
                           </Button>
                         )}
@@ -542,29 +698,53 @@ export default function AdminOrdersPage() {
 
                 {isEditingItems && (
                   <div className="p-4 bg-zinc-50 border border-dashed border-zinc-200 space-y-2">
-                    <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block">Inject New Variant (Deducts Stock)</label>
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block">
+                      Inject New Variant (Deducts Stock)
+                    </label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400" />
-                      <Input placeholder="Search catalog..." value={variantSearchQuery} onChange={e => setVariantSearchQuery(e.target.value)} className="pl-8 rounded-none h-9 text-xs border-zinc-200" />
+                      <Input
+                        placeholder="Search catalog..."
+                        value={variantSearchQuery}
+                        onChange={(e) => setVariantSearchQuery(e.target.value)}
+                        className="pl-8 rounded-none h-9 text-xs border-zinc-200"
+                      />
                     </div>
                     {variantSearchQuery && (
                       <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 relative">
-                        {allVariants.filter(v => {
-                          const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
-                          const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
-                          return searchTerms.every(term => searchableText.includes(term));
-                        }).map(v => (
-                          <div key={v.id} className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 flex justify-between items-center"
-                            onClick={() => {
-                              handleAddLineItemToExisting(v.id); setVariantSearchQuery("");
-                            }}>
-                            <div><span className="font-bold uppercase">{v.product_name}</span> <span className="text-zinc-500 font-mono text-[10px]">({v.variant_name})</span></div>
-                            <div className="text-right">
-                              <div>{formatCurrency(v.price)}</div>
-                              <div className={v.stock_quantity > 0 ? "text-green-600 font-mono text-[9px] font-bold" : "text-red-500 font-mono text-[9px] font-bold"}>{v.stock_quantity} In Stock</div>
+                        {allVariants
+                          .filter((v) => {
+                            const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean)
+                            const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase()
+                            return searchTerms.every((term) => searchableText.includes(term))
+                          })
+                          .map((v) => (
+                            <div
+                              key={v.id}
+                              className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 flex justify-between items-center"
+                              onClick={() => {
+                                handleAddLineItemToExisting(v.id)
+                                setVariantSearchQuery("")
+                              }}
+                            >
+                              <div>
+                                <span className="font-bold uppercase">{v.product_name}</span>{" "}
+                                <span className="text-zinc-500 font-mono text-[10px]">({v.variant_name})</span>
+                              </div>
+                              <div className="text-right">
+                                <div>{formatCurrency(v.price)}</div>
+                                <div
+                                  className={
+                                    v.stock_quantity > 0
+                                      ? "text-green-600 font-mono text-[9px] font-bold"
+                                      : "text-red-500 font-mono text-[9px] font-bold"
+                                  }
+                                >
+                                  {v.stock_quantity} In Stock
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </div>
@@ -573,10 +753,12 @@ export default function AdminOrdersPage() {
 
               <div className="space-y-4 pt-4 border-t border-zinc-100">
                 <div className="flex justify-between text-zinc-500 font-light text-sm">
-                  <span>Shipping Route Surcharge</span><span className="font-mono">{formatCurrency(selectedOrder.shipping_cost)}</span>
+                  <span>Shipping Route Surcharge</span>
+                  <span className="font-mono">{formatCurrency(selectedOrder.shipping_cost)}</span>
                 </div>
                 <div className="flex justify-between text-base font-black text-zinc-900 pt-3 border-t border-zinc-100 uppercase tracking-tight">
-                  <span>Net Ledger Amount</span><span className="font-mono">{formatCurrency(selectedOrder.total_amount)}</span>
+                  <span>Net Ledger Amount</span>
+                  <span className="font-mono">{formatCurrency(selectedOrder.total_amount)}</span>
                 </div>
               </div>
             </>
@@ -584,6 +766,7 @@ export default function AdminOrdersPage() {
         </SheetContent>
       </Sheet>
 
+      {/* Manual Direct Order Creation Drawer */}
       <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <SheetContent className="sm:max-w-xl w-full overflow-y-auto bg-white rounded-none border-l border-zinc-200 p-8">
           <form onSubmit={handleCreateManualOrder} className="space-y-6">
@@ -592,57 +775,211 @@ export default function AdminOrdersPage() {
             </SheetHeader>
 
             <div className="space-y-3">
-              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">Customer Identity</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">
+                  Customer Identity
+                </h3>
+                {linkedCustomerEmail && (
+                  <button
+                    type="button"
+                    onClick={handleClearLinkedCustomer}
+                    className="text-[10px] font-mono uppercase text-zinc-500 hover:text-black flex items-center gap-1"
+                  >
+                    <X className="h-3 w-3" /> New Customer
+                  </button>
+                )}
+              </div>
+
+              {/* Live Type-to-Search Existing Customers */}
               {knownCustomers.length > 0 && (
-                <select className="w-full h-10 border border-zinc-200 bg-zinc-50 px-3 text-xs font-mono focus:outline-none rounded-none" onChange={(e) => handleCustomerSelect(e.target.value)} defaultValue="">
-                  <option value="" disabled>Auto-fill from previous customers...</option>
-                  {knownCustomers.map(c => <option key={c.email} value={c.email}>{c.first_name} {c.last_name} — {c.email}</option>)}
-                </select>
-              )}
-              <div className="space-y-2">
-                <Input placeholder="Email Address" type="email" required value={newOrderEmail} onChange={e => setNewOrderEmail(e.target.value)} className="rounded-none h-10 text-xs" />
-                <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="First Name" required value={newOrderFirstName} onChange={e => setNewOrderFirstName(e.target.value)} className="rounded-none h-10 text-xs" />
-                  <Input placeholder="Last Name" required value={newOrderLastName} onChange={e => setNewOrderLastName(e.target.value)} className="rounded-none h-10 text-xs" />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+                  <Input
+                    placeholder="Search existing customer by name, email, or phone..."
+                    value={customerSearchQuery}
+                    onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                    className="pl-9 rounded-none h-10 text-xs bg-zinc-50 border-zinc-200 font-mono"
+                  />
+
+                  {customerSearchQuery.trim() && (
+                    <div className="max-h-48 overflow-y-auto border border-zinc-300 bg-white shadow-md z-20 absolute w-full top-[42px]">
+                      {matchingCustomers.length === 0 ? (
+                        <div className="px-3 py-2.5 text-xs font-mono text-zinc-400">
+                          No existing customer found — fill details below to create new profile.
+                        </div>
+                      ) : (
+                        matchingCustomers.map((c) => (
+                          <div
+                            key={c.email}
+                            onClick={() => handleSelectExistingCustomer(c)}
+                            className="px-3 py-2.5 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 last:border-0 flex items-center justify-between"
+                          >
+                            <div>
+                              <div className="font-bold text-zinc-900">
+                                {c.first_name} {c.last_name}
+                              </div>
+                              <div className="font-mono text-[10px] text-zinc-500">
+                                {c.email} {c.phone ? `• ${c.phone}` : ""}
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-mono bg-zinc-100 px-2 py-0.5 text-zinc-600">
+                              {c.order_count} {c.order_count === 1 ? "order" : "orders"}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
-                <Input placeholder="Phone" type="tel" required value={newOrderPhone} onChange={e => setNewOrderPhone(e.target.value)} className="rounded-none h-10 text-xs" />
-                <Input placeholder="Address" required value={newOrderAddress} onChange={e => setNewOrderAddress(e.target.value)} className="rounded-none h-10 text-xs" />
+              )}
+
+              {/* Linked Account Confirmation Banner */}
+              {linkedCustomerEmail && (
+                <div className="bg-green-50 border border-green-200 px-3 py-2 flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 text-green-800 font-mono text-[11px]">
+                    <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                    Linked to existing account ({linkedCustomerEmail})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClearLinkedCustomer}
+                    className="text-[10px] font-mono underline text-green-700 hover:text-green-950"
+                  >
+                    Unlink
+                  </button>
+                </div>
+              )}
+
+              {/* Duplicate Email Warning if typed manually */}
+              {exactEmailMatch && (
+                <div className="bg-amber-50 border border-amber-200 px-3 py-2 flex items-center justify-between text-xs">
+                  <span className="text-amber-800 font-mono text-[11px]">
+                    Existing profile found for {exactEmailMatch.first_name} {exactEmailMatch.last_name}.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectExistingCustomer(exactEmailMatch)}
+                    className="text-[10px] font-mono font-bold uppercase underline text-amber-900"
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Input
+                  placeholder="Email Address"
+                  type="email"
+                  required
+                  value={newOrderEmail}
+                  onChange={(e) => {
+                    setNewOrderEmail(e.target.value)
+                    if (linkedCustomerEmail && e.target.value.trim().toLowerCase() !== linkedCustomerEmail) {
+                      setLinkedCustomerEmail(null)
+                    }
+                  }}
+                  className="rounded-none h-10 text-xs"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    placeholder="First Name"
+                    required
+                    value={newOrderFirstName}
+                    onChange={(e) => setNewOrderFirstName(e.target.value)}
+                    className="rounded-none h-10 text-xs"
+                  />
+                  <Input
+                    placeholder="Last Name"
+                    required
+                    value={newOrderLastName}
+                    onChange={(e) => setNewOrderLastName(e.target.value)}
+                    className="rounded-none h-10 text-xs"
+                  />
+                </div>
+                <Input
+                  placeholder="Phone"
+                  type="tel"
+                  required
+                  value={newOrderPhone}
+                  onChange={(e) => setNewOrderPhone(e.target.value)}
+                  className="rounded-none h-10 text-xs"
+                />
+                <Input
+                  placeholder="Address"
+                  required
+                  value={newOrderAddress}
+                  onChange={(e) => setNewOrderAddress(e.target.value)}
+                  className="rounded-none h-10 text-xs"
+                />
               </div>
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">Cargo Manifest Build</h3>
+              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">
+                Cargo Manifest Build
+              </h3>
               <div className="space-y-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                  <Input placeholder="Search catalog..." value={variantSearchQuery} onChange={e => setVariantSearchQuery(e.target.value)} className="pl-9 rounded-none h-11 text-xs border-zinc-200" />
+                  <Input
+                    placeholder="Search catalog..."
+                    value={variantSearchQuery}
+                    onChange={(e) => setVariantSearchQuery(e.target.value)}
+                    className="pl-9 rounded-none h-11 text-xs border-zinc-200"
+                  />
                 </div>
                 {variantSearchQuery && (
                   <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 relative">
-                    {allVariants.filter(v => {
-                      const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean);
-                      const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase();
-                      return searchTerms.every(term => searchableText.includes(term));
-                    }).map(v => (
-                      <div key={v.id} className={`px-3 py-2 text-xs border-b border-zinc-100 flex justify-between items-center ${v.stock_quantity > 0 ? "cursor-pointer hover:bg-zinc-100" : "opacity-50 cursor-not-allowed bg-zinc-50"}`}
-                        onClick={() => {
-                          if (v.stock_quantity < 1) return;
-                          const exists = newOrderItems.find(i => i.variantId === v.id)
-                          if (exists && exists.quantity >= v.stock_quantity) return alert("Cannot exceed available stock.")
-                          
-                          if (exists) setNewOrderItems(prev => prev.map(i => i.variantId === v.id ? { ...i, quantity: i.quantity + 1 } : i))
-                          else setNewOrderItems(prev => [...prev, { variantId: v.id, quantity: 1, discount: 0 }])
-                          
-                          setVariantSearchQuery("") 
-                        }}
-                      >
-                        <div><span className="font-bold uppercase">{v.product_name}</span> <span className="text-zinc-500 font-mono text-[10px]">({v.variant_name})</span></div>
-                        <div className="text-right">
-                          <div>{formatCurrency(v.price)}</div>
-                          <div className={v.stock_quantity > 0 ? "text-green-600 font-mono text-[9px] font-bold" : "text-red-500 font-mono text-[9px] font-bold"}>{v.stock_quantity} In Stock</div>
+                    {allVariants
+                      .filter((v) => {
+                        const searchTerms = variantSearchQuery.toLowerCase().split(" ").filter(Boolean)
+                        const searchableText = `${v.product_name} ${v.variant_name}`.toLowerCase()
+                        return searchTerms.every((term) => searchableText.includes(term))
+                      })
+                      .map((v) => (
+                        <div
+                          key={v.id}
+                          className={`px-3 py-2 text-xs border-b border-zinc-100 flex justify-between items-center ${
+                            v.stock_quantity > 0
+                              ? "cursor-pointer hover:bg-zinc-100"
+                              : "opacity-50 cursor-not-allowed bg-zinc-50"
+                          }`}
+                          onClick={() => {
+                            if (v.stock_quantity < 1) return
+                            const exists = newOrderItems.find((i) => i.variantId === v.id)
+                            if (exists && exists.quantity >= v.stock_quantity) {
+                              return alert("Cannot exceed available stock.")
+                            }
+
+                            if (exists) {
+                              setNewOrderItems((prev) =>
+                                prev.map((i) => (i.variantId === v.id ? { ...i, quantity: i.quantity + 1 } : i))
+                              )
+                            } else {
+                              setNewOrderItems((prev) => [...prev, { variantId: v.id, quantity: 1, discount: 0 }])
+                            }
+
+                            setVariantSearchQuery("")
+                          }}
+                        >
+                          <div>
+                            <span className="font-bold uppercase">{v.product_name}</span>{" "}
+                            <span className="text-zinc-500 font-mono text-[10px]">({v.variant_name})</span>
+                          </div>
+                          <div className="text-right">
+                            <div>{formatCurrency(v.price)}</div>
+                            <div
+                              className={
+                                v.stock_quantity > 0
+                                  ? "text-green-600 font-mono text-[9px] font-bold"
+                                  : "text-red-500 font-mono text-[9px] font-bold"
+                              }
+                            >
+                              {v.stock_quantity} In Stock
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </div>
@@ -650,9 +987,9 @@ export default function AdminOrdersPage() {
               {newOrderItems.length > 0 && (
                 <div className="border border-zinc-100 divide-y divide-zinc-100 max-h-40 overflow-y-auto mt-2">
                   {newOrderItems.map((item, index) => {
-                    const matchedVariant = allVariants.find(v => v.id === item.variantId)
-                    const lineTotal = ((matchedVariant?.price || 0) * item.quantity) - (item.discount || 0)
-                    
+                    const matchedVariant = allVariants.find((v) => v.id === item.variantId)
+                    const lineTotal = (matchedVariant?.price || 0) * item.quantity - (item.discount || 0)
+
                     return (
                       <div key={index} className="p-3 text-xs flex items-center justify-between bg-zinc-50/50">
                         <div className="flex-1 pr-2">
@@ -662,50 +999,66 @@ export default function AdminOrdersPage() {
                             Unit Price: {formatCurrency(matchedVariant?.price || 0)}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 sm:gap-3">
-                          {/* Quantity Input */}
                           <div className="flex flex-col items-center">
                             <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Qty</span>
-                            <input 
-                              type="number" min="1" max={matchedVariant?.stock_quantity || 1}
-                              className="w-10 sm:w-12 text-center h-7 border border-zinc-200 font-mono text-xs" 
-                              value={item.quantity} 
+                            <input
+                              type="number"
+                              min="1"
+                              max={matchedVariant?.stock_quantity || 1}
+                              className="w-10 sm:w-12 text-center h-7 border border-zinc-200 font-mono text-xs"
+                              value={item.quantity}
                               onChange={(e) => {
                                 const max = matchedVariant?.stock_quantity || 1
                                 let val = parseInt(e.target.value) || 1
                                 if (val > max) val = max
-                                setNewOrderItems(prev => prev.map(i => i.variantId === item.variantId ? { ...i, quantity: Math.max(1, val) } : i))
-                              }} 
+                                setNewOrderItems((prev) =>
+                                  prev.map((i) =>
+                                    i.variantId === item.variantId ? { ...i, quantity: Math.max(1, val) } : i
+                                  )
+                                )
+                              }}
                             />
                           </div>
-                          
-                          {/* 👉 NEW: Locked Down Discount Input */}
+
                           <div className="flex flex-col items-center">
-                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Discount {isEmployee && <span className="text-orange-500">(Max 200)</span>}</span>
-                            <input 
-                              type="number" min="0" max={isEmployee ? 200 : undefined}
+                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">
+                              Discount {isEmployee && <span className="text-orange-500">(Max 200)</span>}
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              max={isEmployee ? 200 : undefined}
                               placeholder="0"
-                              className="w-14 sm:w-16 text-center h-7 border border-zinc-200 font-mono text-xs" 
-                              value={item.discount === 0 ? "" : item.discount} 
+                              className="w-14 sm:w-16 text-center h-7 border border-zinc-200 font-mono text-xs"
+                              value={item.discount === 0 ? "" : item.discount}
                               onChange={(e) => {
                                 let val = parseFloat(e.target.value) || 0
-                                // Clamps the input to 200 if they are an employee
-                                if (isEmployee && val > 200) val = 200;
-                                setNewOrderItems(prev => prev.map(i => i.variantId === item.variantId ? { ...i, discount: Math.max(0, val) } : i))
-                              }} 
+                                if (isEmployee && val > 200) val = 200
+                                setNewOrderItems((prev) =>
+                                  prev.map((i) =>
+                                    i.variantId === item.variantId ? { ...i, discount: Math.max(0, val) } : i
+                                  )
+                                )
+                              }}
                             />
                           </div>
 
-                          {/* Line Total */}
                           <div className="flex flex-col items-end min-w-[60px]">
-                             <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Total</span>
-                             <span className="font-bold font-mono">
-                               {formatCurrency(lineTotal > 0 ? lineTotal : 0)}
-                             </span>
+                            <span className="text-[8px] uppercase text-zinc-400 mb-0.5">Total</span>
+                            <span className="font-bold font-mono">{formatCurrency(lineTotal > 0 ? lineTotal : 0)}</span>
                           </div>
 
-                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-red-500 shrink-0 ml-1" onClick={() => setNewOrderItems(prev => prev.filter(i => i.variantId !== item.variantId))}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-red-500 shrink-0 ml-1"
+                            onClick={() =>
+                              setNewOrderItems((prev) => prev.filter((i) => i.variantId !== item.variantId))
+                            }
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -717,42 +1070,95 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="space-y-3 pt-2">
-              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">Logistics Cost Overrides</h3>
+              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400">
+                Logistics Cost Overrides
+              </h3>
               <div className="space-y-1 relative">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                  <Input placeholder={newOrderShippingCost > 0 ? `Selected: KSH ${newOrderShippingCost}` : "Search destination..."} value={shippingSearchQuery} onChange={e => setShippingSearchQuery(e.target.value)} className="pl-9 rounded-none h-11 text-xs border-zinc-200" />
+                  <Input
+                    placeholder={
+                      newOrderShippingCost > 0 ? `Selected: KSH ${newOrderShippingCost}` : "Search destination..."
+                    }
+                    value={shippingSearchQuery}
+                    onChange={(e) => setShippingSearchQuery(e.target.value)}
+                    className="pl-9 rounded-none h-11 text-xs border-zinc-200"
+                  />
                 </div>
                 {shippingSearchQuery && (
                   <div className="max-h-40 overflow-y-auto border border-zinc-200 bg-white shadow-sm z-10 absolute w-full top-[44px]">
-                    <div className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 text-red-600 font-mono font-bold" onClick={() => { setNewOrderShippingCost(0); setShippingSearchQuery(""); }}>Clear / No Surcharge (KSH 0)</div>
-                    {shippingRates.filter(r => r.name.toLowerCase().includes(shippingSearchQuery.toLowerCase())).map(rate => (
-                        <div key={rate.id} className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 last:border-0" onClick={() => { setNewOrderShippingCost(rate.price); setShippingSearchQuery(""); }}>
+                    <div
+                      className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 text-red-600 font-mono font-bold"
+                      onClick={() => {
+                        setNewOrderShippingCost(0)
+                        setShippingSearchQuery("")
+                      }}
+                    >
+                      Clear / No Surcharge (KSH 0)
+                    </div>
+                    {shippingRates
+                      .filter((r) => r.name.toLowerCase().includes(shippingSearchQuery.toLowerCase()))
+                      .map((rate) => (
+                        <div
+                          key={rate.id}
+                          className="px-3 py-2 text-xs cursor-pointer hover:bg-zinc-100 border-b border-zinc-100 last:border-0"
+                          onClick={() => {
+                            setNewOrderShippingCost(rate.price)
+                            setShippingSearchQuery("")
+                          }}
+                        >
                           <span className="font-bold">{rate.name}</span> — {formatCurrency(rate.price)}
                         </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </div>
             </div>
 
             <div className="pt-6 border-t border-zinc-200 space-y-2">
-              <div className="flex justify-between text-xs text-zinc-500 font-mono"><span>Total Goods Value:</span><span>{formatCurrency(newOrderSubtotal)}</span></div>
-              <div className="flex justify-between text-xs text-zinc-500 font-mono"><span>Shipping Surcharge:</span><span>{formatCurrency(newOrderShippingCost)}</span></div>
-              <div className="flex justify-between text-base font-black text-black pt-2 border-t border-zinc-200"><span className="uppercase">Final Receipt:</span><span>{formatCurrency(newOrderFinalTotal)}</span></div>
+              <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                <span>Total Goods Value:</span>
+                <span>{formatCurrency(newOrderSubtotal)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                <span>Shipping Surcharge:</span>
+                <span>{formatCurrency(newOrderShippingCost)}</span>
+              </div>
+              <div className="flex justify-between text-base font-black text-black pt-2 border-t border-zinc-200">
+                <span className="uppercase">Final Receipt:</span>
+                <span>{formatCurrency(newOrderFinalTotal)}</span>
+              </div>
             </div>
-            
+
             <div className="pt-2">
-              <label className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400 block mb-2">Order Execution Protocol</label>
-              <select className="w-full h-11 border border-zinc-200 bg-zinc-50 px-3 text-xs font-bold font-mono focus:outline-none rounded-none text-zinc-700" value={newOrderStatus} onChange={e => setNewOrderStatus(e.target.value)}>
+              <label className="text-[10px] font-mono font-bold tracking-widest uppercase text-zinc-400 block mb-2">
+                Order Execution Protocol
+              </label>
+              <select
+                className="w-full h-11 border border-zinc-200 bg-zinc-50 px-3 text-xs font-bold font-mono focus:outline-none rounded-none text-zinc-700"
+                value={newOrderStatus}
+                onChange={(e) => setNewOrderStatus(e.target.value)}
+              >
                 <option value="reserved">Reserve Order (DEDUCT STOCK NOW)</option>
                 <option value="draft">Save as Draft (DO NOT DEDUCT STOCK)</option>
               </select>
             </div>
 
             <div className="pt-2 grid grid-cols-2 gap-3">
-              <Button type="button" variant="outline" className="h-12 text-xs font-bold uppercase rounded-none tracking-widest" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-              <Button type="submit" className="h-12 text-xs font-bold uppercase rounded-none tracking-widest bg-black text-white hover:bg-zinc-800">Execute Order</Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 text-xs font-bold uppercase rounded-none tracking-widest"
+                onClick={() => setIsCreateOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="h-12 text-xs font-bold uppercase rounded-none tracking-widest bg-black text-white hover:bg-zinc-800"
+              >
+                Execute Order
+              </Button>
             </div>
           </form>
         </SheetContent>

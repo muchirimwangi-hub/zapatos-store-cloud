@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Eye, Plus, Trash2, Edit2, Search, ArrowLeftRight, UserCheck, X } from "lucide-react"
+import { Eye, Plus, Trash2, Edit2, Search, ArrowLeftRight, UserCheck, X, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
@@ -15,12 +15,22 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 
+interface PaymentLog {
+  id: string
+  amount: number
+  date: string
+  note?: string
+}
+
 interface OrderRow {
   id: string
   email: string
   status: string
   total_amount: number
   shipping_cost: number
+  discount_amount?: number
+  amount_paid?: number
+  payment_logs?: PaymentLog[]
   tax: number
   created_at: string
   tracking_number?: string
@@ -72,6 +82,25 @@ const statusColors: Record<string, string> = {
   returned: "bg-red-100 text-red-800",
 }
 
+function getTodayDateInput(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, "0")
+  const day = String(now.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatPaymentDate(dateStr: string): string {
+  if (!dateStr) return ""
+  const parsed = new Date(`${dateStr}T00:00:00`)
+  if (isNaN(parsed.getTime())) return dateStr
+  return parsed.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRow[]>([])
   const [search, setSearch] = useState("")
@@ -85,6 +114,14 @@ export default function AdminOrdersPage() {
   const [isEditingItems, setIsEditingItems] = useState(false)
   const [isEditingTracking, setIsEditingTracking] = useState(false)
   const [trackingInput, setTrackingInput] = useState("")
+
+  // Extra Discount & Partial Payment States inside Order Details Drawer
+  const [extraDiscountInput, setExtraDiscountInput] = useState<string>("0")
+  const [isSavingDiscount, setIsSavingDiscount] = useState(false)
+  const [paymentAmountInput, setPaymentAmountInput] = useState<string>("")
+  const [paymentDateInput, setPaymentDateInput] = useState<string>(getTodayDateInput())
+  const [paymentNoteInput, setPaymentNoteInput] = useState<string>("")
+  const [isSavingPayment, setIsSavingPayment] = useState(false)
 
   const [allVariants, setAllVariants] = useState<ProductVariantSelection[]>([])
   const [shippingRates, setShippingRates] = useState<any[]>([])
@@ -144,7 +181,9 @@ export default function AdminOrdersPage() {
   }
 
   const loadCatalog = async () => {
-    const { data } = await supabase.from("product_variants").select(`id, product_id, price, stock_quantity, attributes, products(name)`)
+    const { data } = await supabase
+      .from("product_variants")
+      .select(`id, product_id, price, stock_quantity, attributes, products(name)`)
     if (data) {
       const formatted = data.map((v: any) => ({
         id: v.id,
@@ -202,7 +241,6 @@ export default function AdminOrdersPage() {
     setNewOrderAddress("")
   }
 
-  // Filter customers dynamically as admin types a name, email, or phone
   const matchingCustomers = customerSearchQuery.trim()
     ? knownCustomers.filter((c) => {
         const searchTerms = customerSearchQuery.toLowerCase().split(" ").filter(Boolean)
@@ -211,7 +249,6 @@ export default function AdminOrdersPage() {
       })
     : []
 
-  // Detect if typed email already belongs to an existing profile when not yet linked
   const exactEmailMatch =
     !linkedCustomerEmail && newOrderEmail.trim()
       ? knownCustomers.find((c) => c.email === newOrderEmail.trim().toLowerCase())
@@ -219,6 +256,10 @@ export default function AdminOrdersPage() {
 
   const handleViewDetails = async (order: OrderRow) => {
     setSelectedOrder(order)
+    setExtraDiscountInput(String(Number(order.discount_amount) || 0))
+    setPaymentAmountInput("")
+    setPaymentDateInput(getTodayDateInput())
+    setPaymentNoteInput("")
     setIsDetailOpen(true)
     setIsEditingItems(false)
     setSelectedOrderItems([])
@@ -246,6 +287,130 @@ export default function AdminOrdersPage() {
       })
       setSelectedOrderItems(formatted)
     }
+  }
+
+  // Compute Gross Amount (Items + Shipping before extra order-level discount)
+  const selectedOrderItemsSubtotal = selectedOrderItems.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+    0
+  )
+  const selectedOrderGrossAmount = selectedOrder
+    ? selectedOrderItems.length > 0
+      ? selectedOrderItemsSubtotal + (Number(selectedOrder.shipping_cost) || 0)
+      : (Number(selectedOrder.total_amount) || 0) + (Number(selectedOrder.discount_amount) || 0)
+    : 0
+
+  const parsedExtraDiscount = Math.max(0, parseFloat(extraDiscountInput) || 0)
+  const liveNetPayable = Math.max(0, selectedOrderGrossAmount - parsedExtraDiscount)
+  const savedPaymentLogs: PaymentLog[] = Array.isArray(selectedOrder?.payment_logs) ? selectedOrder!.payment_logs : []
+  const totalPaidAmount = savedPaymentLogs.length > 0
+    ? savedPaymentLogs.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+    : Number(selectedOrder?.amount_paid) || 0
+  const liveBalanceDue = Math.max(0, liveNetPayable - totalPaidAmount)
+
+  const handleSaveExtraDiscount = async () => {
+    if (!selectedOrder) return
+
+    let discountVal = Math.max(0, parseFloat(extraDiscountInput) || 0)
+    if (isEmployee && discountVal > 200) {
+      discountVal = 200
+      setExtraDiscountInput("200")
+    }
+
+    const updatedNetTotal = Math.max(0, selectedOrderGrossAmount - discountVal)
+    setIsSavingDiscount(true)
+
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        discount_amount: discountVal,
+        total_amount: updatedNetTotal,
+      })
+      .eq("id", selectedOrder.id)
+
+    setIsSavingDiscount(false)
+
+    if (error) {
+      return alert(`Failed to update discount: ${error.message}`)
+    }
+
+    const updatedOrder: OrderRow = {
+      ...selectedOrder,
+      discount_amount: discountVal,
+      total_amount: updatedNetTotal,
+    }
+    setSelectedOrder(updatedOrder)
+    setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updatedOrder : o)))
+  }
+
+  const handleRecordPayment = async (customAmount?: number) => {
+    if (!selectedOrder) return
+    const amount = customAmount !== undefined ? customAmount : parseFloat(paymentAmountInput) || 0
+    if (amount <= 0) return alert("Enter a valid payment amount greater than 0.")
+    if (!paymentDateInput) return alert("Select a payment date.")
+
+    const newLog: PaymentLog = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      amount,
+      date: paymentDateInput,
+      note: paymentNoteInput.trim() || undefined,
+    }
+
+    const updatedLogs = [...savedPaymentLogs, newLog]
+    const updatedAmountPaid = updatedLogs.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+
+    setIsSavingPayment(true)
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        payment_logs: updatedLogs,
+        amount_paid: updatedAmountPaid,
+      })
+      .eq("id", selectedOrder.id)
+
+    setIsSavingPayment(false)
+
+    if (error) {
+      return alert(`Failed to record payment: ${error.message}`)
+    }
+
+    const updatedOrder: OrderRow = {
+      ...selectedOrder,
+      payment_logs: updatedLogs,
+      amount_paid: updatedAmountPaid,
+    }
+    setSelectedOrder(updatedOrder)
+    setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updatedOrder : o)))
+    setPaymentAmountInput("")
+    setPaymentNoteInput("")
+  }
+
+  const handleDeletePaymentLog = async (logId: string) => {
+    if (!selectedOrder) return
+    if (!confirm("Remove this payment entry?")) return
+
+    const updatedLogs = savedPaymentLogs.filter((p) => p.id !== logId)
+    const updatedAmountPaid = updatedLogs.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        payment_logs: updatedLogs,
+        amount_paid: updatedAmountPaid,
+      })
+      .eq("id", selectedOrder.id)
+
+    if (error) {
+      return alert(`Failed to remove payment: ${error.message}`)
+    }
+
+    const updatedOrder: OrderRow = {
+      ...selectedOrder,
+      payment_logs: updatedLogs,
+      amount_paid: updatedAmountPaid,
+    }
+    setSelectedOrder(updatedOrder)
+    setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updatedOrder : o)))
   }
 
   const updateStatus = async (id: string, newStatus: string) => {
@@ -298,7 +463,10 @@ export default function AdminOrdersPage() {
         .eq("id", item.product_variant_id)
     }
 
-    const revisedTotal = Math.max(0, selectedOrder.total_amount - item.price * item.quantity)
+    const activeDiscount = Number(selectedOrder.discount_amount) || 0
+    const newGross = Math.max(0, selectedOrderGrossAmount - item.price * item.quantity)
+    const revisedTotal = Math.max(0, newGross - activeDiscount)
+
     await supabase.from("order_items").delete().eq("id", item.id)
     await supabase.from("orders").update({ total_amount: revisedTotal }).eq("id", selectedOrder.id)
 
@@ -342,7 +510,10 @@ export default function AdminOrdersPage() {
         products: { name: target.product_name },
         product_variants: { attributes: { label: target.variant_name } },
       }
-      const revisedTotal = selectedOrder.total_amount + target.price
+      const activeDiscount = Number(selectedOrder.discount_amount) || 0
+      const newGross = selectedOrderGrossAmount + target.price
+      const revisedTotal = Math.max(0, newGross - activeDiscount)
+
       await supabase.from("orders").update({ total_amount: revisedTotal }).eq("id", selectedOrder.id)
 
       setSelectedOrderItems((prev) => [...prev, newItem])
@@ -385,6 +556,9 @@ export default function AdminOrdersPage() {
         email: normalizedEmail,
         status: newOrderStatus,
         shipping_cost: Number(newOrderShippingCost),
+        discount_amount: 0,
+        amount_paid: 0,
+        payment_logs: [],
         total_amount: totalWithShipping,
         tax: 0,
         shipping_address: shippingPayload,
@@ -507,53 +681,71 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-sm">
-                {filtered.map((order, index) => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.015 }}
-                    className="hover:bg-zinc-50/70 cursor-pointer"
-                    onClick={() => handleViewDetails(order)}
-                  >
-                    <td className="px-6 py-4 font-mono text-xs font-bold text-black uppercase">
-                      #{order.id.substring(0, 8)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-zinc-900">
-                        {order.shipping_address?.first_name} {order.shipping_address?.last_name}
-                      </div>
-                      <div className="text-xs text-zinc-400 font-mono">{order.email}</div>
-                    </td>
-                    <td className="px-6 py-4 text-zinc-600 text-xs font-mono">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                      <select
-                        value={order.status}
-                        onChange={(e) => updateStatus(order.id, e.target.value)}
-                        className={`text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border-0 cursor-pointer ${
-                          statusColors[order.status]
-                        }`}
-                      >
-                        <option value="draft">Draft (Unpaid)</option>
-                        <option value="reserved">Reserved (Awaiting Pay)</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="returned">Returned</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 font-bold">{formatCurrency(order.total_amount)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-zinc-500 rounded-none">
-                        <Eye className="h-3.5 w-3.5 mr-1.5" /> Details
-                      </Button>
-                    </td>
-                  </motion.tr>
-                ))}
+                {filtered.map((order, index) => {
+                  const paid = Number(order.amount_paid) || 0
+                  const total = Number(order.total_amount) || 0
+                  const bal = Math.max(0, total - paid)
+
+                  return (
+                    <motion.tr
+                      key={order.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.015 }}
+                      className="hover:bg-zinc-50/70 cursor-pointer"
+                      onClick={() => handleViewDetails(order)}
+                    >
+                      <td className="px-6 py-4 font-mono text-xs font-bold text-black uppercase">
+                        #{order.id.substring(0, 8)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-zinc-900">
+                          {order.shipping_address?.first_name} {order.shipping_address?.last_name}
+                        </div>
+                        <div className="text-xs text-zinc-400 font-mono">{order.email}</div>
+                      </td>
+                      <td className="px-6 py-4 text-zinc-600 text-xs font-mono">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={order.status}
+                          onChange={(e) => updateStatus(order.id, e.target.value)}
+                          className={`text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border-0 cursor-pointer ${
+                            statusColors[order.status]
+                          }`}
+                        >
+                          <option value="draft">Draft (Unpaid)</option>
+                          <option value="reserved">Reserved (Awaiting Pay)</option>
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                          <option value="returned">Returned</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-bold">{formatCurrency(total)}</div>
+                        {paid > 0 && bal > 0 && (
+                          <div className="text-[10px] font-mono font-bold text-orange-600 uppercase">
+                            BAL: {formatCurrency(bal)}
+                          </div>
+                        )}
+                        {paid > 0 && bal === 0 && total > 0 && (
+                          <div className="text-[10px] font-mono font-bold text-green-600 uppercase">
+                            PAID IN FULL
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-zinc-500 rounded-none">
+                          <Eye className="h-3.5 w-3.5 mr-1.5" /> Details
+                        </Button>
+                      </td>
+                    </motion.tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -751,14 +943,158 @@ export default function AdminOrdersPage() {
                 )}
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-zinc-100">
-                <div className="flex justify-between text-zinc-500 font-light text-sm">
-                  <span>Shipping Route Surcharge</span>
-                  <span className="font-mono">{formatCurrency(selectedOrder.shipping_cost)}</span>
+              {/* Financial & Payment Ledger (Gross, Extra Discount, Payments with Date, Auto Balance) */}
+              <div className="space-y-4 pt-4 border-t border-zinc-200">
+                <h3 className="text-[11px] font-mono font-bold tracking-widest uppercase text-zinc-400">
+                  Financial & Payment Ledger
+                </h3>
+
+                <div className="bg-zinc-50 border border-zinc-200 p-4 space-y-3">
+                  {/* Shipping Surcharge */}
+                  <div className="flex justify-between text-xs font-mono text-zinc-500">
+                    <span>Shipping Route Surcharge</span>
+                    <span>{formatCurrency(selectedOrder.shipping_cost)}</span>
+                  </div>
+
+                  {/* Gross Amount before extra order discount */}
+                  <div className="flex justify-between text-xs font-mono text-zinc-700 font-semibold">
+                    <span>Order Gross Amount</span>
+                    <span>{formatCurrency(selectedOrderGrossAmount)}</span>
+                  </div>
+
+                  {/* Extra Order-Level Discount Input */}
+                  <div className="pt-2 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <label className="text-xs font-mono uppercase text-zinc-600">
+                      Extra Discount {isEmployee && <span className="text-orange-600">(Max 200)</span>}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max={isEmployee ? 200 : undefined}
+                        value={extraDiscountInput}
+                        onChange={(e) => {
+                          let val = parseFloat(e.target.value)
+                          if (isNaN(val)) {
+                            setExtraDiscountInput(e.target.value)
+                            return
+                          }
+                          if (isEmployee && val > 200) val = 200
+                          setExtraDiscountInput(String(Math.max(0, val)))
+                        }}
+                        placeholder="0"
+                        className="w-28 h-8 text-xs font-mono rounded-none bg-white border-zinc-300 text-right"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={isSavingDiscount}
+                        onClick={handleSaveExtraDiscount}
+                        className="h-8 px-3 rounded-none text-[10px] font-mono uppercase font-bold bg-black text-white hover:bg-zinc-800"
+                      >
+                        {isSavingDiscount ? "..." : "Apply"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Net Payable Amount */}
+                  <div className="flex justify-between text-sm font-black text-zinc-900 pt-2 border-t border-zinc-200 uppercase">
+                    <span>Net Ledger Amount</span>
+                    <span className="font-mono">{formatCurrency(liveNetPayable)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-base font-black text-zinc-900 pt-3 border-t border-zinc-100 uppercase tracking-tight">
-                  <span>Net Ledger Amount</span>
-                  <span className="font-mono">{formatCurrency(selectedOrder.total_amount)}</span>
+
+                {/* Recorded Payments & Add Payment Form */}
+                <div className="border border-zinc-200 bg-white p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-500">
+                      Payments Received ({savedPaymentLogs.length})
+                    </span>
+                    {liveBalanceDue > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRecordPayment(liveBalanceDue)}
+                        disabled={isSavingPayment}
+                        className="text-[10px] font-mono font-bold uppercase underline text-green-700 hover:text-green-900"
+                      >
+                        Mark Full Balance Paid ({formatCurrency(liveBalanceDue)})
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Logged Payments List */}
+                  {savedPaymentLogs.length > 0 && (
+                    <div className="divide-y divide-zinc-100 border border-zinc-100 bg-zinc-50/60">
+                      {savedPaymentLogs.map((log) => (
+                        <div key={log.id} className="px-3 py-2 flex items-center justify-between text-xs font-mono">
+                          <div>
+                            <span className="font-bold text-green-700">{formatCurrency(log.amount)}</span>
+                            <span className="text-zinc-500 ml-2">on {formatPaymentDate(log.date)}</span>
+                            {log.note && <span className="text-zinc-400 ml-2">({log.note})</span>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePaymentLog(log.id)}
+                            className="text-zinc-400 hover:text-red-600 p-1"
+                            title="Remove payment entry"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add New Payment Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+                    <div className="sm:col-span-4">
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Paid e.g. 2300"
+                        value={paymentAmountInput}
+                        onChange={(e) => setPaymentAmountInput(e.target.value)}
+                        className="h-9 text-xs font-mono rounded-none border-zinc-200"
+                      />
+                    </div>
+                    <div className="sm:col-span-4">
+                      <input
+                        type="date"
+                        value={paymentDateInput}
+                        onChange={(e) => setPaymentDateInput(e.target.value)}
+                        className="w-full h-9 border border-zinc-200 bg-white px-2.5 text-xs font-mono text-zinc-800 rounded-none focus:outline-none focus:border-black"
+                      />
+                    </div>
+                    <div className="sm:col-span-4 flex gap-1.5">
+                      <Input
+                        type="text"
+                        placeholder="Ref / Note"
+                        value={paymentNoteInput}
+                        onChange={(e) => setPaymentNoteInput(e.target.value)}
+                        className="h-9 text-xs font-mono rounded-none border-zinc-200"
+                      />
+                      <Button
+                        type="button"
+                        disabled={isSavingPayment}
+                        onClick={() => handleRecordPayment()}
+                        className="h-9 px-3 rounded-none bg-black hover:bg-zinc-800 text-white text-[10px] font-mono uppercase font-bold shrink-0"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Summary Totals: Total Paid & Auto-Recalculated Balance */}
+                  <div className="pt-3 border-t border-zinc-200 space-y-1.5">
+                    <div className="flex justify-between text-xs font-mono text-green-700 font-bold">
+                      <span>Total Paid:</span>
+                      <span>{formatCurrency(totalPaidAmount)}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-black text-white px-3 py-2.5 font-mono">
+                      <span className="text-xs font-bold uppercase tracking-wider">Balance Due:</span>
+                      <span className="text-base font-black">{formatCurrency(liveBalanceDue)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </>

@@ -471,7 +471,22 @@ export default function AdminOrdersPage() {
     const confirmReturn = confirm("Remove item from invoice and return quantity to warehouse stock?")
     if (!confirmReturn) return
 
-    // Resolve parent bundle variant ID if applicable so stock returns to the parent tracksuit
+    // 1. Delete the line item first and verify Supabase actually removed the row
+    const { data: deletedRows, error: deleteError } = await supabase
+      .from("order_items")
+      .delete()
+      .eq("id", item.id)
+      .select("id")
+
+    if (deleteError || !deletedRows || deletedRows.length === 0) {
+      return alert(
+        `Database blocked line item removal: ${
+          deleteError?.message || "Check DELETE RLS policy on order_items."
+        }`
+      )
+    }
+
+    // 2. Resolve parent bundle variant ID if applicable so stock returns to the parent tracksuit
     const catalogMatch = allVariants.find((v) => v.id === item.product_variant_id)
     const targetStockId = catalogMatch?.stock_source_id || item.product_variant_id
 
@@ -488,11 +503,11 @@ export default function AdminOrdersPage() {
         .eq("id", targetStockId)
     }
 
+    // 3. Recalculate order total
     const activeDiscount = Number(selectedOrder.discount_amount) || 0
     const newGross = Math.max(0, selectedOrderGrossAmount - item.price * item.quantity)
     const revisedTotal = Math.max(0, newGross - activeDiscount)
 
-    await supabase.from("order_items").delete().eq("id", item.id)
     await supabase.from("orders").update({ total_amount: revisedTotal }).eq("id", selectedOrder.id)
 
     setSelectedOrderItems((prev) => prev.filter((i) => i.id !== item.id))

@@ -24,14 +24,14 @@ export function ProductForm({
   const [description, setDescription] = useState(initialData?.description || "");
   const [isActive, setIsActive] = useState<boolean>(initialData?.is_active ?? true);
   const [images, setImages] = useState<string[]>(initialData?.images || []);
+  const [deletedVariantIds, setDeletedVariantIds] = useState<string[]>([]);
   
-  // 👉 UPDATED: Now stores label AND stock_quantity for master synchronization
+  // Stores label AND stock_quantity for master synchronization
   const [bundleParents, setBundleParents] = useState<{id: string, label: string, stock_quantity: number}[]>([]);
 
   useEffect(() => {
     const fetchBundleParents = async () => {
       const supabase = createClient();
-      // 👉 Fetch stock_quantity so we can mirror it in the UI
       const { data } = await supabase.from('products').select('id, name, product_variants(id, sku, attributes, stock_quantity)');
       if (data) {
         const parents = data.flatMap(p => 
@@ -54,6 +54,8 @@ export function ProductForm({
   );
 
   const [variants, setVariants] = useState(initialData?.product_variants?.map((v: any) => ({
+    id: v.id || undefined,
+    sku: v.sku || undefined,
     attributes: v.attributes || {},
     stock_quantity: v.stock_quantity || 0,
     price: v.price || 0,
@@ -94,13 +96,16 @@ export function ProductForm({
 
       const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
 
-      if (!uploadError) {
+      if (uploadError) {
+        alert(`Failed to upload "${file.name}": ${uploadError.message}`);
+      } else {
         const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
         newImageUrls.push(data.publicUrl);
       }
     }
     setImages(newImageUrls);
     setIsUploading(false);
+    e.target.value = "";
   };
 
   const addOptionKey = () => setOptionKeys([...optionKeys, `Option ${optionKeys.length + 1}`]);
@@ -121,46 +126,123 @@ export function ProductForm({
     setVariants(newVariants);
   };
 
+  const handleRemoveVariantRow = (indexToRemove: number) => {
+    const target = variants[indexToRemove];
+    if (target?.id) {
+      setDeletedVariantIds((prev) => [...prev, target.id]);
+    }
+    setVariants(variants.filter((_: any, idx: number) => idx !== indexToRemove));
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isEmployee) return; 
     setIsSaving(true);
     const supabase = createClient();
-    const generatedSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const generatedSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const basePrice = variants.length > 0 ? parseFloat(variants[0].price) || 0 : 0;
 
-    const { data: parent, error: pErr } = await supabase.from("products").upsert({
-      ...(productId ? { id: productId } : {}),
-      name, slug: generatedSlug, price: basePrice, category, description, images, is_active: isActive 
-    }).select().single();
+    const productPayload = {
+      name,
+      slug: generatedSlug,
+      price: basePrice,
+      category,
+      description,
+      images,
+      is_active: isActive,
+    };
 
-    if (!pErr) {
-      await supabase.from("product_variants").delete().eq("product_id", parent.id);
-      
-      if (variants.length > 0) {
-        const formattedVariants = variants.map((v: any) => {
-          const attrString = Object.values(v.attributes).join("-");
-          const randomSuffix = Math.random().toString(36).substring(2, 6);
-          const skuCode = `${generatedSlug}-${attrString}-${randomSuffix}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const { data: parent, error: pErr } = productId
+      ? await supabase
+          .from("products")
+          .update(productPayload)
+          .eq("id", productId)
+          .select()
+          .single()
+      : await supabase
+          .from("products")
+          .insert(productPayload)
+          .select()
+          .single();
 
-          return {
-            product_id: parent.id,
-            sku: skuCode,
-            attributes: v.attributes, 
-            stock_quantity: parseInt(v.stock_quantity) || 0,
-            image_url: v.image_url || "",
-            price: parseFloat(v.price) || 0,
-            compare_at_price: parseFloat(v.compare_at_price) || 0,
-            weight_kg: parseFloat(v.weight_kg) || 0,
-            bundle_parent_id: v.bundle_parent_id || null
-          };
-        });
-        await supabase.from("product_variants").insert(formattedVariants);
-      }
-      router.push("/admin/products");
-      router.refresh();
+    if (pErr || !parent) {
+      alert(`Failed to save product record: ${pErr?.message || "Database rejected update."}`);
+      setIsSaving(false);
+      return;
     }
+
+    // 1. Delete only variants explicitly removed by clicking the trash icon
+    if (deletedVariantIds.length > 0) {
+      const { error: delErr } = await supabase
+        .from("product_variants")
+        .delete()
+        .in("id", deletedVariantIds);
+
+      if (delErr) {
+        alert(
+          `Note: One or more removed variants are tied to historical customer orders and could not be deleted (${delErr.message}). Your other changes will still be saved.`
+        );
+      }
+    }
+
+    // 2. Update existing variants in place (preserves IDs & order history)
+    const existingVariants = variants.filter((v: any) => Boolean(v.id));
+    for (const v of existingVariants) {
+      const { error: updErr } = await supabase
+        .from("product_variants")
+        .update({
+          attributes: v.attributes,
+          stock_quantity: parseInt(v.stock_quantity) || 0,
+          image_url: v.image_url || "",
+          price: parseFloat(v.price) || 0,
+          compare_at_price: parseFloat(v.compare_at_price) || 0,
+          weight_kg: parseFloat(v.weight_kg) || 0,
+          bundle_parent_id: v.bundle_parent_id || null,
+        })
+        .eq("id", v.id);
+
+      if (updErr) {
+        alert(`Failed to update variant: ${updErr.message}`);
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    // 3. Insert newly appended variants
+    const newVariants = variants.filter((v: any) => !v.id);
+    if (newVariants.length > 0) {
+      const formattedNewVariants = newVariants.map((v: any) => {
+        const attrString = Object.values(v.attributes).join("-");
+        const randomSuffix = Math.random().toString(36).substring(2, 6);
+        const skuCode = `${generatedSlug}-${attrString}-${randomSuffix}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+        return {
+          product_id: parent.id,
+          sku: skuCode,
+          attributes: v.attributes,
+          stock_quantity: parseInt(v.stock_quantity) || 0,
+          image_url: v.image_url || "",
+          price: parseFloat(v.price) || 0,
+          compare_at_price: parseFloat(v.compare_at_price) || 0,
+          weight_kg: parseFloat(v.weight_kg) || 0,
+          bundle_parent_id: v.bundle_parent_id || null,
+        };
+      });
+
+      const { error: insErr } = await supabase
+        .from("product_variants")
+        .insert(formattedNewVariants);
+
+      if (insErr) {
+        alert(`Failed to add new variants: ${insErr.message}`);
+        setIsSaving(false);
+        return;
+      }
+    }
+
     setIsSaving(false);
+    router.push("/admin/products");
+    router.refresh();
   };
 
   return (
@@ -279,13 +361,13 @@ export function ProductForm({
             }
 
             return (
-              <div key={i} className={`flex flex-wrap gap-2 border border-zinc-200 p-2 pl-3 items-center bg-zinc-50 rounded-none relative ${isEmployee ? 'opacity-80' : 'group hover:border-zinc-400 transition-colors'}`}>
+              <div key={v.id || `new-${i}`} className={`flex flex-wrap gap-2 border border-zinc-200 p-2 pl-3 items-center bg-zinc-50 rounded-none relative ${isEmployee ? 'opacity-80' : 'group hover:border-zinc-400 transition-colors'}`}>
                 
                 {optionKeys.map(key => (
                   <Input disabled={isEmployee} key={key} className="w-24 placeholder:text-zinc-300 rounded-none h-9 text-xs bg-white disabled:cursor-not-allowed" placeholder={key} value={v.attributes[key] || ""} onChange={e => updateVariantAttribute(i, key, e.target.value)} />
                 ))}
                 
-                {/* 👉 UPGRADED QTY BOX: Automatically displays master tracksuits stock if linked! */}
+                {/* Automatically displays master tracksuits stock if linked */}
                 <Input 
                   disabled={isEmployee || !!v.bundle_parent_id} 
                   className={`w-16 rounded-none h-9 text-xs font-mono bg-white disabled:cursor-not-allowed ${v.bundle_parent_id ? 'font-bold text-green-700 bg-green-50/50 border-green-200' : ''}`} 
@@ -319,7 +401,7 @@ export function ProductForm({
                   ))}
                 </select>
 
-                {/* ERGONOMIC SEARCHABLE COMBOBOX FOR MASTER LINK */}
+                {/* SEARCHABLE COMBOBOX FOR MASTER LINK */}
                 <div className="flex-1 min-w-[200px] relative">
                   <input 
                     type="text"
@@ -378,7 +460,7 @@ export function ProductForm({
                 </div>
 
                 {!isEmployee && (
-                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-none" onClick={() => setVariants(variants.filter((_: any, idx: number) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-none" onClick={() => handleRemoveVariantRow(i)}><Trash2 className="w-4 h-4" /></Button>
                 )}
               </div>
             );

@@ -67,6 +67,8 @@ export function ProductForm({
   })) || []);
 
   const [variantFilter, setVariantFilter] = useState("");
+  const [bulkFindValue, setBulkFindValue] = useState("");
+  const [bulkReplaceValue, setBulkReplaceValue] = useState("");
 
   const isVideo = (url: string) => {
     return /\.(mp4|webm|ogg|mov)$/i.test(url);
@@ -124,6 +126,36 @@ export function ProductForm({
     const newVariants = [...variants];
     newVariants[vIndex].attributes = { ...newVariants[vIndex].attributes, [key]: value };
     setVariants(newVariants);
+  };
+
+  const handleBulkRenameValue = () => {
+    const findTrimmed = bulkFindValue.trim();
+    const replaceTrimmed = bulkReplaceValue.trim();
+    if (!findTrimmed || !replaceTrimmed) return;
+
+    let updatedCount = 0;
+    const nextVariants = variants.map((v: any) => {
+      let rowChanged = false;
+      const nextAttrs: Record<string, string> = { ...v.attributes };
+      Object.keys(nextAttrs).forEach((k) => {
+        if (String(nextAttrs[k]).trim() === findTrimmed) {
+          nextAttrs[k] = replaceTrimmed;
+          rowChanged = true;
+        }
+      });
+      if (rowChanged) updatedCount += 1;
+      return rowChanged ? { ...v, attributes: nextAttrs } : v;
+    });
+
+    if (updatedCount === 0) {
+      alert(`No variant rows matched "${findTrimmed}".`);
+      return;
+    }
+
+    setVariants(nextVariants);
+    if (variantFilter === findTrimmed) setVariantFilter(replaceTrimmed);
+    setBulkFindValue("");
+    setBulkReplaceValue("");
   };
 
   const handleRemoveVariantRow = (indexToRemove: number) => {
@@ -185,10 +217,10 @@ export function ProductForm({
       }
     }
 
-    // 2. Update existing variants in place (preserves IDs & order history)
+    // 2. Update existing variants in place and verify row update succeeded
     const existingVariants = variants.filter((v: any) => Boolean(v.id));
     for (const v of existingVariants) {
-      const { error: updErr } = await supabase
+      const { data: updatedRows, error: updErr } = await supabase
         .from("product_variants")
         .update({
           attributes: v.attributes,
@@ -199,10 +231,15 @@ export function ProductForm({
           weight_kg: parseFloat(v.weight_kg) || 0,
           bundle_parent_id: v.bundle_parent_id || null,
         })
-        .eq("id", v.id);
+        .eq("id", v.id)
+        .select("id");
 
-      if (updErr) {
-        alert(`Failed to update variant: ${updErr.message}`);
+      if (updErr || !updatedRows || updatedRows.length === 0) {
+        alert(
+          `Database blocked variant update: ${
+            updErr?.message || "Check UPDATE RLS policy on product_variants."
+          }`
+        );
         setIsSaving(false);
         return;
       }
@@ -342,14 +379,48 @@ export function ProductForm({
         </div>
 
         {variants.length > 0 && uniqueAttributeValues.length > 0 && (
-          <div className="flex items-center gap-3 bg-zinc-50 p-2 border border-zinc-200 mb-4">
-            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 pl-2">Filter View:</span>
-            <select className="h-8 px-2 border border-zinc-200 text-xs font-bold bg-white rounded-none outline-none focus:border-black cursor-pointer" value={variantFilter} onChange={(e) => setVariantFilter(e.target.value)}>
-              <option value="">Show All Variants</option>
-              {uniqueAttributeValues.map((val: string) => (
-                <option key={val} value={val}>Only show: {val}</option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-50 p-2.5 border border-zinc-200 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 pl-1">Filter View:</span>
+              <select className="h-8 px-2 border border-zinc-200 text-xs font-bold bg-white rounded-none outline-none focus:border-black cursor-pointer" value={variantFilter} onChange={(e) => setVariantFilter(e.target.value)}>
+                <option value="">Show All Variants</option>
+                {uniqueAttributeValues.map((val: string) => (
+                  <option key={val} value={val}>Only show: {val}</option>
+                ))}
+              </select>
+            </div>
+
+            {!isEmployee && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Bulk Rename:</span>
+                <select
+                  value={bulkFindValue}
+                  onChange={(e) => setBulkFindValue(e.target.value)}
+                  className="h-8 px-2 border border-zinc-200 text-xs bg-white rounded-none outline-none focus:border-black"
+                >
+                  <option value="">Select value...</option>
+                  {uniqueAttributeValues.map((val: string) => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
+                <Input
+                  value={bulkReplaceValue}
+                  onChange={(e) => setBulkReplaceValue(e.target.value)}
+                  placeholder="New name..."
+                  className="h-8 w-36 text-xs rounded-none bg-white border-zinc-200"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBulkRenameValue}
+                  disabled={!bulkFindValue || !bulkReplaceValue.trim()}
+                  className="h-8 px-3 text-[10px] font-mono uppercase font-bold rounded-none border-black hover:bg-black hover:text-white"
+                >
+                  Rename All
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
